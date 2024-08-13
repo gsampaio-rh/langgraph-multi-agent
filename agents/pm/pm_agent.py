@@ -1,7 +1,12 @@
 from agents.base_agent import Agent
-from state.agent_state import get_first_entry_from_state, get_last_entry_from_state
+from state.agent_state import (
+    get_first_entry_from_state,
+    get_all_entries_from_state, 
+    get_last_entry_from_state,
+)
 from utils.helpers import get_current_utc_datetime
 from typing import Dict
+import json
 
 pm_sys_prompt_template = """
 You are a Project Manager. Your role is to manage the execution of a project plan created by the Project Planner. You are responsible for breaking down the initial plan into actionable tasks, managing task updates, tracking progress, and ensuring effective communication between agents.
@@ -12,6 +17,9 @@ You are a Project Manager. Your role is to manage the execution of a project pla
 ### Inputs:
 1. **Planner:** The initial plan from the Project Planner, which you'll break down into actionable tasks.
 2. **Reviewer:** Ongoing feedback from the reviewer on a task, which you will use to update the task list.
+
+## User Request
+{user_request}
 
 ### The original overall plan instructions from the Project Planner:
 {original_plan}
@@ -42,7 +50,7 @@ For each task, output the following information:
 - **task_id:** A unique identifier for the task.
 - **user_story:** A brief description explaining what needs to be done and why.
 - **agent:** The agent responsible for the task (architect/researcher/engineer/qa/reviewer/planner/pm/tools).
-- **status:** The current status of the task (e.g., "to_do", "in_progress", "done").
+- **status:** The current status of the task ("to_do", "in_progress", "incomplete", "done").
 - **depends_on:** Any other tasks this task depends on.
 - **acceptance_criteria:** Conditions that must be met for the task to be considered complete.
 
@@ -66,20 +74,18 @@ Remember:
 - Assign tasks to the most appropriate agent based on their role.
 - Ensure task details are clear, concise, and aligned with the project plan.
 - Use the exact agent names (architect/researcher/engineer/qa/reviewer/planner/pm/tools) as specified, **and ensure they are written in lowercase**.
+- Only use the following statuses: "to_do", "in_progress", "incomplete", "done".
 - Use the correct JSON format and ensure all required fields are included.
 """
 
 class PMAgent(Agent):
 
-    def invoke(
-        self, request: str, tools_description: str
-    ) -> Dict:
+    def invoke(self, user_request: str, tools_description: str) -> Dict:
         """
         Invoke the PM agent by processing the agent request and generating a response.
 
         Parameters:
         - user_request (str): The user request that the agent should process.
-        - agent_request (str): The agent's request that the PM agent should handle.
         - tools_description (str): The description of the available tools.
 
         Returns:
@@ -87,7 +93,7 @@ class PMAgent(Agent):
         """
         self.log(
             agent="Manager Agent 👩‍💼",
-            message=f"🤔 Started processing request {request}",
+            message=f"🤔 Started processing...",
             color="yellow",
         )
 
@@ -112,26 +118,52 @@ class PMAgent(Agent):
         task_list = get_last_entry_from_state(self.state, "manager_response")
 
         if not task_list or task_list == "":
-            task_message = "📝 Task list is empty. Starting from scratch..."
+            self.log(
+                agent="Manager Agent 👩‍💼",
+                message="📝 Task list is empty. Starting from scratch...",
+                color="yellow",
+            )
+            usr_prompt = "The task list is empty. You need to create a plan."
         else:
-            task_message = f"🟢 Now I have the last task list: {task_list}."
+            self.log(
+                agent="Manager Agent 👩‍💼",
+                message=f"🟢 Now I have the last task list: {task_list}.",
+                color="yellow",
+            )
 
-        self.log(
-            agent="Manager Agent 👩‍💼",
-            message=task_message,
-            color="yellow",
-        )
+            # task_list_dict = json.loads(task_list.content)
+            # incomplete_tasks = [
+            #     task for task in task_list_dict["tasks"] if task["status"] != "done"
+            # ]
+
+            all_reviewer_responses = get_all_entries_from_state(
+                self.state, "reviewer_response"
+            )
+
+            if not all_reviewer_responses or all_reviewer_responses == "":
+                self.log(
+                    agent="Manager Agent 👩‍💼",
+                    message=f"🟡 Not all tasks are done but the reviewer didn't send any response yet.",
+                    color="yellow",
+                )
+                usr_prompt = "Not all tasks are done but the reviewer didn't send any response yet. I don't need to update anything."
+            else:
+                self.log(
+                    agent="Manager Agent 👩‍💼",
+                    message=f"🟢 Now I have the reviewer responses: {all_reviewer_responses}.",
+                    color="yellow",
+                )
+                usr_prompt = f"The reviewer sent a list of updates to the tasks: {all_reviewer_responses}" 
 
         sys_prompt = pm_sys_prompt_template.format(
             original_plan=original_plan.content,
+            user_request=user_request,
             tools_description=tools_description,
             task_list=task_list,
             datetime=get_current_utc_datetime(),
         )
 
-        agent_prompt = f"Request: {request}"
-
-        payload = self.prepare_payload(sys_prompt, agent_prompt)
+        payload = self.prepare_payload(sys_prompt, usr_prompt)
 
         while True:
             self.log(

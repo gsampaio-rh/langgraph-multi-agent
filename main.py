@@ -10,7 +10,7 @@ def main():
     iterations = 10
     config = {"configurable": {"thread_id": "1"}}
     verbose = True
-    user_request = "Bring me the content on this page: https://example.com/"
+    user_request = "Bring me the body of this page: https://example.com/"
     dict_inputs = {"user_request": user_request}
     limit = {"recursion_limit": iterations}
 

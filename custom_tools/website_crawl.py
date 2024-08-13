@@ -29,12 +29,13 @@ def website_crawl(url: str) -> str:
     urls = [url]
     loader = AsyncHtmlLoader(urls)
     docs = loader.load()
+    # print(docs)
 
-    bs_transformer = BeautifulSoupTransformer()
-    docs_transformed = bs_transformer.transform_documents(
-        docs, tags_to_extract=["article"]
-    )
+    # bs_transformer = BeautifulSoupTransformer()
+    # docs_transformed = bs_transformer.transform_documents(
+    #     docs, tags_to_extract=["body"]
+    # )
 
-    content = docs_transformed[0].page_content
+    # content = docs_transformed[0].page_content
 
-    return content
+    return docs
