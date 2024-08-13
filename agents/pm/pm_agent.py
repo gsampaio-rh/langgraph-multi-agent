@@ -91,44 +91,30 @@ class PMAgent(Agent):
         Returns:
         - dict: The updated state after the PM agent's invocation.
         """
-        self.log(
-            agent="Manager Agent 👩‍💼",
-            message=f"🤔 Started processing...",
-            color="yellow",
-        )
+        self.log_start()
 
         original_plan = get_first_entry_from_state(self.state, "planner_response")
         if not original_plan:
             error_message = (
-                "❌ Original plan not found. Cannot proceed without the initial plan."
+                "Original plan not found. Cannot proceed without the initial plan."
             )
-            self.log(
-                agent="Manager Agent 👩‍💼",
-                message=error_message,
-                color="red",
-            )
+            self.log_error(error_message)
             return {"error": error_message}
 
-        self.log(
-            agent="Manager Agent 👩‍💼",
-            message=f"🟢 Now I have the plan {original_plan.content}.",
-            color="yellow",
+        self.log_response(
+            response=f"Now I have the plan {original_plan.content}.",
         )
 
         task_list = get_last_entry_from_state(self.state, "manager_response")
 
         if not task_list or task_list == "":
-            self.log(
-                agent="Manager Agent 👩‍💼",
-                message="📝 Task list is empty. Starting from scratch...",
-                color="yellow",
+            self.log_response(
+                response="📝 Task list is empty. Starting from scratch...",
             )
             usr_prompt = "The task list is empty. You need to create a plan."
         else:
-            self.log(
-                agent="Manager Agent 👩‍💼",
-                message=f"🟢 Now I have the last task list: {task_list}.",
-                color="yellow",
+            self.log_response(
+                response=f"Now I have the last task list: {task_list.content}.",
             )
 
             # task_list_dict = json.loads(task_list.content)
@@ -141,17 +127,13 @@ class PMAgent(Agent):
             )
 
             if not all_reviewer_responses or all_reviewer_responses == "":
-                self.log(
-                    agent="Manager Agent 👩‍💼",
-                    message=f"🟡 Not all tasks are done but the reviewer didn't send any response yet.",
-                    color="yellow",
+                self.log_response(
+                    response="🟡 Not all tasks are done but the reviewer didn't send any response yet.",
                 )
                 usr_prompt = "Not all tasks are done but the reviewer didn't send any response yet. I don't need to update anything."
             else:
-                self.log(
-                    agent="Manager Agent 👩‍💼",
-                    message=f"🟢 Now I have the reviewer responses: {all_reviewer_responses}.",
-                    color="yellow",
+                self.log_response(
+                    response=f"Now I have the reviewer responses: {all_reviewer_responses}.",
                 )
                 usr_prompt = f"The reviewer sent a list of updates to the tasks: {all_reviewer_responses}" 
 
@@ -166,11 +148,7 @@ class PMAgent(Agent):
         payload = self.prepare_payload(sys_prompt, usr_prompt)
 
         while True:
-            self.log(
-                agent="Manager Agent 👩‍💼",
-                message="⏳ Processing the request...",
-                color="yellow",
-            )
+            self.log_processing()
             # Invoke the model and process the response
             response_json = self.invoke_model(payload)
             if "error" in response_json:
@@ -181,14 +159,6 @@ class PMAgent(Agent):
             )
 
             self.update_state("manager_response", response_formatted)
-            self.log(
-                agent="Manager Agent 👩‍💼",
-                message=f"🟢 Response: {response_formatted}",
-                color="yellow",
-            )
-            self.log(
-                agent="Manager Agent 👩‍💼",
-                message="✅ Finished processing.\n",
-                color="yellow",
-            )
+            self.log_response(response=response_formatted)
+            self.log_finished()
             return self.state

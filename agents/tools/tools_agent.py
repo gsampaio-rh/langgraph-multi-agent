@@ -68,6 +68,7 @@ Remember:
 - The JSON output should be clean and only include necessary details.
 - Double-check the alignment between the task and the chosen tool.
 """
+
 class ToolsAgent(Agent):
 
     def extract_tools_task(self, content: str) -> Dict[str, Any]:
@@ -108,38 +109,26 @@ class ToolsAgent(Agent):
                 for tool in custom_tools:
                     if tool.name == function_name:
                         try:
-                            self.log(
-                                agent="Tools Agent 🪛",
-                                message=f"🔵 Using Tool : {function_name}.",
-                                color="magenta",
+                            self.log_response(
+                                response=f"🔵 Using Tool : {function_name}.",
                             )
-                            self.log(
-                                agent="Tools Agent 🪛",
-                                message=f"🔵 Arguments : {arguments}.",
-                                color="magenta",
+                            self.log_response(
+                                response=f"🔵 Arguments : {arguments}.",
                             )
                             tool_result = tool.invoke(arguments)
-                            self.log(
-                                agent="Tools Agent 🪛",
-                                message=f"🟢 Tools Result : {tool_result}.",
-                                color="magenta",
+                            self.log_response(
+                                response=f"Tools Result : {tool_result}.",
                             )
                             return tool_result
                         except Exception as e:
-                            self.log(
-                                agent="Tools Agent 🪛",
-                                message=f"❌ Error invoking tool '{function_name}': {str(e)}",
-                                color="magenta",
+                            self.log_error(
+                                f"Error invoking tool '{function_name}': {str(e)}"
                             )
                             return {
                                 "error": f"Error invoking tool '{function_name}': {str(e)}"
                             }
             else:
-                self.log(
-                    agent="Tools Agent 🪛",
-                    message=f"❌ TOOL NOT FOUND'{function_name}'",
-                    color="magenta",
-                )
+                self.log_error(f"TOOL NOT FOUND'{function_name}")
         return None
 
     def invoke(
@@ -157,13 +146,9 @@ class ToolsAgent(Agent):
         Returns:
         - dict: The updated state after the Tools Agent's invocation.
         """
-        
-        self.log(
-            agent="Tools Agent 🪛",
-            message=f"🤔 Started processing...",
-            color="magenta",
-        )
-        
+
+        self.log_start()
+
         feedback = ""
         manager_response = get_agent_graph_state(self.state, "manager_response")
         task = (
@@ -173,19 +158,13 @@ class ToolsAgent(Agent):
         )
 
         if task is None:
-            self.log(
-                agent="Tools Agent 🪛",
-                message="❌ NO TASK FOR TOOLS FOUNDED.",
-                color="magenta",
-            )
+            self.log_error("NO TASK FOR TOOLS FOUNDED.")
             return {"error": "No tools task found."}
 
         task_id = task["task_id"]
 
-        self.log(
-            agent="Tools Agent 🪛",
-            message=f"🟢 Now I have the task {task_id}.",
-            color="magenta",
+        self.log_response(
+            response=f"Now I have the task {task_id}.",
         )
 
         # Format the task prompt
@@ -198,14 +177,11 @@ class ToolsAgent(Agent):
         payload = self.prepare_payload(sys_prompt, user_request)
 
         while True:
-            self.log(
-                agent="Tools Agent 🪛",
-                message="⏳ Processing the request...",
-                color="magenta",
-            )
+            self.log_processing()
             # Invoke the model and process the response
             response_json = self.invoke_model(payload)
             if "error" in response_json:
+                self.log_error(f"{response_json}")
                 return response_json
 
             response_formatted, response_content = self.process_model_response(
@@ -216,11 +192,7 @@ class ToolsAgent(Agent):
 
             # Update the state with the new response
             self.update_state(f"tools_response", response_with_id)
-            self.log(
-                agent="Tools Agent 🪛",
-                message=f"🟢 Response: {response_with_id}",
-                color="magenta",
-            )
+            self.log_response(response=response_with_id)
 
             # Attempt to find and invoke a tool
             tool_result = self.find_and_invoke_tool(
@@ -230,10 +202,7 @@ class ToolsAgent(Agent):
             # If a tool is used, update the state and return
             if tool_result is not None:
                 tool_result_with_id = {"task_id": task_id, "tool_result": tool_result}
+                self.log_response(response=tool_result_with_id)
                 self.update_state(f"tools_response", tool_result_with_id)
-                self.log(
-                    agent="Tools Agent 🪛",
-                    message="✅ Finished processing.\n",
-                    color="magenta",
-                )
+                self.log_finished()
                 return self.state

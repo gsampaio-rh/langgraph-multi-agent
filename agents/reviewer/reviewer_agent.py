@@ -93,29 +93,18 @@ class ReviewerAgent(Agent):
         Returns:
         - dict: The updated state after the Reviewer Agent's invocation.
         """
-
-        self.log(
-            agent="Reviewer Agent 🔎",
-            message=f"🤔 Started processing request {agent_update}",
-            color="green",
-        )
+        self.log_start()
 
         task_list = get_last_entry_from_state(self.state, "manager_response")
         if not task_list:
             error_message = (
                 "❌ Task list not found. Cannot proceed without the current task list."
             )
-            self.log(
-                agent="Reviewer Agent 🔎",
-                message=error_message,
-                color="red",
-            )
+            self.log_error(error_message)
             return {"error": error_message}
 
-        self.log(
-            agent="Reviewer Agent 🔎",
-            message=f"🟢 Now I have the task list {task_list.content}.",
-            color="green",
+        self.log_response(
+            response=f"Now I have the last task list: {task_list.content}.",
         )
 
         # Format the task prompt
@@ -129,11 +118,7 @@ class ReviewerAgent(Agent):
         payload = self.prepare_payload(sys_prompt, agent_prompt)
 
         while True:
-            self.log(
-                agent="Reviewer Agent 🔎",
-                message="⏳ Processing the request...",
-                color="green",
-            )
+            self.log_processing()
             # Invoke the model and process the response
             response_json = self.invoke_model(payload)
             if "error" in response_json:
@@ -145,14 +130,6 @@ class ReviewerAgent(Agent):
 
             # Update the state with the new response
             self.update_state(f"reviewer_response", response_formatted)
-            self.log(
-                agent="Reviewer Agent 🔎",
-                message=f"🟢 Response: {response_formatted}",
-                color="green",
-            )
-            self.log(
-                agent="Reviewer Agent 🔎",
-                message="✅ Finished processing.\n",
-                color="green",
-            )
+            self.log_response(response=response_formatted)
+            self.log_finished()
             return self.state

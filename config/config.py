@@ -21,6 +21,14 @@ class AgentConfig:
     )
     max_iterations: int = 10
     recursion_limit: int = 10
+    agent_display_config: Dict[str, Dict[str, str]] = field(
+        default_factory=lambda: {
+            "planner_node": {"name": "Planner Agent 👩🏿‍💻", "color": "cyan"},
+            "pm_node": {"name": "Manager Agent 👩‍💼", "color": "yellow"},
+            "tools_node": {"name": "Tools Agent 🪛", "color": "magenta"},
+            "reviewer_node": {"name": "Reviewer Agent 🔎", "color": "green"},
+        }
+    )
 
 
 @dataclass
