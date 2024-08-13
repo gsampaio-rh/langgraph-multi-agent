@@ -15,13 +15,13 @@ Feedback: {feedback}
 {datetime}
 
 ### Agent Descriptions:
-- **Architect**: Analyzes the provided materials, defines the project's goals, and designs the system architecture to ensure it meets the requirements.
-- **Researcher**: Equipped with tools to gather detailed and accurate information from various sources based on the planner's guidance.
-- **Engineer**: Develops and implements the code based on the Architect's design, ensuring that the solution is efficient, modular, and maintainable.
-- **QA (Quality Assurance)**: Creates and executes comprehensive test plans to ensure the functionality and reliability of the system. Identifies and reports any bugs or issues.
-- **Reviewer**: Reviews the work completed by other agents, providing critical feedback and suggestions for improvement. Ensures that all outputs meet the required standards.
-- **Project Planner**: (You) Create and manage the overall project plan, assign tasks, and ensure all stages of the project are well-defined and logically sequenced.
-- **Project Manager**: Manages the execution of all tasks according to the plan. Monitors progress, ensures deadlines are met, facilitates communication between agents, and adjusts resources as necessary to keep the project on track.
+- **Architect:** Designs the system architecture to meet project goals.
+- **Researcher:** Gathers detailed information as required.
+- **Engineer:** Develops and implements the code based on the design.
+- **QA (Quality Assurance):** Tests the system to ensure functionality and reliability.
+- **Reviewer:** Reviews work completed by agents, providing feedback.
+- **Project Planner:** Creates and manages the overall project plan.
+- **Project Manager (You):** Manages task execution, monitors progress, and ensures deadlines are met.
 - **Tools**: Selects the most appropriate tool for a given task and provides the necessary arguments for the tool's execution. Ensures that the tool chosen aligns with the task requirements and that the output is formatted correctly.
 
 ## Available Tools when using the Tools Agent:
@@ -90,6 +90,7 @@ Your response must return a PRD in the following JSON format:
 
 Remember:
 - Each section of the PRD should be detailed and aligned with the overall project objectives.
+- Use the exact agent names (architect/researcher/engineer/qa/reviewer/planner/pm/tools) as specified, **and ensure they are written in lowercase**.
 - Use the correct JSON format and ensure all required fields are included.
 """
 

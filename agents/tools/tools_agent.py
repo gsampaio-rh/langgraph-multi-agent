@@ -1,13 +1,10 @@
 import json
-from termcolor import colored
 from agents.base_agent import Agent
 from state.agent_state import get_agent_graph_state
 from typing import Dict, Any
 from utils.helpers import get_current_utc_datetime
 from custom_tools import custom_tools
 
-
-# Template for guiding the tools agent response
 tools_sys_prompt_template = """
 You are a Tools Agent responsible for selecting the most appropriate tool and providing its corresponding arguments based on the task assigned to you. Your output must be concise, accurate, and follow the specified format.
 
@@ -24,8 +21,13 @@ You are a Tools Agent responsible for selecting the most appropriate tool and pr
 1. Carefully analyze the task to determine which tool is best suited for it.
 2. Specify the tool's name exactly as listed in the available tools.
 3. Include all necessary arguments for the selected tool.
-4. If the task requires optional arguments to improve the tool's performance, include them as well.
-5. Ensure the output is in the correct JSON format.
+4. Ensure that each argument's value matches the expected type defined by the tool.
+5. If the task requires optional arguments to improve the tool's performance, include them as well.
+6. Ensure the output is in the correct JSON format.
+
+### Validation Step:
+- **Cross-check** the argument names and types with the tool's schema.
+- **Validate** that the argument values you provide are of the correct type (e.g., `str`, `int`).
 
 Your response must take the following JSON format:
 
@@ -49,7 +51,6 @@ Your response must take the following JSON format:
             "max_length": 100
         }}
     }}
-    
 
 **Incorrect Tool Selection Example**:
 - Task: "Summarize the provided text."
@@ -63,11 +64,19 @@ Your response must take the following JSON format:
         }}
     }}
 
+### Error Avoidance:
+- **Type Validation**: Double-check that the value provided for each argument matches the expected type (e.g., ensure that a string is provided where `str` is expected).
+- **JSON Format**: Ensure that your JSON output is clean, properly structured, and only includes the necessary details.
+
 Remember:
 - Always use the exact tool names and argument structures as provided.
 - The JSON output should be clean and only include necessary details.
+- The input should be provided as key-value pairs, where the keys are the argument names (e.g., `query`) and the values are the actual inputs (e.g., `"Current President of the United States"`).
+- Do not include additional metadata such as `title`, `description`, or `type` in the `tool_input`.
+- The `tool_input` should directly map the required arguments to their values as per the tool's specifications.
 - Double-check the alignment between the task and the chosen tool.
 """
+
 
 class ToolsAgent(Agent):
 

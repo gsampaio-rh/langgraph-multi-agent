@@ -1,5 +1,3 @@
-import json
-from termcolor import colored
 from agents.base_agent import Agent
 from state.agent_state import get_last_entry_from_state
 from utils.helpers import get_current_utc_datetime

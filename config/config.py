@@ -25,7 +25,7 @@ class AgentConfig:
         default_factory=lambda: {
             "planner_node": {"name": "Planner Agent 👩🏿‍💻", "color": "cyan"},
             "pm_node": {"name": "Manager Agent 👩‍💼", "color": "yellow"},
-            "tools_node": {"name": "Tools Agent 🪛", "color": "magenta"},
+            "tools_node": {"name": "Tools Agent 🪛", "color": "light_magenta"},
             "reviewer_node": {"name": "Reviewer Agent 🔎", "color": "green"},
         }
     )

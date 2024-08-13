@@ -5,7 +5,7 @@ from agents.tools.tools_agent import ToolsAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
 from state.agent_state import get_last_entry_from_state
 from config.config import app_config
-from custom_tools import custom_tools
+from custom_tools import custom_tools, tools_description
 from langchain.tools.render import render_text_description_and_args
 from utils.helpers import get_current_utc_datetime
 from termcolor import colored
@@ -15,9 +15,7 @@ import json
 from agents.base_agent import AgentGraphState
 
 # Render the tools description
-tools_description = (
-    render_text_description_and_args(custom_tools).replace("{", "{{").replace("}", "}}")
-)
+tools_description = tools_description
 
 def planner_node_function(state: AgentGraphState):
     PlannerAgent(
