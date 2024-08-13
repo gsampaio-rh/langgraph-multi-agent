@@ -6,6 +6,8 @@ from state.agent_state import get_agent_graph_state
 from utils.helpers import get_current_utc_datetime
 from langchain_core.messages.human import HumanMessage
 from typing import Dict
+import time
+
 
 # Template for guiding the planner agent's response
 planner_sys_prompt_template = """
@@ -109,10 +111,16 @@ class PlannerAgent(Agent):
         Returns:
         - dict: The updated state after the planner agent's invocation.
         """
+        self.log(
+            agent="Planner Agent 👩🏿‍💻",
+            message=f"Started processing the user_request: {user_request} 🤔",
+            color="cyan",
+        )
+
         feedback_value = ""
         if get_agent_graph_state(self.state, "reviewer_response"):
             feedback_value = get_agent_graph_state(self.state, "reviewer_response")
-            print(colored(f"Reviewer Feedback: {feedback_value}.", "yellow"))
+            # self.log(f"Reviewer Feedback: {feedback_value}.", color="yellow")
 
         sys_prompt = planner_sys_prompt_template.format(
             feedback=feedback_value,
@@ -122,27 +130,32 @@ class PlannerAgent(Agent):
 
         usr_prompt = f"User Request: {user_request}"
 
-        payload = {
-            "model": self.model_name,
-            "format": "json",
-            "prompt": usr_prompt,
-            "system": sys_prompt,
-            "stream": False,
-            "temperature": self.temperature,
-        }
+        payload = self.prepare_payload(sys_prompt, usr_prompt)
 
-        try:
-            response = requests.post(
-                self.model_endpoint, headers=self.headers, data=json.dumps(payload)
+        while True:
+            self.log(
+                agent="Planner Agent 👩🏿‍💻",
+                message="Processing the request... ⏳",
+                color="cyan",
             )
-            response.raise_for_status()
-            response_json = response.json()
-            response_content = json.loads(response_json.get("response", "{}"))
-            response_formatted = HumanMessage(content=json.dumps(response_content))
+            # Invoke the model and process the response
+            response_json = self.invoke_model(payload)
+            if "error" in response_json:
+                return response_json
+
+            response_formatted, response_content = self.process_model_response(
+                response_json
+            )
 
             self.update_state("planner_response", response_formatted)
-            print(colored(f"Planner 👩🏿‍💻: {response_formatted}", "cyan"))
+            self.log(
+                agent="Planner Agent 👩🏿‍💻",
+                message=f"Response: {response_formatted}",
+                color="cyan",
+            )
+            self.log(
+                agent="Planner Agent 👩🏿‍💻",
+                message="Finished processing. ✅",
+                color="cyan",
+            )
             return self.state
-        except requests.RequestException as e:
-            print(f"Error in invoking model! {str(e)}")
-            return {"error": str(e)}

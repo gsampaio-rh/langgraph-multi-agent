@@ -92,6 +92,7 @@ class ReviewerAgent(Agent):
         Returns:
         - dict: The updated state after the Reviewer Agent's invocation.
         """
+        print(colored(f"Reviewer Agent 🔎: STARTING", "blue"))
         task_list = get_last_entry_from_state(self.state, "manager_response")
 
         # Format the task prompt
@@ -99,8 +100,10 @@ class ReviewerAgent(Agent):
             datetime=get_current_utc_datetime(),
             tasks=task_list,
         )
-        
-        payload = self.prepare_payload(sys_prompt, agent_update)
+
+        agent_prompt = f"Agent: **Tools** Update: {agent_update}"
+
+        payload = self.prepare_payload(sys_prompt, agent_prompt)
 
         while True:
             # Invoke the model and process the response

@@ -6,6 +6,7 @@ from typing import Dict, Any
 from utils.helpers import get_current_utc_datetime
 from tools import tools
 
+
 # Template for guiding the tools agent response
 tools_sys_prompt_template = """
 You are a Tools Agent responsible for selecting the most appropriate tool and providing its corresponding arguments based on the task assigned to you. Your output must be concise, accurate, and follow the specified format.
@@ -67,7 +68,6 @@ Remember:
 - The JSON output should be clean and only include necessary details.
 - Double-check the alignment between the task and the chosen tool.
 """
-
 class ToolsAgent(Agent):
 
     def extract_tools_task(self, content: str) -> Dict[str, Any]:
@@ -98,7 +98,7 @@ class ToolsAgent(Agent):
         - tools_description (str): The description of the available tools.
 
         Returns:
-        - Any: The result of invoking the tool, or None if the tool is not found.
+        - Any: The result of invoking the tool, or None if the tool is not found or an error occurs.
         """
         if action.get("function", False):
             function_name = action.get("function")
@@ -107,29 +107,40 @@ class ToolsAgent(Agent):
             if function_name in tools_description:
                 for tool in tools:
                     if tool.name == function_name:
-                        print(
-                            colored(
-                                f"Tools Agent - Using Tool 🪛: {function_name}",
-                                "magenta",
+                        try:
+                            print(
+                                colored(
+                                    f"Tools Agent - Using Tool 🪛: {function_name}",
+                                    "magenta",
+                                )
                             )
-                        )
-                        print(
-                            colored(
-                                f"Tools Agent - Arguments 🪛: {arguments}",
-                                "magenta",
+                            print(
+                                colored(
+                                    f"Tools Agent - Arguments 🪛: {arguments}",
+                                    "magenta",
+                                )
                             )
-                        )
-                        tool_result = tool(arguments)
-                        print(
-                            colored(
-                                f"Tools Agent - Result  🪛: {tool_result}", "magenta"
+                            tool_result = tool(arguments)
+                            print(
+                                colored(
+                                    f"Tools Agent - Result  🪛: {tool_result}",
+                                    "magenta",
+                                )
                             )
-                        )
-
-                        return tool_result
+                            return tool_result
+                        except Exception as e:
+                            print(
+                                colored(
+                                    f"Tools Agent - Error invoking tool '{function_name}': {str(e)}",
+                                    "red",
+                                )
+                            )
+                            return {
+                                "error": f"Error invoking tool '{function_name}': {str(e)}"
+                            }
             else:
                 print(
-                    colored(f"Tools Agent  - TOOL NOT FOUND 🪛: {function_name}", "red")
+                    colored(f"Tools Agent - TOOL NOT FOUND 🪛: {function_name}", "red")
                 )
         return None
 
@@ -143,7 +154,6 @@ class ToolsAgent(Agent):
 
         Parameters:
         - user_request (str): The user request that the agent should process.
-        - prompt (str): The base prompt template.
         - tools_description (str): The description of the available tools.
 
         Returns:
@@ -168,7 +178,7 @@ class ToolsAgent(Agent):
             tools_description=tools_description,
             datetime=get_current_utc_datetime(),
         )
-        
+
         payload = self.prepare_payload(sys_prompt, user_request)
 
         while True:

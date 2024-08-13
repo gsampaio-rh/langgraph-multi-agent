@@ -3,6 +3,7 @@ from agents.planner.planner_agent import PlannerAgent
 from agents.pm.pm_agent import PMAgent
 from agents.tools.tools_agent import ToolsAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
+from state.agent_state import get_last_entry_from_state
 from config.config import app_config
 from tools import tools
 from langchain.tools.render import render_text_description_and_args
@@ -52,7 +53,7 @@ def reviewer_node_function(state: AgentGraphState):
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"],
-        agent_update=state["tools_response"][-1] if state["tools_response"] else None,
+        agent_update=get_last_entry_from_state(state, "tools_response"),
     )
 
 def create_graph() -> StateGraph:

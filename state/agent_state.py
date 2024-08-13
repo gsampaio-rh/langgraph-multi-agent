@@ -41,6 +41,23 @@ def get_all_entries_from_state(state: AgentGraphState, state_key: str) -> List[A
     return state.get(state_key, []) if state_key in state else []
 
 
+def get_first_entry_from_state(state: AgentGraphState, state_key: str) -> Any:
+    """
+    Retrieve the first entry from a list in the graph state.
+
+    Parameters:
+    - state (AgentGraphState): The current state of the agent graph.
+    - state_key (str): The key to retrieve the first entry from the state.
+
+    Returns:
+    - Any: The first entry in the list, or None if the list is empty or the key doesn't exist.
+    """
+    entries = state.get(state_key, [])
+    if isinstance(entries, list) and entries:
+        return entries[0]
+    return None
+
+
 def get_last_entry_from_state(state: AgentGraphState, state_key: str) -> Any:
     """
     Retrieve the last entry from a list in the graph state.

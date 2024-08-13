@@ -1,6 +1,7 @@
 import json
 import requests
 from termcolor import colored
+from datetime import datetime
 from state.agent_state import AgentGraphState, get_last_entry_from_state
 from langchain_core.messages.human import HumanMessage
 from typing import Any, Dict
@@ -23,6 +24,17 @@ class Agent:
         self.temperature = model_config.temperature  # Directly access attributes
         self.headers = model_config.headers  # Directly access attributes
         self.stop = model_config.stop  # Directly access attributes
+
+    def log(self, agent:str, message: str, color: str):
+        """
+        Log a message with a timestamp.
+
+        Parameters:
+        - message (str): The message to log.
+        - color (str): The color of the log message.
+        """
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        print(colored(f"[{current_time}][{agent}] {message}", color))
 
     def update_state(self, key: str, value: Any):
         """

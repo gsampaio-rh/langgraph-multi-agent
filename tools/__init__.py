@@ -4,4 +4,4 @@ from tools.wiki_query import wiki
 from tools.arxiv_query import arxiv
 
 # Expose all tools in a list for easier import
-tools = [website_crawl, duckSearch, wiki, arxiv]
+tools = [duckSearch, wiki, arxiv, website_crawl]

@@ -1,10 +1,6 @@
-import json
-import requests
-from termcolor import colored
 from agents.base_agent import Agent
-from state.agent_state import get_agent_graph_state, get_last_entry_from_state
+from state.agent_state import get_first_entry_from_state, get_last_entry_from_state
 from utils.helpers import get_current_utc_datetime
-from langchain_core.messages.human import HumanMessage
 from typing import Dict
 
 pm_sys_prompt_template = """
@@ -19,7 +15,7 @@ You are a Project Manager. Your responsibility is to manage the execution of a p
 
 ### Initial Planner Input:
 Instructions from the Project Planner:
-{planner_output}
+{original_plan}
 
 ### Current Task List:
 {task_list}
@@ -96,14 +92,32 @@ class PMAgent(Agent):
         Returns:
         - dict: The updated state after the PM agent's invocation.
         """
-        planner_output = ""
-        if get_agent_graph_state(self.state, "planner_response"):
-            planner_output = get_agent_graph_state(self.state, "planner_response")
+        self.log(
+            agent="Manager Agent 👩‍💼",
+            message=f"Started processing request {request} 🤔",
+            color="yellow",
+        )
+
+        original_plan = ""
+        if get_first_entry_from_state(self.state, "planner_response"):
+            original_plan = get_first_entry_from_state(self.state, "planner_response")
+
+        self.log(
+            agent="Manager Agent 👩‍💼",
+            message=f"Now I have the plan {original_plan.content} 🔵.",
+            color="yellow",
+        )
 
         task_list = get_last_entry_from_state(self.state, "manager_response")
 
+        self.log(
+            agent="Manager Agent 👩‍💼",
+            message=f"Now I have the last task_list {task_list} 🔵.",
+            color="yellow",
+        )
+
         sys_prompt = pm_sys_prompt_template.format(
-            planner_output=planner_output,
+            original_plan=original_plan.content,
             tools_description=tools_description,
             task_list=task_list,
             datetime=get_current_utc_datetime(),
@@ -111,27 +125,32 @@ class PMAgent(Agent):
 
         agent_prompt = f"Request: {request}"
 
-        payload = {
-            "model": self.model_name,
-            "format": "json",
-            "prompt": agent_prompt,
-            "system": sys_prompt,
-            "stream": False,
-            "temperature": self.temperature,
-        }
+        payload = self.prepare_payload(sys_prompt, agent_prompt)
 
-        try:
-            response = requests.post(
-                self.model_endpoint, headers=self.headers, data=json.dumps(payload)
+        while True:
+            self.log(
+                agent="Manager Agent 👩‍💼",
+                message="Processing the request... ⏳",
+                color="yellow",
             )
-            response.raise_for_status()
-            response_json = response.json()
-            response_content = json.loads(response_json.get("response", "{}"))
-            response_formatted = HumanMessage(content=json.dumps(response_content))
+            # Invoke the model and process the response
+            response_json = self.invoke_model(payload)
+            if "error" in response_json:
+                return response_json
+
+            response_formatted, response_content = self.process_model_response(
+                response_json
+            )
 
             self.update_state("manager_response", response_formatted)
-            print(colored(f"Manager 👩‍💼: {response_formatted}", "yellow"))
+            self.log(
+                agent="Manager Agent 👩‍💼",
+                message=f"Response: {response_formatted}",
+                color="yellow",
+            )
+            self.log(
+                agent="Manager Agent 👩‍💼",
+                message="Finished processing. ✅",
+                color="yellow",
+            )
             return self.state
-        except requests.RequestException as e:
-            print(f"Error in invoking model! {str(e)}")
-            return {"error": str(e)}
