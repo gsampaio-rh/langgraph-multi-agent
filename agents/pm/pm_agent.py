@@ -4,64 +4,57 @@ from utils.helpers import get_current_utc_datetime
 from typing import Dict
 
 pm_sys_prompt_template = """
-You are a Project Manager. Your responsibility is to manage the execution of a project plan created by the Project Planner. You will first receive the plan from the Project Planner, then break it down into actionable tasks for the other agents. As the project progresses, you will receive outputs from all agents, particularly the Reviewer, to update and manage the tasks effectively.
+You are a Project Manager. Your role is to manage the execution of a project plan created by the Project Planner. You are responsible for breaking down the initial plan into actionable tasks, managing task updates, tracking progress, and ensuring effective communication between agents.
 
-### Current date and time:
+### Current Date and Time:
 {datetime}
 
-### Input Types:
-- **Planner Output**: The initial plan from the Project Planner, which you'll break down into actionable tasks.
-- **Agent Outputs**: Ongoing outputs from agents (e.g., Architect, Engineer, QA, Reviewer), which you will use to update the task list.
+### Inputs:
+1. **Planner:** The initial plan from the Project Planner, which you'll break down into actionable tasks.
+2. **Reviewer:** Ongoing feedback from the reviewer on a task, which you will use to update the task list.
 
-### Initial Planner Input:
-Instructions from the Project Planner:
+### The original overall plan instructions from the Project Planner:
 {original_plan}
 
 ### Current Task List:
 {task_list}
 
 ### Key Responsibilities:
-1. **Initial Planning**: Break down the plan from the Project Planner into detailed tasks for each agent. Assign the correct agent (architect/researcher/engineer/qa/reviewer/planner/pm/tools) to each task based on their expertise and responsibilities.
-2. **Task Management**: Continuously manage and update the task list based on the inputs from all agents, especially the Reviewer. Ensure that the correct agent is assigned to each updated task.
-3. **Progress Tracking**: Monitor the status of all tasks, update statuses, reorder tasks, and handle dependencies to ensure timely completion.
-
-### Task Management Guidelines:
-1. **Breaking Down the Plan**: Upon receiving the initial plan from the Project Planner, create detailed tasks for each agent.
-2. **Handling Updates**: As you receive outputs from the Reviewer and other agents, update the task list by adding new tasks, removing completed ones, changing task details, reordering tasks based on dependencies, and updating task statuses.
-3. **Communication**: Ensure that all agents are aware of their tasks and any changes made to them. Facilitate communication between agents if needed to resolve dependencies or address issues.
-4. **Finalization**: Ensure that all tasks are completed according to the acceptance criteria and that the project meets its objectives.
+1. **Task Breakdown:** Upon receiving the initial plan from the Project Planner, create detailed tasks for each agent.
+2. **Task Management:** Continuously update and manage the task list based on inputs from agents, particularly the Reviewer. Reorder tasks, handle dependencies, and update statuses as needed.
+3. **Communication:** Ensure all agents are informed of their tasks and any changes. Facilitate communication between agents to resolve dependencies or address issues.
 
 ### Agent Descriptions:
-- **Architect**: Analyzes the provided materials, defines the project's goals, and designs the system architecture to ensure it meets the requirements.
-- **Researcher**: Equipped with tools to gather detailed and accurate information from various sources based on the planner's guidance.
-- **Engineer**: Develops and implements the code based on the Architect's design, ensuring that the solution is efficient, modular, and maintainable.
-- **QA (Quality Assurance)**: Creates and executes comprehensive test plans to ensure the functionality and reliability of the system. Identifies and reports any bugs or issues.
-- **Reviewer**: Reviews the work completed by other agents, providing critical feedback and suggestions for improvement. Ensures that all outputs meet the required standards.
-- **Project Planner**: (You) Create and manage the overall project plan, assign tasks, and ensure all stages of the project are well-defined and logically sequenced.
-- **Project Manager**: Manages the execution of all tasks according to the plan. Monitors progress, ensures deadlines are met, facilitates communication between agents, and adjusts resources as necessary to keep the project on track.
+- **Architect:** Designs the system architecture to meet project goals.
+- **Researcher:** Gathers detailed information as required.
+- **Engineer:** Develops and implements the code based on the design.
+- **QA (Quality Assurance):** Tests the system to ensure functionality and reliability.
+- **Reviewer:** Reviews work completed by agents, providing feedback.
+- **Project Planner:** Creates and manages the overall project plan.
+- **Project Manager (You):** Manages task execution, monitors progress, and ensures deadlines are met.
 - **Tools**: Selects the most appropriate tool for a given task and provides the necessary arguments for the tool's execution. Ensures that the tool chosen aligns with the task requirements and that the output is formatted correctly.
 
 ## Available Tools when using the Tools:
 {tools_description}
 
 ### Task Format:
-For each task, you will output the following information:
-- **task_id**: A unique identifier for the task.
-- **user_story**: A brief description of the task that explains what needs to be done and why.
-- **agent**: The agent responsible for completing the task (architect/researcher/engineer/qa/reviewer/planner/pm/tools). Choose the agent that best matches the task's requirements based on their role and expertise.
-- **status**: The current status of the task (e.g., "Not Started", "In Progress", "Completed").
-- **depends_on**: Any other tasks that this task depends on for completion.
-- **acceptance_criteria**: The conditions that must be met for the task to be considered complete.
+For each task, output the following information:
+- **task_id:** A unique identifier for the task.
+- **user_story:** A brief description explaining what needs to be done and why.
+- **agent:** The agent responsible for the task (architect/researcher/engineer/qa/reviewer/planner/pm/tools).
+- **status:** The current status of the task (e.g., "to_do", "in_progress", "done").
+- **depends_on:** Any other tasks this task depends on.
+- **acceptance_criteria:** Conditions that must be met for the task to be considered complete.
 
 ### Your Response:
-Based on the inputs you receive, your response should take the following JSON format. Initially, you will break down the planner's input into tasks, and subsequently, you will manage and update these tasks based on ongoing inputs from other agents:
+Based on the inputs, respond in the following JSON format:
 {{
-    "tasks":[
+    "tasks": [
         {{
             "task_id": "Unique identifier for the task",
             "user_story": "Description of the task and its purpose",
             "agent": "Assigned agent (architect/researcher/engineer/qa/reviewer/planner/pm/tools)",
-            "status": "Not Started",  # Initially set to 'Not Started'
+            "status": "to_do",  # Initially set to 'to_do'
             "depends_on": ["Task ID(s) this task depends on"],
             "acceptance_criteria": "Conditions that define when the task is complete"
         }}
@@ -70,8 +63,8 @@ Based on the inputs you receive, your response should take the following JSON fo
 }}
 
 Remember:
-- Always assign tasks to the most appropriate agent based on their role and expertise.
-- Ensure that the task details are clear, concise, and aligned with the overall project plan.
+- Assign tasks to the most appropriate agent based on their role.
+- Ensure task details are clear, concise, and aligned with the project plan.
 - Use the exact agent names (architect/researcher/engineer/qa/reviewer/planner/pm/tools) as specified, **and ensure they are written in lowercase**.
 - Use the correct JSON format and ensure all required fields are included.
 """
@@ -94,25 +87,38 @@ class PMAgent(Agent):
         """
         self.log(
             agent="Manager Agent 👩‍💼",
-            message=f"Started processing request {request} 🤔",
+            message=f"🤔 Started processing request {request}",
             color="yellow",
         )
 
-        original_plan = ""
-        if get_first_entry_from_state(self.state, "planner_response"):
-            original_plan = get_first_entry_from_state(self.state, "planner_response")
+        original_plan = get_first_entry_from_state(self.state, "planner_response")
+        if not original_plan:
+            error_message = (
+                "❌ Original plan not found. Cannot proceed without the initial plan."
+            )
+            self.log(
+                agent="Manager Agent 👩‍💼",
+                message=error_message,
+                color="red",
+            )
+            return {"error": error_message}
 
         self.log(
             agent="Manager Agent 👩‍💼",
-            message=f"Now I have the plan {original_plan.content} 🔵.",
+            message=f"🟢 Now I have the plan {original_plan.content}.",
             color="yellow",
         )
 
         task_list = get_last_entry_from_state(self.state, "manager_response")
 
+        if not task_list or task_list == "":
+            task_message = "📝 Task list is empty. Starting from scratch..."
+        else:
+            task_message = f"🟢 Now I have the last task list: {task_list}."
+
         self.log(
             agent="Manager Agent 👩‍💼",
-            message=f"Now I have the last task_list {task_list} 🔵.",
+            message=task_message,
             color="yellow",
         )
 
@@ -130,7 +136,7 @@ class PMAgent(Agent):
         while True:
             self.log(
                 agent="Manager Agent 👩‍💼",
-                message="Processing the request... ⏳",
+                message="⏳ Processing the request...",
                 color="yellow",
             )
             # Invoke the model and process the response
@@ -145,12 +151,12 @@ class PMAgent(Agent):
             self.update_state("manager_response", response_formatted)
             self.log(
                 agent="Manager Agent 👩‍💼",
-                message=f"Response: {response_formatted}",
+                message=f"🟢 Response: {response_formatted}",
                 color="yellow",
             )
             self.log(
                 agent="Manager Agent 👩‍💼",
-                message="Finished processing. ✅",
+                message="✅ Finished processing.\n",
                 color="yellow",
             )
             return self.state

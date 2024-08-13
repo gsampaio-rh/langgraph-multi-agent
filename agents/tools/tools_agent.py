@@ -4,7 +4,7 @@ from agents.base_agent import Agent
 from state.agent_state import get_agent_graph_state
 from typing import Dict, Any
 from utils.helpers import get_current_utc_datetime
-from tools import tools
+from custom_tools import custom_tools
 
 
 # Template for guiding the tools agent response
@@ -87,7 +87,7 @@ class ToolsAgent(Agent):
         return None
 
     def find_and_invoke_tool(
-        self, action: Dict[str, Any], tools: list, tools_description: str
+        self, action: Dict[str, Any], custom_tools: list, tools_description: str
     ) -> Any:
         """
         Find and invoke the specified tool based on the action.
@@ -105,42 +105,40 @@ class ToolsAgent(Agent):
             arguments = action.get("arguments", {})
 
             if function_name in tools_description:
-                for tool in tools:
+                for tool in custom_tools:
                     if tool.name == function_name:
                         try:
-                            print(
-                                colored(
-                                    f"Tools Agent - Using Tool 🪛: {function_name}",
-                                    "magenta",
-                                )
+                            self.log(
+                                agent="Tools Agent 🪛",
+                                message=f"🔵 Using Tool : {function_name}.",
+                                color="magenta",
                             )
-                            print(
-                                colored(
-                                    f"Tools Agent - Arguments 🪛: {arguments}",
-                                    "magenta",
-                                )
+                            self.log(
+                                agent="Tools Agent 🪛",
+                                message=f"🔵 Arguments : {arguments}.",
+                                color="magenta",
                             )
-                            tool_result = tool(arguments)
-                            print(
-                                colored(
-                                    f"Tools Agent - Result  🪛: {tool_result}",
-                                    "magenta",
-                                )
+                            tool_result = tool.invoke(arguments)
+                            self.log(
+                                agent="Tools Agent 🪛",
+                                message=f"🟢 Tools Result : {tool_result}.",
+                                color="magenta",
                             )
                             return tool_result
                         except Exception as e:
-                            print(
-                                colored(
-                                    f"Tools Agent - Error invoking tool '{function_name}': {str(e)}",
-                                    "red",
-                                )
+                            self.log(
+                                agent="Tools Agent 🪛",
+                                message=f"❌ Error invoking tool '{function_name}': {str(e)}",
+                                color="magenta",
                             )
                             return {
                                 "error": f"Error invoking tool '{function_name}': {str(e)}"
                             }
             else:
-                print(
-                    colored(f"Tools Agent - TOOL NOT FOUND 🪛: {function_name}", "red")
+                self.log(
+                    agent="Tools Agent 🪛",
+                    message=f"❌ TOOL NOT FOUND'{function_name}'",
+                    color="magenta",
                 )
         return None
 
@@ -159,6 +157,13 @@ class ToolsAgent(Agent):
         Returns:
         - dict: The updated state after the Tools Agent's invocation.
         """
+        
+        self.log(
+            agent="Tools Agent 🪛",
+            message=f"🤔 Started processing...",
+            color="magenta",
+        )
+        
         feedback = ""
         manager_response = get_agent_graph_state(self.state, "manager_response")
         task = (
@@ -168,9 +173,20 @@ class ToolsAgent(Agent):
         )
 
         if task is None:
+            self.log(
+                agent="Tools Agent 🪛",
+                message="❌ NO TASK FOR TOOLS FOUNDED.",
+                color="magenta",
+            )
             return {"error": "No tools task found."}
 
         task_id = task["task_id"]
+
+        self.log(
+            agent="Tools Agent 🪛",
+            message=f"🟢 Now I have the task {task_id}.",
+            color="magenta",
+        )
 
         # Format the task prompt
         sys_prompt = tools_sys_prompt_template.format(
@@ -182,6 +198,11 @@ class ToolsAgent(Agent):
         payload = self.prepare_payload(sys_prompt, user_request)
 
         while True:
+            self.log(
+                agent="Tools Agent 🪛",
+                message="⏳ Processing the request...",
+                color="magenta",
+            )
             # Invoke the model and process the response
             response_json = self.invoke_model(payload)
             if "error" in response_json:
@@ -195,16 +216,24 @@ class ToolsAgent(Agent):
 
             # Update the state with the new response
             self.update_state(f"tools_response", response_with_id)
-            print(colored(f"Tools Agent 🪛: {response_with_id}", "green"))
+            self.log(
+                agent="Tools Agent 🪛",
+                message=f"🟢 Response: {response_with_id}",
+                color="magenta",
+            )
 
             # Attempt to find and invoke a tool
             tool_result = self.find_and_invoke_tool(
-                response_content, tools, tools_description
+                response_content, custom_tools, tools_description
             )
 
             # If a tool is used, update the state and return
             if tool_result is not None:
                 tool_result_with_id = {"task_id": task_id, "tool_result": tool_result}
-                print(colored(f"Tools Agent 🪛: {tool_result_with_id}", "green"))
                 self.update_state(f"tools_response", tool_result_with_id)
+                self.log(
+                    agent="Tools Agent 🪛",
+                    message="✅ Finished processing.\n",
+                    color="magenta",
+                )
                 return self.state

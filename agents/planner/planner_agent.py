@@ -113,7 +113,7 @@ class PlannerAgent(Agent):
         """
         self.log(
             agent="Planner Agent 👩🏿‍💻",
-            message=f"Started processing the user_request: {user_request} 🤔",
+            message=f"🤔 Started processing the user_request: {user_request}",
             color="cyan",
         )
 
@@ -135,7 +135,7 @@ class PlannerAgent(Agent):
         while True:
             self.log(
                 agent="Planner Agent 👩🏿‍💻",
-                message="Processing the request... ⏳",
+                message="⏳ Processing the request...",
                 color="cyan",
             )
             # Invoke the model and process the response
@@ -150,12 +150,12 @@ class PlannerAgent(Agent):
             self.update_state("planner_response", response_formatted)
             self.log(
                 agent="Planner Agent 👩🏿‍💻",
-                message=f"Response: {response_formatted}",
+                message=f"🟢 Response: {response_formatted}",
                 color="cyan",
             )
             self.log(
                 agent="Planner Agent 👩🏿‍💻",
-                message="Finished processing. ✅",
+                message="✅ Finished processing.\n",
                 color="cyan",
             )
             return self.state

@@ -92,8 +92,30 @@ class ReviewerAgent(Agent):
         Returns:
         - dict: The updated state after the Reviewer Agent's invocation.
         """
-        print(colored(f"Reviewer Agent 🔎: STARTING", "blue"))
+
+        self.log(
+            agent="Reviewer Agent 🔎",
+            message=f"🤔 Started processing request {agent_update}",
+            color="blue",
+        )
+
         task_list = get_last_entry_from_state(self.state, "manager_response")
+        if not task_list:
+            error_message = (
+                "❌ Task list not found. Cannot proceed without the current task list."
+            )
+            self.log(
+                agent="Reviewer Agent 🔎",
+                message=error_message,
+                color="red",
+            )
+            return {"error": error_message}
+
+        self.log(
+            agent="Reviewer Agent 🔎",
+            message=f"🟢 Now I have the task list {task_list.content}.",
+            color="blue",
+        )
 
         # Format the task prompt
         sys_prompt = reviewer_sys_prompt_template.format(
@@ -106,6 +128,11 @@ class ReviewerAgent(Agent):
         payload = self.prepare_payload(sys_prompt, agent_prompt)
 
         while True:
+            self.log(
+                agent="Reviewer Agent 🔎",
+                message="⏳ Processing the request...",
+                color="blue",
+            )
             # Invoke the model and process the response
             response_json = self.invoke_model(payload)
             if "error" in response_json:
@@ -117,5 +144,14 @@ class ReviewerAgent(Agent):
 
             # Update the state with the new response
             self.update_state(f"reviewer_response", response_formatted)
-            print(colored(f"Reviewer Agent 🔎: {response_formatted}", "blue"))
+            self.log(
+                agent="Reviewer Agent 🔎",
+                message=f"🟢 Response: {response_formatted}",
+                color="blue",
+            )
+            self.log(
+                agent="Reviewer Agent 🔎",
+                message="✅ Finished processing.\n",
+                color="blue",
+            )
             return self.state

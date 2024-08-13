@@ -5,7 +5,7 @@ from agents.tools.tools_agent import ToolsAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
 from state.agent_state import get_last_entry_from_state
 from config.config import app_config
-from tools import tools
+from custom_tools import custom_tools
 from langchain.tools.render import render_text_description_and_args
 
 # Define state data structure (assuming you have AgentGraphState defined in one of the agent modules)
@@ -13,7 +13,7 @@ from agents.base_agent import AgentGraphState
 
 # Render the tools description
 tools_description = (
-    render_text_description_and_args(tools).replace("{", "{{").replace("}", "}}")
+    render_text_description_and_args(custom_tools).replace("{", "{{").replace("}", "}}")
 )
 
 def planner_node_function(state: AgentGraphState):
