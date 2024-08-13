@@ -1,0 +1,9 @@
+termcolor
+langgraph
+langchain-community
+arxiv
+wikipedia
+duckduckgo-search
+aiohttp
+pygraphviz
+requests
