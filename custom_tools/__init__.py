@@ -5,7 +5,7 @@ from custom_tools.wiki_query import wiki
 from custom_tools.arxiv_query import arxiv
 
 # Expose all tools in a list for easier import
-custom_tools = [duckSearch, wiki, arxiv, website_crawl, extract_content]
+custom_tools = [duckSearch, wiki, arxiv, website_crawl]
 
 # Generate the tools description (already in your code)
 tools_description = (

@@ -36,6 +36,8 @@ def extract_content(docs, tags_to_extract=["body"]) -> str:
             if "page_content" in doc  # Ensure page_content exists
         ]
 
+    print(docs)
+    
     # Initialize BeautifulSoup transformer with the specified tags
     bs_transformer = BeautifulSoupTransformer()
 

@@ -289,20 +289,41 @@ class ResearcherAgent(Agent):
                 self.update_state(f"researcher_response", response_content)
                 self.log_response(response=response_content)
 
+                if not isinstance(response_content, (str, list, tuple, dict)):
+                    self.log_response(response="Converting response...")
+                    response_content = str(response_content)  # Convert to string if it's not a string, list, tuple, or dict
+
                 if used_tool and (
                     "observation" in response_content
                     or "final_answer" in response_content
+                    or "tool_result" in response_content
                 ):
-                    final_thought = response_content["thought"]
-                    if "final_answer" in response_content:
-                        final_answer = response_content["final_answer"]
-                        answer = f"final_thought: {final_thought}, tool_result:{final_answer}"
-                    else:
-                        answer = (
-                            f"final_thought: {final_thought}, tool_result:{tool_result}"
-                        )
-                    self.update_state(f"researcher_response", answer)
-                    self.log_response(response=answer)
+                    self.log_response(response="Final steps...")
+
+                    self.log_response(
+                        response=f"Last response_content: {response_content}"
+                    )
+
+                    # Extract the final_thought
+                    final_thought = response_content.get("thought", "")
+                    self.log_response(response=f"Final Thought: {final_thought}")
+
+                    # Check if final_answer exists and is not None
+                    final_answer = response_content.get("final_answer")
+
+                    if final_answer is not None:
+                        self.log_error("Final answer not returned. We'll use the tool_result")
+                        final_answer = str(tool_result)
+
+                    self.log_response(response=f"Final Answer: {final_answer}")
+                    answer_dict = {
+                        "task_id": task["task_id"],
+                        "final_thought": final_thought,
+                        "tool_result": final_answer,
+                    }
+                    answer_json = json.dumps(answer_dict)
+                    self.update_state(f"researcher_response", answer_json)
+                    self.log_response(response=answer_json)
                     self.log_finished()
                     return self.state
 
@@ -331,9 +352,29 @@ class ResearcherAgent(Agent):
             self.log_response(
                 f"Loop limit of {max_loops} reached. Returning the current state."
             )
+            self.log_response(response="Final steps...")
+
+            # Extract the final_thought
+            final_thought = response_content.get("thought", "")
+            self.log_response(response=f"Final Thought: {final_thought}")
+
+            if used_tool:
+                final_answer = str(tool_result)
+                self.log_response(response=f"Final Answer: {final_answer}")
+                answer_dict = {
+                        "task_id": task["task_id"],
+                        "final_thought": final_thought,
+                        "tool_result": final_answer,
+                    }
+
+            answer_json = json.dumps(answer_dict)
+            self.update_state(f"researcher_response", answer_json)
+            self.log_response(response=answer_json)    
             self.log_finished()
             return self.state
 
         except ValueError as e:
-            self.log_error(f"Error during invocation: {str(e)}")
+            error_message = f"Error during invocation: {str(e)}"
+            self.log_error(error_message)
+            self.update_state("researcher_response", error_message)
             return {"error": str(e)}

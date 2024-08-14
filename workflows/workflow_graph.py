@@ -53,7 +53,7 @@ def reviewer_node_function(state: AgentGraphState):
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"],
-        agent_update=get_last_entry_from_state(state, "tools_response"),
+        agent_update=get_last_entry_from_state(state, "researcher_response"),
     )
 
 

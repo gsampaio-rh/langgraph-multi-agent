@@ -20,7 +20,7 @@ def main():
     iterations = 10
     config = {"configurable": {"thread_id": "1"}}
     verbose = True
-    user_request = "1. Crawl this page: https://example.com/. Just crawl and do nothing else."
+    user_request = "Just crawl this page: https://example.com/. Just crawl the page and do nothing else! Don't do something else!"
     # user_request = "Simply crawl this page: https://example.com/"
     dict_inputs = {"user_request": user_request}
     limit = {"recursion_limit": iterations}
