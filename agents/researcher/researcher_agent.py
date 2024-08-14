@@ -8,6 +8,7 @@ from typing import Dict, Any
 from custom_tools import custom_tools, tools_names
 from utils.helpers import get_current_utc_datetime
 
+
 researcher_system_prompt_template = """
 You are an AI Researcher Agent responsible for solving tasks by reasoning through the steps, selecting the most appropriate tools, and providing the corresponding arguments. Your task is to reflect on each result to guide your next steps and ensure that the task is completed efficiently and accurately. You may need to break down the task into subtasks and use different tools to complete each subtask. All your outputs should maintain a consistent JSON structure.
 
@@ -19,11 +20,11 @@ You have access to the following tools:
 - **task**: The task you must complete.
 - **thought**: Reflect on what needs to be done.
 - **action**: Choose the action to take from the available tools [{tools_names}]
-- **action_input**: Use a valid JSON format for the action input (e.g., `{{"input": "example input"}}`). Ensure that the inputs are precise and match the expected format.
+- **action_input**: Use a valid JSON format for the action input (e.g., `{{"input": "example input"}}`). **Ensure that the input matches the expected type (e.g., a string if the tool expects a string).** For instance, if the tool expects a simple string, provide it directly without any additional structure.
 - **observation**: Record the result of the action.
 ... (This Thought/Action/Action Input/Observation sequence can repeat N times as needed)
-- **thought**: I now know the final answer!
-- **answer**: Once all necessary actions are completed, or if you determine no further tools are needed, provide the final answer. Ensure that the final output meets the task's acceptance criteria and is presented in the required format.
+- **thought**: I now know the final answer and no further tools or actions are needed.
+- **final_answer**: Provide the final answer, ensuring it meets the task's acceptance criteria.
 
 ### Output Format:
 Your response must follow this JSON format:
@@ -42,12 +43,8 @@ Your response must follow this JSON format:
 
 - **For Thought when you have the final answer**:
 {{
-    "thought": "I now know the final answer!"
-}}
-
-- **For Final Answer**:
-{{
-    "answer": "[the final answer, if no further tools are needed]"
+    "thought": "I now know the final answer and no further tools or actions are needed."
+    "final_answer": "[the final answer, if no further tools are needed]"
 }}
 
 ### Example:
@@ -80,26 +77,22 @@ Your response must follow this JSON format:
     "action_input": {{"a": 20, "b": 8}}
 }}
 
-5. **Final Thought**:
+5. **Thought**:
 {{
-    "thought": "I know the final answer."
-}}
-
-6. **Final Answer**:
-{{
-    "answer": "28"
+    "thought": "I now know the final answer and no further tools or actions are needed."
+    "final_answer": "28"
 }}
 
 ### Error Avoidance:
-- **Type Validation**: Before using a tool, double-check that the values provided match the expected types (e.g., ensure that a string is provided where `str` is expected).
+- **Type Validation**: Before using a tool, ensure that the values provided match the expected types (e.g., if the tool expects a string, provide a string directly without additional structure).
 - **JSON Format**: Ensure your JSON output is correctly structured, clean, and includes only the necessary details.
+- Do not include additional metadata such as `title`, `description`, or `type` in the `tool_input`.
 
 ### Important Considerations
 - Start with the initial user input.
 - Clearly distinguish between thoughts, actions, and observations.
 - Avoid repeating the same thoughts or actions if they do not lead to progress.
-- If you find that you are making the same observations without new insights, consider changing your approach or concluding the task.
-- Provide the final answer only when all necessary actions have been completed.
+- If you find that you are making the same observations without new insights, conclude the task by providing the final answer.
 
 ## Current date and time:
 {datetime}
@@ -276,6 +269,8 @@ class ResearcherAgent(Agent):
             loop_count = 0
             max_loops = 15
 
+            used_tool = False
+
             while loop_count < max_loops:
                 loop_count += 1
                 self.log_processing(f"User Prompt -> {usr_prompt}")
@@ -291,17 +286,37 @@ class ResearcherAgent(Agent):
                     response_json
                 )
 
-                # Update the scratchpad with the latest user prompt and response content
-                scratchpad += f"User Prompt: {usr_prompt}\nResponse: {response_content}\n"
-
                 self.update_state(f"researcher_response", response_content)
                 self.log_response(response=response_content)
+
+                if used_tool and (
+                    "observation" in response_content
+                    or "final_answer" in response_content
+                ):
+                    final_thought = response_content["thought"]
+                    if "final_answer" in response_content:
+                        final_answer = response_content["final_answer"]
+                        answer = f"final_thought: {final_thought}, tool_result:{final_answer}"
+                    else:
+                        answer = (
+                            f"final_thought: {final_thought}, tool_result:{tool_result}"
+                        )
+                    self.update_state(f"researcher_response", answer)
+                    self.log_response(response=answer)
+                    self.log_finished()
+                    return self.state
+
+                # Update the scratchpad with the latest user prompt and response content
+                scratchpad += (
+                    f"User Prompt: {usr_prompt}\nResponse: {response_content}\n"
+                )
 
                 tool_result = self.find_and_invoke_tool(
                     response_content, custom_tools, tools_description
                 )
 
                 if tool_result is not None:
+                    used_tool = True
                     tool_result_with_id = {
                         "task_id": validated_task["task_id"],
                         "tool_result": tool_result,
@@ -309,13 +324,6 @@ class ResearcherAgent(Agent):
                     self.log_response(response=tool_result_with_id)
                     self.update_state(f"researcher_response", tool_result_with_id)
                     usr_prompt = f"Observation: {tool_result}"
-
-                if "answer" in response_content:
-                    final_answer = response_content["answer"]
-                    self.update_state(f"researcher_response", final_answer)
-                    self.log_response(response=final_answer)
-                    self.log_finished()
-                    return self.state
 
                 # Update sys_prompt with the latest scratchpad
                 sys_prompt = self.format_sys_prompt(task, tools_description, feedback, scratchpad)

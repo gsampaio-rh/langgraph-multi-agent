@@ -15,6 +15,7 @@ def website_crawl(url: str) -> str:
 
     return docs
 
+
 @tool
 def extract_content(docs, tags_to_extract=["body"]) -> str:
     """
@@ -23,9 +24,16 @@ def extract_content(docs, tags_to_extract=["body"]) -> str:
     """
     # Ensure docs are in the form of a list of Document objects
     if isinstance(docs, list) and isinstance(docs[0], dict):
+        # Handle cases where metadata might be missing
         docs = [
-            Document(metadata=doc["metadata"], page_content=doc["page_content"])
+            Document(
+                metadata=doc.get(
+                    "metadata", {}
+                ),  # Use an empty dict if metadata is missing
+                page_content=doc["page_content"],
+            )
             for doc in docs
+            if "page_content" in doc  # Ensure page_content exists
         ]
 
     # Initialize BeautifulSoup transformer with the specified tags

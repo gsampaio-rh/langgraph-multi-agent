@@ -55,15 +55,19 @@ class AppConfig:
         Return a formatted string with agent descriptions.
         """
         return f"""
-            - **Architect:** Designs the system architecture to meet project goals.
             - **Researcher:** Gathers detailed information as required. The researcher has access to these tools: {tools_names}
-            - **Engineer:** Develops and implements the code based on the design.
-            - **QA (Quality Assurance):** Tests the system to ensure functionality and reliability.
             - **Reviewer:** Reviews work completed by agents, providing feedback.
             - **Project Planner:** Creates and manages the overall project plan.
             - **Project Manager:** Manages task execution, monitors progress, and ensures deadlines are met.
         """
 
+# - **Architect:** Designs the system architecture to meet project goals.
+# - **Researcher:** Gathers detailed information as required. The researcher has access to these tools: {tools_names}
+# - **Engineer:** Develops and implements the code based on the design.
+# - **QA (Quality Assurance):** Tests the system to ensure functionality and reliability.
+# - **Reviewer:** Reviews work completed by agents, providing feedback.
+# - **Project Planner:** Creates and manages the overall project plan.
+# - **Project Manager:** Manages task execution, monitors progress, and ensures deadlines are met.
 
 def load_config_from_file(file_path: str) -> AppConfig:
     """
