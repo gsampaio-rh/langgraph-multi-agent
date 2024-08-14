@@ -308,12 +308,14 @@ class ResearcherAgent(Agent):
                     final_thought = response_content.get("thought", "")
                     self.log_response(response=f"Final Thought: {final_thought}")
 
-                    # Check if final_answer exists and is not None
-                    final_answer = response_content.get("final_answer")
+                    # Check if final_answer exists and is not None or an empty string
+                    final_answer = response_content.get("final_answer", None)
 
-                    if final_answer is not None:
+                    if final_answer is None:
                         self.log_error("Final answer not returned. We'll use the tool_result")
                         final_answer = str(tool_result)
+                    else:
+                        self.log_response(response=f"Final Answer: {final_answer}")
 
                     self.log_response(response=f"Final Answer: {final_answer}")
                     answer_dict = {
