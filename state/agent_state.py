@@ -8,7 +8,7 @@ class AgentGraphState(TypedDict):
     start_chain: Annotated[list, add_messages]
     planner_response: Annotated[list, add_messages]
     manager_response: Annotated[list, add_messages]
-    tools_response: Annotated[list, add_messages]
+    researcher_response: Annotated[list, add_messages]
     reviewer_response: Annotated[list, add_messages]
     end_chain: Annotated[list, add_messages]
 

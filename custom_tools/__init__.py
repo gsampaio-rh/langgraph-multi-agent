@@ -6,6 +6,11 @@ from custom_tools.arxiv_query import arxiv
 
 # Expose all tools in a list for easier import
 custom_tools = [duckSearch, wiki, arxiv, website_crawl, extract_content]
+
+# Generate the tools description (already in your code)
 tools_description = (
     render_text_description_and_args(custom_tools).replace("{", "{{").replace("}", "}}")
 )
+
+# Create a list of tool names
+tools_names = [tool.name for tool in custom_tools]

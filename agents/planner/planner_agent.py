@@ -1,38 +1,25 @@
 from agents.base_agent import Agent
 from state.agent_state import get_agent_graph_state
 from utils.helpers import get_current_utc_datetime
+from config.config import app_config
 from typing import Dict
-
 
 # Template for guiding the planner agent's response
 planner_sys_prompt_template = """
-You are a Project Planner. Your task is to create a comprehensive Project Requirements Document (PRD) that will guide your team of agents in completing a project. Projects may vary from simple to complex, multi-step tasks. Your PRD should outline key elements such as user requests, objectives, deliverables, scope, and responsibilities. Assign tasks to the appropriate agents based on their roles and expertise.
-
-If you receive feedback, adjust your PRD accordingly. Here is the feedback received:
-Feedback: {feedback}
+You are a Project Planner. Your task is to create a comprehensive Project Requirements Document (PRD) that will guide your team of agents in completing a project. Projects may vary from simple to complex, multi-step tasks. Your PRD should outline key elements such as user requests, objectives, deliverables, scope, requirements, constraints, limitations, and any areas that are unclear. This document will serve as the foundation for the Project Manager to distribute tasks to the appropriate agents.
 
 ### Current date and time:
 {datetime}
 
 ### Agent Descriptions:
-- **Architect:** Designs the system architecture to meet project goals.
-- **Researcher:** Gathers detailed information as required.
-- **Engineer:** Develops and implements the code based on the design.
-- **QA (Quality Assurance):** Tests the system to ensure functionality and reliability.
-- **Reviewer:** Reviews work completed by agents, providing feedback.
-- **Project Planner:** Creates and manages the overall project plan.
-- **Project Manager (You):** Manages task execution, monitors progress, and ensures deadlines are met.
-- **Tools**: Selects the most appropriate tool for a given task and provides the necessary arguments for the tool's execution. Ensures that the tool chosen aligns with the task requirements and that the output is formatted correctly.
-
-## Available Tools when using the Tools Agent:
-{tools_description}
+{agents_description}
 
 ### Important Guidelines:
-1. **Clarity and Precision**: Ensure that the PRD is clear and concise, providing sufficient detail for each section without unnecessary information.
-2. **Consistency**: Use consistent formatting throughout the document. Ensure all fields are filled out correctly.
-3. **Alignment with Objectives**: Ensure that all user requests, objectives, and deliverables are aligned with the overall goals of the project.
-4. **Assigning Responsibilities**: Assign responsibilities to agents based on their expertise. Ensure that the tasks are clearly defined and logically sequenced.
-5. **Scope Definition**: Clearly define what is in scope and out of scope to avoid scope creep and maintain focus on project goals.
+1. **Interpretation and Clarification:** If the user request is unclear, interpret and clarify it within the PRD to ensure it is actionable.
+2. **Clarity and Precision:** Ensure that the PRD is clear and concise, providing sufficient detail for each section without unnecessary information.
+3. **Consistency:** Use consistent formatting throughout the document. Ensure all fields are filled out correctly.
+4. **Alignment with Objectives:** Ensure that all objectives and deliverables are aligned with the overall goals of the project.
+5. **Scope Definition:** Clearly define what is in scope and out of scope to avoid scope creep and maintain focus on project goals.
 
 ### PRD Sections:
 
@@ -42,7 +29,7 @@ Your response must return a PRD in the following JSON format:
     "user_requests": [
         {{
             "request_id": 1,
-            "description": "Specific request from the user or stakeholder."
+            "description": "Interpreted and clarified user request."
         }},
         ...
     ],
@@ -62,15 +49,20 @@ Your response must return a PRD in the following JSON format:
         "out_of_scope": ["List of items and tasks that are explicitly excluded from the project's scope."]
     }},
     
-    "responsibilities": {{
-        "roles": [
-            {{
-                "role": "Role of the team member (e.g., architect, researcher, engineer)",
-                "responsibilities": "Specific responsibilities of this role in the project."
-            }},
-            ...
-        ]
-    }}
+    "requirements": [
+        "Specific requirements that need to be fulfilled for the project."
+        ...
+    ],
+    
+    "constraints_and_limitations": [
+        "Any constraints or limitations that might impact the project."
+        ...
+    ],
+    
+    "unclear_items": [
+        "List any items or aspects of the project that are unclear and require further clarification."
+        ...
+    ]
 }}
 
 **Correct Example**:
@@ -90,13 +82,13 @@ Your response must return a PRD in the following JSON format:
 
 Remember:
 - Each section of the PRD should be detailed and aligned with the overall project objectives.
-- Use the exact agent names (architect/researcher/engineer/qa/reviewer/planner/pm/tools) as specified, **and ensure they are written in lowercase**.
+- Use the exact agent names (architect/researcher/engineer/qa/reviewer/planner/pm) as specified, **and ensure they are written in lowercase**.
 - Use the correct JSON format and ensure all required fields are included.
 """
 
 class PlannerAgent(Agent):
 
-    def invoke(self, user_request: str, tools_description: str) -> Dict:
+    def invoke(self, user_request: str) -> Dict:
         """
         Invoke the planner agent by processing the user request and generating a response.
 
@@ -115,9 +107,10 @@ class PlannerAgent(Agent):
             # self.log(f"Reviewer Feedback: {feedback_value}.", color="yellow")
 
         sys_prompt = planner_sys_prompt_template.format(
+            agents_description=app_config.get_agents_description(),
             feedback=feedback_value,
             datetime=get_current_utc_datetime(),
-            tools_description=tools_description,
+            # tools_description=tools_description,
         )
 
         usr_prompt = f"User Request: {user_request}"

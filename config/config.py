@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict
+from custom_tools import tools_names
 import json
 
 
@@ -25,7 +26,7 @@ class AgentConfig:
         default_factory=lambda: {
             "planner_node": {"name": "Planner Agent 👩🏿‍💻", "color": "cyan"},
             "pm_node": {"name": "Manager Agent 👩‍💼", "color": "yellow"},
-            "tools_node": {"name": "Tools Agent 🪛", "color": "light_magenta"},
+            "researcher_node": {"name": "Reseacher Agent 🧑‍🔬", "color": "light_magenta"},
             "reviewer_node": {"name": "Reviewer Agent 🔎", "color": "green"},
         }
     )
@@ -48,6 +49,20 @@ class AppConfig:
                 self.model_config = ModelConfig(**value)
             elif key == "agent_config":
                 self.agent_config = AgentConfig(**value)
+
+    def get_agents_description(self) -> str:
+        """
+        Return a formatted string with agent descriptions.
+        """
+        return f"""
+            - **Architect:** Designs the system architecture to meet project goals.
+            - **Researcher:** Gathers detailed information as required. The researcher has access to these tools: {tools_names}
+            - **Engineer:** Develops and implements the code based on the design.
+            - **QA (Quality Assurance):** Tests the system to ensure functionality and reliability.
+            - **Reviewer:** Reviews work completed by agents, providing feedback.
+            - **Project Planner:** Creates and manages the overall project plan.
+            - **Project Manager:** Manages task execution, monitors progress, and ensures deadlines are met.
+        """
 
 
 def load_config_from_file(file_path: str) -> AppConfig:

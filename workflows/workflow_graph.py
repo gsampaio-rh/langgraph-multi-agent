@@ -3,10 +3,10 @@ from agents.planner.planner_agent import PlannerAgent
 from agents.pm.pm_agent import PMAgent
 from agents.tools.tools_agent import ToolsAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
+from agents.researcher.researcher_agent import ResearcherAgent
 from state.agent_state import get_last_entry_from_state
 from config.config import app_config
-from custom_tools import custom_tools, tools_description
-from langchain.tools.render import render_text_description_and_args
+from custom_tools import tools_description
 from utils.helpers import get_current_utc_datetime
 from termcolor import colored
 import json
@@ -23,8 +23,7 @@ def planner_node_function(state: AgentGraphState):
         role="planner_node",
         model_config=app_config.model_config,
     ).invoke(
-        user_request=state["user_request"], 
-        tools_description=tools_description,
+        user_request=state["user_request"],
         )
 
 def pm_node_function(state: AgentGraphState):
@@ -34,18 +33,18 @@ def pm_node_function(state: AgentGraphState):
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"],
-        tools_description=tools_description,
     )
 
-def tools_node_function(state: AgentGraphState):
-    ToolsAgent(
+def reseacher_node_function(state: AgentGraphState):
+    ResearcherAgent(
         state=state,
-        role="tools_node",
+        role="researcher_node",
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"],
         tools_description=tools_description,
     )
+
 
 def reviewer_node_function(state: AgentGraphState):
     ReviewerAgent(
@@ -107,17 +106,18 @@ def create_graph() -> StateGraph:
     # Add nodes
     graph.add_node("planner_node", planner_node_function)
     graph.add_node("pm_node", pm_node_function)
-    graph.add_node("tools_node", tools_node_function)
+    # graph.add_node("tools_node", tools_node_function)
     graph.add_node("reviewer_node", reviewer_node_function)
+    graph.add_node("researcher_node", reseacher_node_function)
 
     # Define the flow of the graph
     graph.add_edge(START, "planner_node")
     graph.add_edge("planner_node", "pm_node")
     graph.add_conditional_edges(
-        "pm_node", should_continue, {True: "tools_node", False: END}
+        "pm_node", should_continue, {True: "researcher_node", False: END}
     )
     # graph.add_edge("pm_node", "tools_node")
-    graph.add_edge("tools_node", "reviewer_node")
+    graph.add_edge("researcher_node", "reviewer_node")
     graph.add_edge("reviewer_node", "pm_node")
 
     return graph

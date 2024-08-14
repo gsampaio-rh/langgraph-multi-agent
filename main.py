@@ -1,12 +1,15 @@
 from workflows.workflow_graph import create_graph, compile_workflow
 from IPython.display import Image, display
+from config.config import app_config
 from custom_tools import tools_description
 from termcolor import colored
 
 def main():
 
     # Print the available tools and agents
-    print(colored("Available Tools:", "light_blue"))
+    print(colored("Available Agents:", "light_blue"))
+    print(colored(f"{app_config.get_agents_description()}", "light_blue"))
+    print(colored("\nAvailable Tools:", "light_blue"))
     print(colored(f"{tools_description}", "light_blue"))
     print(colored("\nStarting the workflow...\n", "light_blue"))
 
@@ -18,6 +21,7 @@ def main():
     config = {"configurable": {"thread_id": "1"}}
     verbose = True
     user_request = "1. Crawl this page: https://example.com/ 2. Extract the body content. Do it, step-by-step."
+    # user_request = "Simply crawl this page: https://example.com/"
     dict_inputs = {"user_request": user_request}
     limit = {"recursion_limit": iterations}
 
