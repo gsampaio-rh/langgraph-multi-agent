@@ -26,16 +26,18 @@ class PlannerAgent(Agent):
         usr_prompt = f"User Request: {user_request}"
         payload = self.prepare_payload(sys_prompt, usr_prompt)
 
-        self.log_event("processing", )
+        self.log_event("info","⏳ Processing the request..." )
 
         # Invoke the model and process the response
         response_json = self.invoke_model(payload)
-        response_formatted, response_content = self.process_model_response(
+        response_human_message, response_content = self.process_model_response(
             response_json
         )
 
-        self.update_state("planner_response", response_formatted)
-        self.log_event("response", message=response_formatted)
-        self.log_event("finished", )
+        self.update_state("planner_response", response_human_message)
+        self.log_event(
+            "info", message=f"📑 Planner Response {response_content}"
+        )
+        self.log_event("finished", "")
 
         return self.state

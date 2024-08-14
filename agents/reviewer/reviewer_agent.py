@@ -103,7 +103,7 @@ class ReviewerAgent(Agent):
             self.log_event("error", error_message)
             return {"error": error_message}
 
-        self.log_event("response", 
+        self.log_event("info", 
             message=f"Now I have the last task list: {task_list.content}.",
         )
 
@@ -126,7 +126,7 @@ class ReviewerAgent(Agent):
 
         # Handle the result
         if matching_task:
-            self.log_event("response", f"Task found: {matching_task}")
+            self.log_event("info", f"Task found: {matching_task}")
             return {"task": matching_task}
         else:
             error_message = f"❌ Task with ID '{task_id}' not found in the task list."
@@ -160,7 +160,7 @@ class ReviewerAgent(Agent):
         #     self.log_event("error", error_message)
         #     return {"error": error_message}
 
-        # self.log_event("response", 
+        # self.log_event("info", 
         #     message=f"Now I have the last task list: {task_list.content}.",
         # )
 
@@ -184,7 +184,7 @@ class ReviewerAgent(Agent):
         payload = self.prepare_payload(sys_prompt, agent_prompt)
 
         while True:
-            self.log_event("processing", )
+            self.log_event("info","⏳ Processing the request..." )
             # Invoke the model and process the response
             response_json = self.invoke_model(payload)
             if "error" in response_json:
@@ -196,6 +196,6 @@ class ReviewerAgent(Agent):
 
             # Update the state with the new response
             self.update_state(f"reviewer_response", response_formatted)
-            self.log_event("response", message=response_formatted)
+            self.log_event("info", message=response_formatted)
             self.log_event("finished", )
             return self.state

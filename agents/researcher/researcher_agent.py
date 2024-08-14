@@ -140,8 +140,8 @@ class ResearcherAgent(Agent):
 
     def log_tool_invocation(self, function_name: str, arguments: dict):
         """Log tool invocation details."""
-        self.log_event("response", f"🔵 Using Tool: {function_name}.")
-        self.log_event("response", f"🔵 Arguments: {arguments}.")
+        self.log_event("info", f"🔵 Using Tool: {function_name}.")
+        self.log_event("info", f"🔵 Arguments: {arguments}.")
 
     def handle_tool_invocation_error(
         self, function_name: str, error: Exception
@@ -201,16 +201,16 @@ class ResearcherAgent(Agent):
     def check_feedback(self, task_id: str) -> str:
         """Check for feedback related to the identified task."""
         researcher_states = get_all_entries_from_state(self.state, "Researcher_state")
-        self.log_event("response", f"Looking for feedback on {researcher_states}")
+        self.log_event("info", f"Looking for feedback on {researcher_states}")
 
         for researcher_state in researcher_states:
             researcher_data = json.loads(researcher_state.content)
             if researcher_data.get("task_id") == task_id:
                 feedback = researcher_data.get("feedback", "")
                 if feedback:
-                    self.log_event("response", f"Feedback found for task {task_id}: {feedback}")
+                    self.log_event("info", f"Feedback found for task {task_id}: {feedback}")
                 else:
-                    self.log_event("response", f"No feedback provided for task {task_id}.")
+                    self.log_event("info", f"No feedback provided for task {task_id}.")
                 return feedback
         return ""
 
@@ -287,10 +287,10 @@ class ResearcherAgent(Agent):
                 )
 
                 self.update_state(f"researcher_response", response_content)
-                self.log_event("response", message=response_content)
+                self.log_event("info", message=response_content)
 
                 if not isinstance(response_content, (str, list, tuple, dict)):
-                    self.log_event("response", message="Converting response...")
+                    self.log_event("info", message="Converting response...")
                     response_content = str(response_content)  # Convert to string if it's not a string, list, tuple, or dict
 
                 if used_tool and (
@@ -298,15 +298,15 @@ class ResearcherAgent(Agent):
                     or "final_answer" in response_content
                     or "tool_result" in response_content
                 ):
-                    self.log_event("response", message="Final steps...")
+                    self.log_event("info", message="Final steps...")
 
-                    self.log_event("response", 
+                    self.log_event("info", 
                         message=f"Last response_content: {response_content}"
                     )
 
                     # Extract the final_thought
                     final_thought = response_content.get("thought", "")
-                    self.log_event("response", message=f"Final Thought: {final_thought}")
+                    self.log_event("info", message=f"Final Thought: {final_thought}")
 
                     # Check if final_answer exists and is not None or an empty string
                     final_answer = response_content.get("final_answer", None)
@@ -315,9 +315,9 @@ class ResearcherAgent(Agent):
                         self.log_event("error", "Final answer not returned. We'll use the tool_result")
                         final_answer = str(tool_result)
                     else:
-                        self.log_event("response", message=f"Final Answer: {final_answer}")
+                        self.log_event("info", message=f"Final Answer: {final_answer}")
 
-                    self.log_event("response", message=f"Final Answer: {final_answer}")
+                    self.log_event("info", message=f"Final Answer: {final_answer}")
                     answer_dict = {
                         "task_id": task["task_id"],
                         "final_thought": final_thought,
@@ -325,7 +325,7 @@ class ResearcherAgent(Agent):
                     }
                     answer_json = json.dumps(answer_dict)
                     self.update_state(f"researcher_response", answer_json)
-                    self.log_event("response", message=answer_json)
+                    self.log_event("info", message=answer_json)
                     self.log_event("finished", )
                     return self.state
 
@@ -344,25 +344,25 @@ class ResearcherAgent(Agent):
                         "task_id": validated_task["task_id"],
                         "tool_result": tool_result,
                     }
-                    self.log_event("response", message=tool_result_with_id)
+                    self.log_event("info", message=tool_result_with_id)
                     self.update_state(f"researcher_response", tool_result_with_id)
                     usr_prompt = f"Observation: {tool_result}"
 
                 # Update sys_prompt with the latest scratchpad
                 sys_prompt = self.format_sys_prompt(task, tools_description, feedback, scratchpad)
 
-            self.log_event("response", 
+            self.log_event("info", 
                 f"Loop limit of {max_loops} reached. Returning the current state."
             )
-            self.log_event("response", message="Final steps...")
+            self.log_event("info", message="Final steps...")
 
             # Extract the final_thought
             final_thought = response_content.get("thought", "")
-            self.log_event("response", message=f"Final Thought: {final_thought}")
+            self.log_event("info", message=f"Final Thought: {final_thought}")
 
             if used_tool:
                 final_answer = str(tool_result)
-                self.log_event("response", message=f"Final Answer: {final_answer}")
+                self.log_event("info", message=f"Final Answer: {final_answer}")
                 answer_dict = {
                         "task_id": task["task_id"],
                         "final_thought": final_thought,
@@ -371,7 +371,7 @@ class ResearcherAgent(Agent):
 
             answer_json = json.dumps(answer_dict)
             self.update_state(f"researcher_response", answer_json)
-            self.log_event("response", message=answer_json)    
+            self.log_event("info", message=answer_json)    
             self.log_event("finished", )
             return self.state
 

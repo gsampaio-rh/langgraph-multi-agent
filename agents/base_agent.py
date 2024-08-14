@@ -6,9 +6,8 @@ from langchain_core.messages.human import HumanMessage
 from typing import Any, Dict
 from utils.log_utils import (
     log,
+    log_info,
     log_start,
-    log_processing,
-    log_response,
     log_error,
     log_finished,
 )
@@ -51,9 +50,8 @@ class Agent:
         """
         event_mapping = {
             "start": log_start,
-            "processing": log_processing,
             "finished": log_finished,
-            "response": log_response,
+            "info": log_info,
             "error": log_error,
         }
         log_func = event_mapping.get(event_type, log)
@@ -89,13 +87,16 @@ class Agent:
         Returns:
         - dict: The JSON response from the model.
         """
+        self.log_event("info", "🦙 Invoking LLAMA...")
         try:
             response = requests.post(
                 self.model_endpoint, headers=self.headers, data=json.dumps(payload)
             )
             response.raise_for_status()  # Raises an error for HTTP errors
+            self.log_event("info", "🦙 🤝 LLAMA Answered...")
             return response.json()
         except requests.RequestException as e:
+            self.log_event("error", "🦙 Something happened...")
             print(f"Error in invoking model! {str(e)}")
             return {"error": str(e)}
 
@@ -113,4 +114,6 @@ class Agent:
         - dict: The parsed response content.
         """
         response_content = json.loads(response_json.get("response", "{}"))
-        return HumanMessage(content=json.dumps(response_content)), response_content
+        # Pretty-print the JSON content
+        pretty_content = json.dumps(response_content, indent=4)
+        return HumanMessage(content=json.dumps(response_content)), pretty_content
