@@ -13,7 +13,6 @@ from utils.log_utils import (
     log_finished,
 )
 
-
 class Agent:
     def __init__(self, state: AgentGraphState, role: str, model_config: dict):
         """
@@ -32,36 +31,6 @@ class Agent:
         self.headers = model_config.headers  # Directly access attributes
         self.stop = model_config.stop  # Directly access attributes
 
-    def log(self, message: str, level: str = "INFO"):
-        """
-        Log a message using the centralized logging utility.
-        """
-        log(self.role, message, level)
-
-    def log_start(self, message: str = None):
-        """
-        Log the default or custom start message for this agent.
-        """
-        log_start(self.role, message)
-
-    def log_processing(self, message: str = None):
-        """
-        Log the default or custom processing message for this agent.
-        """
-        log_processing(self.role, message)
-
-    def log_finished(self, message: str = None):
-        """
-        Log the default or custom finished message for this agent.
-        """
-        log_finished(self.role, message)
-
-    def log_response(self, response: str = None):
-        log_response(self.role, response)
-
-    def log_error(self, message: str = None):
-        log_error(self.role, message)
-
     def update_state(self, key: str, value: Any):
         """
         Update the agent's state with a new value for a given key.
@@ -70,15 +39,25 @@ class Agent:
         - key (str): The key in the state to update.
         - value (Any): The value to append to the state's list for this key.
         """
-        if key in self.state:
-            self.state[key].append(value)
-        else:
-            print(
-                colored(
-                    f"Warning: Attempting to update a non-existing state key '{key}'.",
-                    "red",
-                )
-            )
+        if key not in self.state:
+            self.state[key] = (
+                []
+            )  # Initialize the key with an empty list if it doesn't exist
+        self.state[key].append(value)
+
+    def log_event(self, event_type: str, message: str = None):
+        """
+        Centralized logging method to handle different types of log events.
+        """
+        event_mapping = {
+            "start": log_start,
+            "processing": log_processing,
+            "finished": log_finished,
+            "response": log_response,
+            "error": log_error,
+        }
+        log_func = event_mapping.get(event_type, log)
+        log_func(self.role, message)
 
     def prepare_payload(self, sys_prompt: str, prompt: str) -> Dict[str, Any]:
         """

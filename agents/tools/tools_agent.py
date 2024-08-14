@@ -118,26 +118,26 @@ class ToolsAgent(Agent):
                 for tool in custom_tools:
                     if tool.name == function_name:
                         try:
-                            self.log_response(
-                                response=f"🔵 Using Tool : {function_name}.",
+                            self.log_event("response", 
+                                message=f"🔵 Using Tool : {function_name}.",
                             )
-                            self.log_response(
-                                response=f"🔵 Arguments : {arguments}.",
+                            self.log_event("response", 
+                                message=f"🔵 Arguments : {arguments}.",
                             )
                             tool_result = tool.invoke(arguments)
-                            self.log_response(
-                                response=f"Tools Result : {tool_result}.",
+                            self.log_event("response", 
+                                message=f"Tools Result : {tool_result}.",
                             )
                             return tool_result
                         except Exception as e:
-                            self.log_error(
+                            self.log_event("error", 
                                 f"Error invoking tool '{function_name}': {str(e)}"
                             )
                             return {
                                 "error": f"Error invoking tool '{function_name}': {str(e)}"
                             }
             else:
-                self.log_error(f"TOOL NOT FOUND'{function_name}")
+                self.log_event("error", f"TOOL NOT FOUND'{function_name}")
         return None
 
     def invoke(
@@ -156,7 +156,7 @@ class ToolsAgent(Agent):
         - dict: The updated state after the Tools Agent's invocation.
         """
 
-        self.log_start()
+        self.log_event("start", )
 
         feedback = ""
         manager_response = get_agent_graph_state(self.state, "manager_response")
@@ -167,13 +167,13 @@ class ToolsAgent(Agent):
         )
 
         if task is None:
-            self.log_error("NO TASK FOR TOOLS FOUNDED.")
+            self.log_event("error", "NO TASK FOR TOOLS FOUNDED.")
             return {"error": "No tools task found."}
 
         task_id = task["task_id"]
 
-        self.log_response(
-            response=f"Now I have the task {task_id}.",
+        self.log_event("response", 
+            message=f"Now I have the task {task_id}.",
         )
 
         # Format the task prompt
@@ -186,11 +186,11 @@ class ToolsAgent(Agent):
         payload = self.prepare_payload(sys_prompt, user_request)
 
         while True:
-            self.log_processing()
+            self.log_event("processing", )
             # Invoke the model and process the response
             response_json = self.invoke_model(payload)
             if "error" in response_json:
-                self.log_error(f"{response_json}")
+                self.log_event("error", f"{response_json}")
                 return response_json
 
             response_formatted, response_content = self.process_model_response(
@@ -201,7 +201,7 @@ class ToolsAgent(Agent):
 
             # Update the state with the new response
             self.update_state(f"tools_response", response_with_id)
-            self.log_response(response=response_with_id)
+            self.log_event("response", message=response_with_id)
 
             # Attempt to find and invoke a tool
             tool_result = self.find_and_invoke_tool(
@@ -211,7 +211,7 @@ class ToolsAgent(Agent):
             # If a tool is used, update the state and return
             if tool_result is not None:
                 tool_result_with_id = {"task_id": task_id, "tool_result": tool_result}
-                self.log_response(response=tool_result_with_id)
+                self.log_event("response", message=tool_result_with_id)
                 self.update_state(f"tools_response", tool_result_with_id)
-                self.log_finished()
+                self.log_event("finished", )
                 return self.state

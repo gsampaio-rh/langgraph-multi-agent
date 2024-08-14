@@ -15,7 +15,7 @@ class PlannerAgent(Agent):
         Returns:
         - dict: The updated state after the planner agent's invocation.
         """
-        self.log_start(f" the user_request: {user_request}")
+        self.log_event("start", f" the user_request: {user_request}")
 
         feedback_value = ""
         if get_agent_graph_state(self.state, "reviewer_response"):
@@ -26,7 +26,7 @@ class PlannerAgent(Agent):
         usr_prompt = f"User Request: {user_request}"
         payload = self.prepare_payload(sys_prompt, usr_prompt)
 
-        self.log_processing()
+        self.log_event("processing", )
 
         # Invoke the model and process the response
         response_json = self.invoke_model(payload)
@@ -35,7 +35,7 @@ class PlannerAgent(Agent):
         )
 
         self.update_state("planner_response", response_formatted)
-        self.log_response(response=response_formatted)
-        self.log_finished()
+        self.log_event("response", message=response_formatted)
+        self.log_event("finished", )
 
         return self.state

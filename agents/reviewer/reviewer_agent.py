@@ -92,7 +92,7 @@ class ReviewerAgent(Agent):
             agent_update_dict = json.loads(agent_update)
         except (TypeError, json.JSONDecodeError) as e:
             error_message = f"❌ Failed to parse agent_update. Error: {str(e)}"
-            self.log_error(error_message)
+            self.log_event("error", error_message)
             return {"error": error_message}
 
         task_list = get_last_entry_from_state(self.state, "manager_response")
@@ -100,18 +100,18 @@ class ReviewerAgent(Agent):
         # Check if the task list is found
         if not task_list:
             error_message = "❌ Task list not found. Cannot proceed without the current task list."
-            self.log_error(error_message)
+            self.log_event("error", error_message)
             return {"error": error_message}
 
-        self.log_response(
-            response=f"Now I have the last task list: {task_list.content}.",
+        self.log_event("response", 
+            message=f"Now I have the last task list: {task_list.content}.",
         )
 
         try:
             task_list_dict = json.loads(task_list.content)
         except (TypeError, json.JSONDecodeError) as e:
             error_message = f"❌ Failed to parse task_list. Error: {str(e)}"
-            self.log_error(error_message)
+            self.log_event("error", error_message)
             return {"error": error_message}
 
         # Extract the task_id from the converted dictionary
@@ -126,11 +126,11 @@ class ReviewerAgent(Agent):
 
         # Handle the result
         if matching_task:
-            self.log_response(f"Task found: {matching_task}")
+            self.log_event("response", f"Task found: {matching_task}")
             return {"task": matching_task}
         else:
             error_message = f"❌ Task with ID '{task_id}' not found in the task list."
-            self.log_error(error_message)
+            self.log_event("error", error_message)
             return {"error": error_message}
 
     def invoke(
@@ -149,7 +149,7 @@ class ReviewerAgent(Agent):
         Returns:
         - dict: The updated state after the Reviewer Agent's invocation.
         """
-        self.log_start(agent_update)
+        self.log_event("start", agent_update)
 
         task = self.list_task(agent_update)
         # task_list = get_last_entry_from_state(self.state, "manager_response")
@@ -157,11 +157,11 @@ class ReviewerAgent(Agent):
         #     error_message = (
         #         "❌ Task list not found. Cannot proceed without the current task list."
         #     )
-        #     self.log_error(error_message)
+        #     self.log_event("error", error_message)
         #     return {"error": error_message}
 
-        # self.log_response(
-        #     response=f"Now I have the last task list: {task_list.content}.",
+        # self.log_event("response", 
+        #     message=f"Now I have the last task list: {task_list.content}.",
         # )
 
         # Format the task prompt
@@ -184,7 +184,7 @@ class ReviewerAgent(Agent):
         payload = self.prepare_payload(sys_prompt, agent_prompt)
 
         while True:
-            self.log_processing()
+            self.log_event("processing", )
             # Invoke the model and process the response
             response_json = self.invoke_model(payload)
             if "error" in response_json:
@@ -196,6 +196,6 @@ class ReviewerAgent(Agent):
 
             # Update the state with the new response
             self.update_state(f"reviewer_response", response_formatted)
-            self.log_response(response=response_formatted)
-            self.log_finished()
+            self.log_event("response", message=response_formatted)
+            self.log_event("finished", )
             return self.state

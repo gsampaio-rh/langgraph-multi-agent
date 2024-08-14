@@ -79,30 +79,30 @@ class PMAgent(Agent):
         Returns:
         - dict: The updated state after the PM agent's invocation.
         """
-        self.log_start()
+        self.log_event("start", )
 
         original_plan = get_first_entry_from_state(self.state, "planner_response")
         if not original_plan:
             error_message = (
                 "Original plan not found. Cannot proceed without the initial plan."
             )
-            self.log_error(error_message)
+            self.log_event("error", error_message)
             return {"error": error_message}
 
-        self.log_response(
-            response=f"Now I have the plan {original_plan.content}.",
+        self.log_event("response", 
+            message=f"Now I have the plan {original_plan.content}.",
         )
 
         task_list = get_last_entry_from_state(self.state, "manager_response")
 
         if not task_list or task_list == "":
-            self.log_response(
-                response="📝 Task list is empty. Starting from scratch...",
+            self.log_event("response", 
+                message="📝 Task list is empty. Starting from scratch...",
             )
             usr_prompt = f"The task list is currently empty. This is the user_request: {user_request}. Please create an initial task plan based on the original project requirements."
         else:
-            self.log_response(
-                response=f"Now I have the last task list: {task_list.content}.",
+            self.log_event("response", 
+                message=f"Now I have the last task list: {task_list.content}.",
             )
 
             # task_list_dict = json.loads(task_list.content)
@@ -115,13 +115,13 @@ class PMAgent(Agent):
             )
 
             if not all_reviewer_responses or all_reviewer_responses == "":
-                self.log_response(
-                    response="🟡 Not all tasks are done but the reviewer didn't send any response yet.",
+                self.log_event("response", 
+                    message="🟡 Not all tasks are done but the reviewer didn't send any response yet.",
                 )
                 usr_prompt = "Some tasks remain incomplete, but no feedback has been provided by the reviewer. No updates are required at this time."
             else:
-                self.log_response(
-                    response=f"Now I have the reviewer responses: {all_reviewer_responses}.",
+                self.log_event("response", 
+                    message=f"Now I have the reviewer responses: {all_reviewer_responses}.",
                 )
                 usr_prompt = f"The reviewer has provided feedback on the tasks. Please update the task list accordingly with the following details: {all_reviewer_responses}"
 
@@ -135,7 +135,7 @@ class PMAgent(Agent):
         payload = self.prepare_payload(sys_prompt, usr_prompt)
 
         while True:
-            self.log_processing()
+            self.log_event("processing", )
             # Invoke the model and process the response
             response_json = self.invoke_model(payload)
             if "error" in response_json:
@@ -146,6 +146,6 @@ class PMAgent(Agent):
             )
 
             self.update_state("manager_response", response_formatted)
-            self.log_response(response=response_formatted)
-            self.log_finished()
+            self.log_event("response", message=response_formatted)
+            self.log_event("finished", )
             return self.state

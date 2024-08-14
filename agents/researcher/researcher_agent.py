@@ -124,7 +124,7 @@ class ResearcherAgent(Agent):
 
         arguments = action.get("action_input", {})
         if function_name not in tools_description:
-            self.log_error(f"TOOL NOT FOUND: '{function_name}'")
+            self.log_event("error", f"TOOL NOT FOUND: '{function_name}'")
             return None
 
         tool = next((t for t in custom_tools if t.name == function_name), None)
@@ -135,20 +135,20 @@ class ResearcherAgent(Agent):
             except Exception as e:
                 return self.handle_tool_invocation_error(function_name, e)
         else:
-            self.log_error(f"Tool '{function_name}' not found in custom tools.")
+            self.log_event("error", f"Tool '{function_name}' not found in custom tools.")
         return None
 
     def log_tool_invocation(self, function_name: str, arguments: dict):
         """Log tool invocation details."""
-        self.log_response(f"🔵 Using Tool: {function_name}.")
-        self.log_response(f"🔵 Arguments: {arguments}.")
+        self.log_event("response", f"🔵 Using Tool: {function_name}.")
+        self.log_event("response", f"🔵 Arguments: {arguments}.")
 
     def handle_tool_invocation_error(
         self, function_name: str, error: Exception
     ) -> dict:
         """Handle errors during tool invocation."""
         error_message = f"Error invoking tool '{function_name}': {str(error)}"
-        self.log_error(error_message)
+        self.log_event("error", error_message)
         return {"error": error_message}
 
     def validate_task(self, task: dict) -> dict:
@@ -173,7 +173,7 @@ class ResearcherAgent(Agent):
         ]
         if missing_fields:
             missing_fields_str = ", ".join(missing_fields)
-            self.log_error(
+            self.log_event("error", 
                 f"Error: Missing required fields: {missing_fields_str}. Please ensure all required fields are provided."
             )
             raise ValueError(f"Missing required fields: {missing_fields_str}")
@@ -184,7 +184,7 @@ class ResearcherAgent(Agent):
         """Fetch the current task for the Researcher agent."""
         manager_response = get_last_entry_from_state(self.state, "manager_response")
         if not manager_response:
-            self.log_error("NO TASK FOR RESEARCHER FOUND.")
+            self.log_event("error", "NO TASK FOR RESEARCHER FOUND.")
             raise ValueError("No RESEARCHER task found.")
 
         data = json.loads(manager_response.content)
@@ -195,22 +195,22 @@ class ResearcherAgent(Agent):
             ):
                 return task_item
 
-        self.log_error("NO TASK FOR RESEARCHER FOUND.")
+        self.log_event("error", "NO TASK FOR RESEARCHER FOUND.")
         raise ValueError("No RESEARCHER task found.")
 
     def check_feedback(self, task_id: str) -> str:
         """Check for feedback related to the identified task."""
         researcher_states = get_all_entries_from_state(self.state, "Researcher_state")
-        self.log_response(f"Looking for feedback on {researcher_states}")
+        self.log_event("response", f"Looking for feedback on {researcher_states}")
 
         for researcher_state in researcher_states:
             researcher_data = json.loads(researcher_state.content)
             if researcher_data.get("task_id") == task_id:
                 feedback = researcher_data.get("feedback", "")
                 if feedback:
-                    self.log_response(f"Feedback found for task {task_id}: {feedback}")
+                    self.log_event("response", f"Feedback found for task {task_id}: {feedback}")
                 else:
-                    self.log_response(f"No feedback provided for task {task_id}.")
+                    self.log_event("response", f"No feedback provided for task {task_id}.")
                 return feedback
         return ""
 
@@ -246,7 +246,7 @@ class ResearcherAgent(Agent):
         tools_description: str,
     ) -> dict:
         """Invoke the Researcher Agent by processing the user request and generating a response."""
-        self.log_start()
+        self.log_event("start", )
 
         try:
             task = self.fetch_task()
@@ -273,13 +273,13 @@ class ResearcherAgent(Agent):
 
             while loop_count < max_loops:
                 loop_count += 1
-                self.log_processing(f"User Prompt -> {usr_prompt}")
+                self.log_event("processing", f"User Prompt -> {usr_prompt}")
 
                 payload = self.prepare_payload(sys_prompt, usr_prompt)
                 response_json = self.invoke_model(payload)
 
                 if "error" in response_json:
-                    self.log_error(f"{response_json}")
+                    self.log_event("error", f"{response_json}")
                     return response_json
 
                 response_formatted, response_content = self.process_model_response(
@@ -287,10 +287,10 @@ class ResearcherAgent(Agent):
                 )
 
                 self.update_state(f"researcher_response", response_content)
-                self.log_response(response=response_content)
+                self.log_event("response", message=response_content)
 
                 if not isinstance(response_content, (str, list, tuple, dict)):
-                    self.log_response(response="Converting response...")
+                    self.log_event("response", message="Converting response...")
                     response_content = str(response_content)  # Convert to string if it's not a string, list, tuple, or dict
 
                 if used_tool and (
@@ -298,26 +298,26 @@ class ResearcherAgent(Agent):
                     or "final_answer" in response_content
                     or "tool_result" in response_content
                 ):
-                    self.log_response(response="Final steps...")
+                    self.log_event("response", message="Final steps...")
 
-                    self.log_response(
-                        response=f"Last response_content: {response_content}"
+                    self.log_event("response", 
+                        message=f"Last response_content: {response_content}"
                     )
 
                     # Extract the final_thought
                     final_thought = response_content.get("thought", "")
-                    self.log_response(response=f"Final Thought: {final_thought}")
+                    self.log_event("response", message=f"Final Thought: {final_thought}")
 
                     # Check if final_answer exists and is not None or an empty string
                     final_answer = response_content.get("final_answer", None)
 
                     if final_answer is None:
-                        self.log_error("Final answer not returned. We'll use the tool_result")
+                        self.log_event("error", "Final answer not returned. We'll use the tool_result")
                         final_answer = str(tool_result)
                     else:
-                        self.log_response(response=f"Final Answer: {final_answer}")
+                        self.log_event("response", message=f"Final Answer: {final_answer}")
 
-                    self.log_response(response=f"Final Answer: {final_answer}")
+                    self.log_event("response", message=f"Final Answer: {final_answer}")
                     answer_dict = {
                         "task_id": task["task_id"],
                         "final_thought": final_thought,
@@ -325,8 +325,8 @@ class ResearcherAgent(Agent):
                     }
                     answer_json = json.dumps(answer_dict)
                     self.update_state(f"researcher_response", answer_json)
-                    self.log_response(response=answer_json)
-                    self.log_finished()
+                    self.log_event("response", message=answer_json)
+                    self.log_event("finished", )
                     return self.state
 
                 # Update the scratchpad with the latest user prompt and response content
@@ -344,25 +344,25 @@ class ResearcherAgent(Agent):
                         "task_id": validated_task["task_id"],
                         "tool_result": tool_result,
                     }
-                    self.log_response(response=tool_result_with_id)
+                    self.log_event("response", message=tool_result_with_id)
                     self.update_state(f"researcher_response", tool_result_with_id)
                     usr_prompt = f"Observation: {tool_result}"
 
                 # Update sys_prompt with the latest scratchpad
                 sys_prompt = self.format_sys_prompt(task, tools_description, feedback, scratchpad)
 
-            self.log_response(
+            self.log_event("response", 
                 f"Loop limit of {max_loops} reached. Returning the current state."
             )
-            self.log_response(response="Final steps...")
+            self.log_event("response", message="Final steps...")
 
             # Extract the final_thought
             final_thought = response_content.get("thought", "")
-            self.log_response(response=f"Final Thought: {final_thought}")
+            self.log_event("response", message=f"Final Thought: {final_thought}")
 
             if used_tool:
                 final_answer = str(tool_result)
-                self.log_response(response=f"Final Answer: {final_answer}")
+                self.log_event("response", message=f"Final Answer: {final_answer}")
                 answer_dict = {
                         "task_id": task["task_id"],
                         "final_thought": final_thought,
@@ -371,12 +371,12 @@ class ResearcherAgent(Agent):
 
             answer_json = json.dumps(answer_dict)
             self.update_state(f"researcher_response", answer_json)
-            self.log_response(response=answer_json)    
-            self.log_finished()
+            self.log_event("response", message=answer_json)    
+            self.log_event("finished", )
             return self.state
 
         except ValueError as e:
             error_message = f"Error during invocation: {str(e)}"
-            self.log_error(error_message)
+            self.log_event("error", error_message)
             self.update_state("researcher_response", error_message)
             return {"error": str(e)}
