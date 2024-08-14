@@ -41,8 +41,7 @@ def reseacher_node_function(state: AgentGraphState):
         role="researcher_node",
         model_config=app_config.model_config,
     ).invoke(
-        user_request=state["user_request"],
-        tools_description=tools_description,
+        user_request=state["user_request"]
     )
 
 
