@@ -19,7 +19,7 @@ tools_description = tools_description
 def planner_node_function(state: AgentGraphState):
     PlannerAgent(
         state=state,
-        role="planner_node",
+        role="planner",
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"],
@@ -28,7 +28,7 @@ def planner_node_function(state: AgentGraphState):
 def pm_node_function(state: AgentGraphState):
     PMAgent(
         state=state,
-        role="pm_node",
+        role="manager",
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"],
@@ -37,7 +37,7 @@ def pm_node_function(state: AgentGraphState):
 def reseacher_node_function(state: AgentGraphState):
     ResearcherAgent(
         state=state,
-        role="researcher_node",
+        role="researcher",
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"]
@@ -47,7 +47,7 @@ def reseacher_node_function(state: AgentGraphState):
 def reviewer_node_function(state: AgentGraphState):
     ReviewerAgent(
         state=state,
-        role="reviewer_node",
+        role="reviewer",
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"],

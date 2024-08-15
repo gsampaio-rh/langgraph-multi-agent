@@ -58,7 +58,5 @@ class ReviewerAgent(Agent):
             )
 
             # Update the state with the new response
-            self.update_state(f"reviewer_response", response_formatted)
-            self.log_event("info", message=response_content)
             self.log_event("finished")
             return self.state

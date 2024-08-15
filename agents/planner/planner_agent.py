@@ -34,10 +34,6 @@ class PlannerAgent(Agent):
             response_json
         )
 
-        self.update_state("planner_response", response_human_message)
-        self.log_event(
-            "info", message=f"📑 Planner Response {response_content}"
-        )
         self.log_event("finished", "")
 
         return self.state

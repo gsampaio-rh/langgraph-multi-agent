@@ -27,13 +27,13 @@ class AgentConfig:
     recursion_limit: int = int(os.getenv("AGENT_RECURSION_LIMIT", 10))
     agent_display_config: Dict[str, Dict[str, str]] = field(
         default_factory=lambda: {
-            "planner_node": {"name": "Planner Agent 👩🏿‍💻", "color": "cyan"},
-            "pm_node": {"name": "Manager Agent 👩‍💼", "color": "yellow"},
-            "researcher_node": {
+            "planner": {"name": "Planner Agent 👩🏿‍💻", "color": "cyan"},
+            "manager": {"name": "Manager Agent 👩‍💼", "color": "yellow"},
+            "researcher": {
                 "name": "Researcher Agent 🧑‍🔬",
                 "color": "light_magenta",
             },
-            "reviewer_node": {"name": "Reviewer Agent 🔎", "color": "light_blue"},
+            "reviewer": {"name": "Reviewer Agent 🔎", "color": "light_blue"},
         }
     )
 

@@ -73,7 +73,5 @@ class PMAgent(Agent):
                 response_json
             )
 
-            self.update_state("manager_response", response_formatted)
-            self.log_event("info", message=response_content)
             self.log_event("finished", )
             return self.state

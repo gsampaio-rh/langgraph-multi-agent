@@ -126,6 +126,11 @@ class Agent:
         - dict: The parsed response content.
         """
         response_content = json.loads(response_json.get("response", "{}"))
+        response_formatted = HumanMessage(content=json.dumps(response_content))
+        
         # Pretty-print the JSON content
         pretty_content = json.dumps(response_content, indent=4)
-        return HumanMessage(content=json.dumps(response_content)), pretty_content
+        self.update_state(f"{self.role}_response", response_formatted)
+        self.log_event("info", message=pretty_content)
+
+        return response_formatted, pretty_content

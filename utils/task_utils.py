@@ -98,6 +98,26 @@ def get_pending_tasks(state, agent_role: str = None) -> list:
 
     return pending_tasks
 
+def get_first_pending_task(state, agent_role: str = None) -> list:
+    """
+    Retrieves and validates the first pending task for the researcher.
+
+    Args:
+        state (dict): The state containing all task information.
+
+    Returns:
+        dict: The validated task for the researcher.
+
+    Raises:
+        ValueError: If no pending tasks are found.
+    """
+    pending_tasks = get_pending_tasks(state, agent_role)
+    if not pending_tasks:
+        raise ValueError("No pending tasks found for the researcher.")
+
+    first_task = pending_tasks[0]
+    return validate_task(first_task)
+
 
 def validate_task(task: dict) -> dict:
     """Validate that the task contains all required fields."""

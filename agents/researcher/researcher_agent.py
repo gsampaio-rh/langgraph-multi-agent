@@ -1,6 +1,6 @@
 from typing import Any, Dict
 from agents.base_agent import Agent
-from utils import task_utils
+from utils import task_utils, tool_handler
 from custom_tools.tool_invoker import ToolInvoker 
 from custom_tools import (
     custom_tools,
@@ -17,28 +17,21 @@ class ResearcherAgent(Agent):
         self.log_event("start", "")
 
         try:
-            pending_tasks = task_utils.get_pending_tasks(self.state, "researcher")
-            # Get the first pending task
-            if not pending_tasks:
-                raise ValueError("No pending tasks found for the researcher.")
-
-            first_task = pending_tasks[0]  # Access the first task
-
-            validated_task = task_utils.validate_task(first_task)
+            pending_task = task_utils.get_first_pending_task(self.state, "researcher")
 
             sys_prompt = PromptBuilder.build_researcher_prompt()
 
             usr_prompt_dict = {
-                "task_id": validated_task["task_id"],
-                "task_description": validated_task["task_description"],
-                "acceptance_criteria": validated_task["acceptance_criteria"],
-                "tools_to_use": validated_task["tools_to_use"],
-                "tools_not_to_use": validated_task.get("tools_not_to_use", "None"),
+                "task_id": pending_task["task_id"],
+                "task_description": pending_task["task_description"],
+                "acceptance_criteria": pending_task["acceptance_criteria"],
+                "tools_to_use": pending_task["tools_to_use"],
+                "tools_not_to_use": pending_task.get("tools_not_to_use", "None"),
             }
 
             usr_prompt = json.dumps(usr_prompt_dict)
 
-            return self.process_request_loop(sys_prompt, usr_prompt, validated_task)
+            return self.process_request_loop(sys_prompt, usr_prompt, pending_task)
 
         except ValueError as e:
             error_message = f"Error during invocation: {str(e)}"
@@ -47,7 +40,12 @@ class ResearcherAgent(Agent):
             return {"error": str(e)}
 
     def process_request_loop(
-        self, sys_prompt: str, usr_prompt: str, validated_task: dict, max_loops: int = 15
+        self, 
+        sys_prompt: str, 
+        usr_prompt: str, 
+        pending_task: dict, 
+        state_key: str = "researcher_response",
+        max_loops: int = 15
     ) -> Dict[str, Any]:
         """
         Process the request in a loop, invoking tools and updating the state.
@@ -55,89 +53,58 @@ class ResearcherAgent(Agent):
         loop_count = 0
         used_tool = False
         scratchpad = ""
+        tool_result = None
 
         while loop_count < max_loops:
             loop_count += 1
-            
-            # Convert the string to a dictionary and then pretty-print it
-            try:
-                # Assuming usr_prompt is a JSON string
-                usr_prompt_dict = json.loads(usr_prompt)  # Convert the string to a dictionary
-                pretty_usr_prompt = json.dumps(usr_prompt_dict, indent=4)  # Pretty-print the dictionary
 
-                # Log each line of the pretty-printed JSON string
+            try:
+                usr_prompt_dict = json.loads(usr_prompt)
+                pretty_usr_prompt = json.dumps(usr_prompt_dict, indent=4)
                 self.log_event("processing", "User Prompt:")
                 self.log_event("processing", pretty_usr_prompt)
-
             except json.JSONDecodeError as e:
-                # Handle case where usr_prompt is not a valid JSON string
                 self.log_event("error", f"Invalid JSON string provided: {str(e)}")
-                self.log_event("processing", f"User Prompt -> {usr_prompt}")  # Log it as is
+                self.log_event("processing", f"User Prompt -> {usr_prompt}")
 
             # Prepare the payload and invoke the model
             payload = self.prepare_payload(sys_prompt, usr_prompt)
             response_json = self.invoke_model(payload)
 
-            # Handle any errors in the response
             if "error" in response_json:
                 self.log_event("error", f"{response_json}")
                 return response_json
 
-            # Process the model's response and update the state
-            response_content = self.handle_response(
-                response_json, validated_task, scratchpad
-            )
+            response_content = self.handle_response(response_json, pending_task, scratchpad)
 
-            # Check if we've reached the final step
             if self.is_final_step(response_content, used_tool):
-                return self.finalize_response(
-                    validated_task, response_content, used_tool, tool_result
-                )
+                return self.finalize_response(pending_task, response_content, used_tool, tool_result)
 
-            # Check if the response_content contains an action before invoking the tool
-            if "action" in response_content:
-                tool_result = tool_invoker.find_and_invoke_tool(response_content)
-                if tool_result is not None:
-                    used_tool = True
-                    self.update_state(
-                        f"researcher_response",
-                        {"task_id": validated_task["task_id"], "tool_result": tool_result},
-                    )
+            # Use the tool_handler to process actions and tool invocation
+            tool_result, used_tool = tool_handler.process_tool_action(response_content, pending_task, state_key, self)
 
-                    usr_prompt_dict = {
-                        "observation": str(tool_result),
-                    }
-                    print(usr_prompt_dict)
-                    usr_prompt = json.dumps(usr_prompt_dict)
-            else:
-                # If no action is found, log and continue processing
-                self.log_event(
-                    "info",
-                    "No action found in the response content. Skipping tool invocation.",
-                )
+            if tool_result:
+                # Log the result and continue processing
+                usr_prompt_dict = {
+                    "observation": str(tool_result),
+                }
+                usr_prompt = json.dumps(usr_prompt_dict)
 
-            # Update the system prompt with the latest scratchpad
             sys_prompt = PromptBuilder.build_researcher_prompt(scratchpad=scratchpad)
 
-        self.log_event(
-            "info", f"Loop limit of {max_loops} reached. Returning the current state."
-        )
-        return self.finalize_response(
-            validated_task, response_content, scratchpad, used_tool
-        )
+        self.log_event("info", f"Loop limit of {max_loops} reached. Returning the current state.")
+        return self.finalize_response(pending_task, response_content, scratchpad, used_tool)
 
     def handle_response(
-        self, response_json: Dict[str, Any], validated_task: dict, scratchpad: str
+        self, response_json: Dict[str, Any], pending_task: dict, scratchpad: str
     ) -> Dict[str, Any]:
         """
         Process the model's response, update the state, and return the content.
         """
         response_formatted, response_content = self.process_model_response(response_json)
-        self.update_state(f"researcher_response", response_formatted)
-        self.log_event("info", message=response_content)
 
         scratchpad_dict = {
-            "user": validated_task["task_description"],
+            "user": pending_task["task_description"],
             "response": response_content,
         }
         # Convert to a valid JSON string
@@ -157,7 +124,7 @@ class ResearcherAgent(Agent):
 
     def finalize_response(
         self,
-        validated_task: dict,
+        pending_task: dict,
         response_content: Dict[str, Any],
         used_tool: bool,
         tool_result,
@@ -181,7 +148,7 @@ class ResearcherAgent(Agent):
         self.log_event("info", message=f"Tool Result: {tool_result}")
 
         answer_dict = {
-            "task_id": validated_task["task_id"],
+            "task_id": pending_task["task_id"],
             "used_tool": used_tool,
             "tool_result": tool_result,
             "last_response_from_agent": last_response,
