@@ -1,23 +1,20 @@
 from agents.base_agent import Agent
 from state.agent_state import (
     get_first_entry_from_state,
-    get_all_entries_from_state, 
-    get_last_entry_from_state,
+    get_all_entries_from_state,
 )
+from utils import task_utils
 from typing import Any, Dict
 from prompts.prompt_builder import PromptBuilder
 
 class PMAgent(Agent):
 
-    def get_task_list(self) -> Any:
-        return get_last_entry_from_state(self.state, "manager_response")
-
-    def construct_user_prompt(self, user_request: str, task_list: Any) -> str:
-        if not task_list or task_list == "":
+    def construct_user_prompt(self, user_request: str, tasks_list: Any) -> str:
+        if not tasks_list or tasks_list == "":
             self.log_event("info", "📝 Task list is empty. Starting from scratch...")
             return f"The task list is currently empty. This is the user_request: {user_request}. Please create an initial task plan based on the original project requirements."
 
-        self.log_event("info", f"Now I have the last task list: {task_list.content}.")
+        self.log_event("info", f"Now I have the last task list: {tasks_list}.")
         all_reviewer_responses = get_all_entries_from_state(
             self.state, "reviewer_response"
         )
@@ -59,10 +56,10 @@ class PMAgent(Agent):
         #     message=f"Now I have the plan {original_plan.content}.",
         # )
 
-        task_list = self.get_task_list()
+        tasks_list = task_utils.get_tasks_list(self.state)
 
-        usr_prompt = self.construct_user_prompt(user_request, task_list)
-        sys_prompt = PromptBuilder.build_pm_prompt(original_plan, task_list)
+        usr_prompt = self.construct_user_prompt(user_request, tasks_list)
+        sys_prompt = PromptBuilder.build_pm_prompt(original_plan, tasks_list)
         payload = self.prepare_payload(sys_prompt, usr_prompt)
 
         while True:

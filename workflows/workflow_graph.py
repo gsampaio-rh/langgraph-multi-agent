@@ -1,7 +1,6 @@
 from langgraph.graph import StateGraph, START, END
 from agents.planner.planner_agent import PlannerAgent
 from agents.pm.pm_agent import PMAgent
-from agents.tools.tools_agent import ToolsAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
 from agents.researcher.researcher_agent import ResearcherAgent
 from state.agent_state import get_last_entry_from_state
@@ -9,7 +8,7 @@ from config.config import app_config
 from custom_tools import tools_description
 from utils.helpers import get_current_utc_datetime
 from termcolor import colored
-import json
+from utils import task_utils
 
 # Define state data structure (assuming you have AgentGraphState defined in one of the agent modules)
 from agents.base_agent import AgentGraphState
@@ -68,13 +67,10 @@ def should_continue(state):
     """
     # Check if the tools_response contains a final answer or indication to stop
 
-    task_list = get_last_entry_from_state(state, "manager_response")
-
-    # Parse the JSON string into a Python dictionary
-    task_list_dict = json.loads(task_list.content)
+    tasks_list = task_utils.get_tasks_list(state)
 
     # Check if all tasks have the status "done"
-    all_done = all(task["status"] == "done" for task in task_list_dict["tasks"])
+    all_done = all(task["status"] == "done" for task in tasks_list)
 
     if all_done:
         print(

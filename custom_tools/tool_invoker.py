@@ -28,10 +28,6 @@ class ToolInvoker:
         if not function_name:
             return None
 
-        function_name = action.get("action")
-        if not function_name:
-            return None
-
         tool = next((t for t in self.custom_tools if t.name == function_name), None)
         if tool:
             try:

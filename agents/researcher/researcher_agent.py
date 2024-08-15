@@ -17,16 +17,26 @@ class ResearcherAgent(Agent):
         self.log_event("start", "")
 
         try:
-            task = task_utils.fetch_pending_task(self.state, "researcher")
-            validated_task = task_utils.validate_task(task)
+            pending_tasks = task_utils.get_pending_tasks(self.state, "researcher")
+            # Get the first pending task
+            if not pending_tasks:
+                raise ValueError("No pending tasks found for the researcher.")
+
+            first_task = pending_tasks[0]  # Access the first task
+
+            validated_task = task_utils.validate_task(first_task)
 
             sys_prompt = PromptBuilder.build_researcher_prompt()
-            usr_prompt = (
-                f"Task {validated_task['task_id']}: {validated_task['task_description']}. "
-                f"Criteria: {validated_task['acceptance_criteria']}. "
-                f"Use the following tools: {validated_task['tools_to_use']}. "
-                f"Do not use: {validated_task.get('tools_not_to_use', 'None')}."
-            )
+
+            usr_prompt_dict = {
+                "task_id": validated_task["task_id"],
+                "task_description": validated_task["task_description"],
+                "acceptance_criteria": validated_task["acceptance_criteria"],
+                "tools_to_use": validated_task["tools_to_use"],
+                "tools_not_to_use": validated_task.get("tools_not_to_use", "None"),
+            }
+
+            usr_prompt = json.dumps(usr_prompt_dict)
 
             return self.process_request_loop(sys_prompt, usr_prompt, validated_task)
 
@@ -81,7 +91,12 @@ class ResearcherAgent(Agent):
                     f"researcher_response",
                     {"task_id": validated_task["task_id"], "tool_result": tool_result},
                 )
-                usr_prompt = f"Observation: {tool_result}"
+
+                usr_prompt_dict = {
+                    "observation": str(tool_result),
+                }
+                print(usr_prompt_dict)
+                usr_prompt = json.dumps(usr_prompt_dict)
 
             # Update the system prompt with the latest scratchpad
             sys_prompt = PromptBuilder.build_researcher_prompt(scratchpad=scratchpad)

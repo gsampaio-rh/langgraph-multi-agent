@@ -5,6 +5,7 @@ from custom_tools import tools_description, tools_names
 from prompts.planner_prompt import DEFAULT_SYS_PLANNER_PROMPT
 from prompts.pm_prompt import DEFAULT_SYS_PM_PROMPT
 from prompts.researcher_prompt import DEFAULT_SYS_RESEACHER_PROMPT
+from prompts.reviewer_prompt import DEFAULT_SYS_REVIEWER_PROMPT
 
 class PromptBuilder:
     @staticmethod
@@ -38,5 +39,14 @@ class PromptBuilder:
             tools_description=tools_description,
             tools_names=tools_names,
             agent_scratchpad=scratchpad,
+            datetime=get_current_utc_datetime(),
+        )
+
+    @staticmethod
+    def build_reviewer_prompt(
+        task: dict
+    ) -> str:
+        return DEFAULT_SYS_REVIEWER_PROMPT.format(
+            original_task=task,
             datetime=get_current_utc_datetime(),
         )
