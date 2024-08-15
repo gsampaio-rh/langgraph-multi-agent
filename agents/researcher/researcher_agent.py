@@ -31,7 +31,10 @@ class ResearcherAgent(Agent):
 
             usr_prompt = json.dumps(usr_prompt_dict)
 
-            return self.process_request_loop(sys_prompt, usr_prompt, pending_task)
+            response_content, used_tool, tool_result = self.process_react_tools_loop(sys_prompt, usr_prompt, pending_task)
+            return self.finalize_response(
+                pending_task, response_content, used_tool, tool_result
+            )
 
         except ValueError as e:
             error_message = f"Error during invocation: {str(e)}"
@@ -39,7 +42,7 @@ class ResearcherAgent(Agent):
             self.update_state("researcher_response", error_message)
             return {"error": str(e)}
 
-    def process_request_loop(
+    def process_react_tools_loop(
         self, 
         sys_prompt: str, 
         usr_prompt: str, 
@@ -58,53 +61,71 @@ class ResearcherAgent(Agent):
         while loop_count < max_loops:
             loop_count += 1
 
-            try:
-                usr_prompt_dict = json.loads(usr_prompt)
-                pretty_usr_prompt = json.dumps(usr_prompt_dict, indent=4)
-                self.log_event("processing", "User Prompt:")
-                self.log_event("processing", pretty_usr_prompt)
-            except json.JSONDecodeError as e:
-                self.log_event("error", f"Invalid JSON string provided: {str(e)}")
-                self.log_event("processing", f"User Prompt -> {usr_prompt}")
+            # Log the user prompt at the start of each loop iteration
+            self._log_user_prompt(usr_prompt)
 
             # Prepare the payload and invoke the model
-            payload = self.prepare_payload(sys_prompt, usr_prompt)
-            response_json = self.invoke_model(payload)
+            try:
+                payload = self.prepare_payload(sys_prompt, usr_prompt)
+                response_json = self.invoke_model(payload)
 
-            if "error" in response_json:
-                self.log_event("error", f"{response_json}")
-                return response_json
+                if "error" in response_json:
+                    self.log_event("error", f"Model error encountered: {response_json}")
+                    return response_json
 
-            response_content = self.handle_response(response_json, pending_task, scratchpad)
+                # Process and log the model's response
+                response_formatted, response_content = self.process_model_response(response_json)
 
+            except Exception as e:
+                self.log_event("error", f"Unexpected error during model invocation: {str(e)}")
+                return {"error": str(e)}
+
+            # Update the scratchpad with the new information
+            scratchpad = self.update_scratchpad(response_content, usr_prompt, scratchpad)
+
+            # Check if we've reached the final step
             if self.is_final_step(response_content, used_tool):
-                return self.finalize_response(pending_task, response_content, used_tool, tool_result)
+                return response_content, used_tool, tool_result
 
-            # Use the tool_handler to process actions and tool invocation
-            tool_result, used_tool = tool_handler.process_tool_action(response_content, pending_task, state_key, self)
+            # Centralized tool handling: Invoke tools if needed
+            try:
+                tool_result, used_tool = tool_handler.process_tool_action(response_content, pending_task, state_key, self)
+            except Exception as e:
+                self.log_event("error", f"Error during tool invocation: {str(e)}")
+                return {"error": str(e)}
 
+            # Update the user prompt for the next loop iteration based on the tool result
             if tool_result:
-                # Log the result and continue processing
-                usr_prompt_dict = {
-                    "observation": str(tool_result),
-                }
-                usr_prompt = json.dumps(usr_prompt_dict)
+                usr_prompt = json.dumps({"observation": str(tool_result)})
 
+            # Update the system prompt with the latest scratchpad before next loop
             sys_prompt = PromptBuilder.build_researcher_prompt(scratchpad=scratchpad)
 
         self.log_event("info", f"Loop limit of {max_loops} reached. Returning the current state.")
-        return self.finalize_response(pending_task, response_content, scratchpad, used_tool)
+        return response_content, used_tool, tool_result
 
-    def handle_response(
-        self, response_json: Dict[str, Any], pending_task: dict, scratchpad: str
-    ) -> Dict[str, Any]:
+    def _log_user_prompt(self, usr_prompt: str) -> None:
         """
-        Process the model's response, update the state, and return the content.
+        Logs the user prompt in a pretty-printed format for better readability.
         """
-        response_formatted, response_content = self.process_model_response(response_json)
+        try:
+            usr_prompt_dict = json.loads(usr_prompt)
+            pretty_usr_prompt = json.dumps(usr_prompt_dict, indent=4)
+            self.log_event("processing", "User Prompt:")
+            self.log_event("processing", pretty_usr_prompt)
+        except json.JSONDecodeError as e:
+            self.log_event("error", f"Invalid JSON string provided: {str(e)}")
+            self.log_event("processing", f"User Prompt -> {usr_prompt}")
+
+    def update_scratchpad(
+        self, response_content: Dict[str, Any], usr_prompt: str, scratchpad: str
+    ) -> str:
+        """
+        Update the scratchpad with the user prompt and the model's response.
+        """
 
         scratchpad_dict = {
-            "user": pending_task["task_description"],
+            "user": usr_prompt,
             "response": response_content,
         }
         # Convert to a valid JSON string
@@ -112,7 +133,7 @@ class ResearcherAgent(Agent):
 
         # If you need to append this to an existing scratchpad string
         scratchpad += scratchpad_json
-        return response_content
+        return scratchpad
 
     def is_final_step(self, response_content: Dict[str, Any], used_tool: bool) -> bool:
         """
@@ -127,34 +148,41 @@ class ResearcherAgent(Agent):
         pending_task: dict,
         response_content: Dict[str, Any],
         used_tool: bool,
-        tool_result,
+        tool_result: Any
     ) -> Dict[str, Any]:
         """
         Finalize the response by processing the final thought and answer.
+        This method ensures that the final response is logged, the state is updated, and the process ends cleanly.
         """
-
+        # Ensure the response content is properly formatted
         if isinstance(response_content, str):
             try:
                 response_content = json.loads(response_content)
             except json.JSONDecodeError as e:
-                raise ValueError(
-                    f"Invalid JSON string for action: {response_content}. Error: {str(e)}"
-                )
+                self.log_event("error", f"Invalid JSON in response: {str(e)}")
+                return {"error": f"Invalid JSON in response: {str(e)}"}
 
-        last_response = response_content
-        tool_result = str(tool_result)
+        # Convert tool_result to string format for logging
+        tool_result_str = str(tool_result) if tool_result else "No tool result"
 
-        self.log_event("info", message=f"Last Response: {last_response}")
-        self.log_event("info", message=f"Tool Result: {tool_result}")
+        # Log final responses
+        # self.log_event("info", message=f"Final Response: {response_content}")
+        # self.log_event("info", message=f"Tool Result: {tool_result_str}")
 
-        answer_dict = {
+        # Prepare the final response dictionary for state update
+        final_response = {
             "task_id": pending_task["task_id"],
             "used_tool": used_tool,
-            "tool_result": tool_result,
-            "last_response_from_agent": last_response,
+            "tool_result": tool_result_str,
+            "final_response": response_content,
         }
-        answer_json = json.dumps(answer_dict)
-        self.update_state(f"researcher_response", answer_json)
-        self.log_event("info", message=answer_json)
+
+        # Update the state with the final response
+        final_response_json = json.dumps(final_response)
+        self.update_state("researcher_response", final_response_json)
+
+        # Log final state update
+        self.log_event("info", message=f"Finalized state: {final_response_json}")
         self.log_event("finished")
+
         return self.state
