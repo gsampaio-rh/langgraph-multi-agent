@@ -4,7 +4,7 @@ from config.config import app_config
 from custom_tools import tools_description, tools_names
 from prompts.planner_prompt import DEFAULT_SYS_PLANNER_PROMPT
 from prompts.pm_prompt import DEFAULT_SYS_PM_PROMPT
-from prompts.researcher_prompt import DEFAULT_SYS_RESEACHER_PROMPT
+from prompts.researcher_prompt import DEFAULT_SYS_RESEARCHER_PROMPT
 from prompts.reviewer_prompt import DEFAULT_SYS_REVIEWER_PROMPT
 
 class PromptBuilder:
@@ -35,7 +35,7 @@ class PromptBuilder:
         tools_description: str = tools_description,
         tools_names: str = tools_names,
     ) -> str:
-        return DEFAULT_SYS_RESEACHER_PROMPT.format(
+        return DEFAULT_SYS_RESEARCHER_PROMPT.format(
             tools_description=tools_description,
             tools_names=tools_names,
             agent_scratchpad=scratchpad,

@@ -148,23 +148,17 @@ class ResearcherAgent(Agent):
                     f"Invalid JSON string for action: {response_content}. Error: {str(e)}"
                 )
 
-        final_thought = response_content.get("thought", "")
-        # Prioritize the final_answer if it exists, then check for tool_result.
-        if "final_answer" in response_content:
-            final_answer = str(response_content.get("final_answer"))
-        elif "tool_result" in response_content:
-            final_answer = str(response_content.get("tool_result"))
-        else:
-            # If neither final_answer nor tool_result are present, keep the current tool_result.
-            final_answer = str(tool_result)
+        last_response = response_content
+        tool_result = str(tool_result)
 
-        self.log_event("info", message=f"Final Thought: {final_thought}")
-        self.log_event("info", message=f"Final Answer: {final_answer}")
+        self.log_event("info", message=f"Last Response: {last_response}")
+        self.log_event("info", message=f"Tool Result: {tool_result}")
 
         answer_dict = {
             "task_id": validated_task["task_id"],
-            "final_thought": final_thought,
-            "tool_result": final_answer,
+            "used_tool": used_tool,
+            "tool_result": tool_result,
+            "last_response_from_agent": last_response,
         }
         answer_json = json.dumps(answer_dict)
         self.update_state(f"researcher_response", answer_json)
