@@ -94,10 +94,22 @@ class Agent:
             )
             response.raise_for_status()  # Raises an error for HTTP errors
             self.log_event("info", "🦙 🤝 LLAMA Answered...")
-            return response.json()
+
+            # Check if the response content is not empty or malformed
+            if response.content.strip():  # Ensure content is not empty
+                try:
+                    return response.json()  # Attempt to parse JSON
+                except json.JSONDecodeError as e:
+                    # Log error and return fallback error message
+                    self.log_event("error", f"🦙 JSON Decode Error: {str(e)}")
+                    return {"error": "Invalid JSON response", "content": response.text}
+            else:
+                # Handle empty response content
+                self.log_event("error", "🦙 Empty response from LLAMA")
+                return {"error": "Empty response from model"}
+
         except requests.RequestException as e:
-            self.log_event("error", "🦙 Something happened...")
-            print(f"Error in invoking model! {str(e)}")
+            self.log_event("error", f"🦙 Something happened... {str(e)}")
             return {"error": str(e)}
 
     def process_model_response(
