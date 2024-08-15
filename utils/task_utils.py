@@ -6,27 +6,37 @@ from state.agent_state import get_last_entry_from_state
 
 def get_tasks_list(state, task_state_key: str = "manager_response") -> list:
     """
-    Retrieve the list of tasks from the state.
+    Retrieve the list of valid tasks from the state.
 
     Parameters:
     - state: The state object that contains task data.
-    - state_key: The state key to the state object that contains task data.
+    - task_state_key: The state key to the state object that contains task data.
 
     Returns:
-    - list: A list of tasks from the state.
+    - list: A list of valid tasks from the state (non-empty and contains 'status').
 
     Raises:
     - ValueError: If the task list is not found or cannot be parsed.
     """
     task_list = get_last_entry_from_state(state, task_state_key)
-    
+
     # Return an empty list if no tasks are found
     if not task_list:
         return []
 
     try:
         task_list_dict = json.loads(task_list.content)
-        return task_list_dict.get("tasks", [])
+        tasks = task_list_dict.get("tasks", [])
+
+        # Filter out invalid tasks (empty tasks or tasks without a 'status' key)
+        valid_tasks = [
+            task
+            for task in tasks
+            if isinstance(task, dict) and task and "status" in task
+        ]
+
+        return valid_tasks
+
     except (TypeError, json.JSONDecodeError) as e:
         raise ValueError(f"Failed to parse task list. Error: {str(e)}")
 

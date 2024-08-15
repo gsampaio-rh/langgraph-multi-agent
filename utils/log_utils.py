@@ -115,7 +115,7 @@ def log_startup(agents_description: str, tools_description: str):
             "WELCOME TO THE MULTI-AGENT SYSTEM", "green", attrs=["bold"]
         )
     )
-    print(colored(f"           Startup Time: {datetime.datetime.now()}", "green"))
+    print(colored(f"Startup Time: {datetime.datetime.now()}", "green"))
     print(
         colored(
             "===============================================", "green", attrs=["bold"]
