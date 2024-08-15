@@ -47,19 +47,32 @@ class ResearcherAgent(Agent):
             return {"error": str(e)}
 
     def process_request_loop(
-        self, sys_prompt: str, usr_prompt: str, validated_task: dict
+        self, sys_prompt: str, usr_prompt: str, validated_task: dict, max_loops: int = 15
     ) -> Dict[str, Any]:
         """
         Process the request in a loop, invoking tools and updating the state.
         """
         loop_count = 0
-        max_loops = 15
         used_tool = False
         scratchpad = ""
 
         while loop_count < max_loops:
             loop_count += 1
-            self.log_event("processing", f"User Prompt -> {usr_prompt}")
+            
+            # Convert the string to a dictionary and then pretty-print it
+            try:
+                # Assuming usr_prompt is a JSON string
+                usr_prompt_dict = json.loads(usr_prompt)  # Convert the string to a dictionary
+                pretty_usr_prompt = json.dumps(usr_prompt_dict, indent=4)  # Pretty-print the dictionary
+
+                # Log each line of the pretty-printed JSON string
+                self.log_event("processing", "User Prompt:")
+                self.log_event("processing", pretty_usr_prompt)
+
+            except json.JSONDecodeError as e:
+                # Handle case where usr_prompt is not a valid JSON string
+                self.log_event("error", f"Invalid JSON string provided: {str(e)}")
+                self.log_event("processing", f"User Prompt -> {usr_prompt}")  # Log it as is
 
             # Prepare the payload and invoke the model
             payload = self.prepare_payload(sys_prompt, usr_prompt)
@@ -81,22 +94,27 @@ class ResearcherAgent(Agent):
                     validated_task, response_content, used_tool, tool_result
                 )
 
-            # Invoke the tool if needed and update the user prompt
-            tool_result = tool_invoker.find_and_invoke_tool(
-                response_content,
-            )
-            if tool_result is not None:
-                used_tool = True
-                self.update_state(
-                    f"researcher_response",
-                    {"task_id": validated_task["task_id"], "tool_result": tool_result},
-                )
+            # Check if the response_content contains an action before invoking the tool
+            if "action" in response_content:
+                tool_result = tool_invoker.find_and_invoke_tool(response_content)
+                if tool_result is not None:
+                    used_tool = True
+                    self.update_state(
+                        f"researcher_response",
+                        {"task_id": validated_task["task_id"], "tool_result": tool_result},
+                    )
 
-                usr_prompt_dict = {
-                    "observation": str(tool_result),
-                }
-                print(usr_prompt_dict)
-                usr_prompt = json.dumps(usr_prompt_dict)
+                    usr_prompt_dict = {
+                        "observation": str(tool_result),
+                    }
+                    print(usr_prompt_dict)
+                    usr_prompt = json.dumps(usr_prompt_dict)
+            else:
+                # If no action is found, log and continue processing
+                self.log_event(
+                    "info",
+                    "No action found in the response content. Skipping tool invocation.",
+                )
 
             # Update the system prompt with the latest scratchpad
             sys_prompt = PromptBuilder.build_researcher_prompt(scratchpad=scratchpad)
@@ -115,10 +133,18 @@ class ResearcherAgent(Agent):
         Process the model's response, update the state, and return the content.
         """
         response_formatted, response_content = self.process_model_response(response_json)
-        self.update_state(f"researcher_response", response_content)
+        self.update_state(f"researcher_response", response_formatted)
         self.log_event("info", message=response_content)
 
-        scratchpad += f"User Prompt: {validated_task['task_description']}\nResponse: {response_content}\n"
+        scratchpad_dict = {
+            "user": validated_task["task_description"],
+            "response": response_content,
+        }
+        # Convert to a valid JSON string
+        scratchpad_json = json.dumps(scratchpad_dict)
+
+        # If you need to append this to an existing scratchpad string
+        scratchpad += scratchpad_json
         return response_content
 
     def is_final_step(self, response_content: Dict[str, Any], used_tool: bool) -> bool:
