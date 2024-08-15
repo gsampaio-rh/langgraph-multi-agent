@@ -1,18 +1,21 @@
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from custom_tools import tools_names
+import os
 import json
 
 
 @dataclass
 class ModelConfig:
-    model_endpoint: str = "http://localhost:11434/api/generate"
-    model_name: str = "llama3:instruct"
-    temperature: float = 0.0
+    model_endpoint: str = os.getenv(
+        "MODEL_ENDPOINT", "http://localhost:11434/api/generate"
+    )
+    model_name: str = os.getenv("MODEL_NAME", "llama3:instruct")
+    temperature: float = float(os.getenv("MODEL_TEMPERATURE", 0.0))
     headers: Dict[str, str] = field(
         default_factory=lambda: {"Content-Type": "application/json"}
     )
-    stop: Optional[str] = None
+    stop: Optional[str] = os.getenv("MODEL_STOP", None)
 
 
 @dataclass
@@ -20,25 +23,33 @@ class AgentConfig:
     roles: List[str] = field(
         default_factory=lambda: ["planner", "pm", "tools", "reviewer"]
     )
-    max_iterations: int = 10
-    recursion_limit: int = 10
+    max_iterations: int = int(os.getenv("AGENT_MAX_ITERATIONS", 10))
+    recursion_limit: int = int(os.getenv("AGENT_RECURSION_LIMIT", 10))
     agent_display_config: Dict[str, Dict[str, str]] = field(
         default_factory=lambda: {
             "planner_node": {"name": "Planner Agent 👩🏿‍💻", "color": "cyan"},
             "pm_node": {"name": "Manager Agent 👩‍💼", "color": "yellow"},
-            "researcher_node": {"name": "Reseacher Agent 🧑‍🔬", "color": "light_magenta"},
-            "reviewer_node": {"name": "Reviewer Agent 🔎", "color": "green"},
+            "researcher_node": {
+                "name": "Researcher Agent 🧑‍🔬",
+                "color": "light_magenta",
+            },
+            "reviewer_node": {"name": "Reviewer Agent 🔎", "color": "light_blue"},
         }
     )
+
+
+@dataclass
+class LoggingConfig:
+    verbose: bool = bool(int(os.getenv("LOGGING_VERBOSE", "1")))
 
 
 @dataclass
 class AppConfig:
     model_config: ModelConfig = field(default_factory=ModelConfig)
     agent_config: AgentConfig = field(default_factory=AgentConfig)
-    verbose: bool = True
+    logging_config: LoggingConfig = field(default_factory=LoggingConfig)
 
-    def update_from_dict(self, config_dict: Dict[str, any]):
+    def update_from_dict(self, config_dict: Dict[str, Any]):
         """
         Update the AppConfig object with values from a dictionary.
         """
@@ -49,25 +60,20 @@ class AppConfig:
                 self.model_config = ModelConfig(**value)
             elif key == "agent_config":
                 self.agent_config = AgentConfig(**value)
+            elif key == "logging_config":
+                self.logging_config = LoggingConfig(**value)
 
     def get_agents_description(self) -> str:
         """
         Return a formatted string with agent descriptions.
         """
         return f"""
-            - **Researcher:** Gathers detailed information as required. The researcher has access to these tools: {tools_names}
-            - **Reviewer:** Reviews work completed by agents, providing feedback.
             - **Project Planner:** Creates and manages the overall project plan.
             - **Project Manager:** Manages task execution, monitors progress, and ensures deadlines are met.
+            - **Researcher:** Gathers detailed information as required. The researcher has access to these tools: {tools_names}
+            - **Reviewer:** Reviews work completed by agents, providing feedback.
         """
 
-# - **Architect:** Designs the system architecture to meet project goals.
-# - **Researcher:** Gathers detailed information as required. The researcher has access to these tools: {tools_names}
-# - **Engineer:** Develops and implements the code based on the design.
-# - **QA (Quality Assurance):** Tests the system to ensure functionality and reliability.
-# - **Reviewer:** Reviews work completed by agents, providing feedback.
-# - **Project Planner:** Creates and manages the overall project plan.
-# - **Project Manager:** Manages task execution, monitors progress, and ensures deadlines are met.
 
 def load_config_from_file(file_path: str) -> AppConfig:
     """
@@ -83,7 +89,3 @@ def load_config_from_file(file_path: str) -> AppConfig:
 
 # Initialize a default global config object
 app_config = AppConfig()
-
-# Example usage of loading from a file (optional)
-# If you have a config file, you can load it like this:
-# app_config = load_config_from_file('path_to_config.json')

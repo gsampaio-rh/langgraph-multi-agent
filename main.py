@@ -1,17 +1,12 @@
-from workflows.workflow_graph import create_graph, compile_workflow
-from IPython.display import Image, display
 from config.config import app_config
 from custom_tools import tools_description
-from termcolor import colored
+from workflows.workflow_graph import create_graph, compile_workflow
+from utils.log_utils import log_startup
+from IPython.display import Image, display
 
 def main():
 
-    # Print the available tools and agents
-    print(colored("Available Agents:", "light_blue"))
-    print(colored(f"{app_config.get_agents_description()}", "light_blue"))
-    print(colored("\nAvailable Tools:", "light_blue"))
-    print(colored(f"{tools_description}", "light_blue"))
-    print(colored("\nStarting the workflow...\n", "light_blue"))
+    log_startup(app_config.get_agents_description(), tools_description)
 
     graph = create_graph()
     workflow = compile_workflow(graph)
