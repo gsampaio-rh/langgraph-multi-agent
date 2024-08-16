@@ -23,7 +23,6 @@ DEFAULT_MESSAGES = {
     "error": "❌ ERROR:",
 }
 
-
 class ColoredFormatter(logging.Formatter):
     """Custom formatter for colored log output based on log level."""
 
