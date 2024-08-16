@@ -1,3 +1,4 @@
+import json
 import jsonschema
 from jsonschema import validate
 from typing import Any, Dict
@@ -94,7 +95,7 @@ class Agent:
         """
         try:
             # Perform schema validation
-            validate(instance=response, schema=schema)
+            validate(instance=json.loads(response), schema=schema)
             self.log_event(
                 "info", f"📑 🟢 Model response for {self.role} validation passed."
             )

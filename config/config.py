@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
-from custom_tools import tools_names
 from config.agents_description import AGENTS_DESCRIPTION
 import os
 import json

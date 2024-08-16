@@ -13,4 +13,4 @@ tools_description = (
 )
 
 # Create a list of tool names
-tools_names = [tool.name for tool in custom_tools]
+tool_names = [tool.name for tool in custom_tools]

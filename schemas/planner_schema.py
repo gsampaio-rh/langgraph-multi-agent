@@ -1,5 +1,5 @@
 planner_output_schema = {
-    "type": "string",
+    "type": "object",
     "properties": {
         "source_provider": {"type": "string", "enum": ["VMware", "Hyper-V", "KVM"]},
         "target_provider": {

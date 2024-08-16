@@ -3,6 +3,7 @@ from state.agent_state import (
     get_first_entry_from_state,
     get_all_entries_from_state,
 )
+from schemas.pm_schema import pm_output_schema
 from utils import task_utils
 from typing import Any, Dict
 from prompts.prompt_builder import PromptBuilder
@@ -62,12 +63,34 @@ class PMAgent(Agent):
         sys_prompt = PromptBuilder.build_pm_prompt(original_plan, tasks_list)
 
         while True:
-            self.log_event("info","⏳ Processing the request..." )
-            # Invoke the model and process the response
+            self.log_event("info", "⏳ Processing the request...")
 
+            # Invoke the model and process the response
             response_human_message, response_content = self.invoke_model(
                 sys_prompt, usr_prompt
             )
 
-            self.log_event("finished", "")
-            return self.state
+            # Validate the model output
+            is_valid, validation_message = self.validate_model_output(
+                response_content, pm_output_schema
+            )
+
+            if is_valid:
+                self.log_event("finished", "")
+                return self.state
+            else:
+                # Log the invalid output and provide feedback
+                self.log_event(
+                    "error", f"❌ Invalid output received: {validation_message}"
+                )
+                feedback_value = f"Invalid response: {validation_message}. Please correct and try again."
+
+                # Update the prompt with feedback
+                sys_prompt = PromptBuilder.build_pm_prompt(
+                    original_plan, tasks_list, feedback_value
+                )
+
+                # Retry the request with feedback
+                self.log_event(
+                    "info", f"Retrying the request with feedback: {feedback_value}"
+                )

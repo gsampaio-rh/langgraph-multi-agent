@@ -1,5 +1,20 @@
 AGENTS_DESCRIPTION = """
 
+#### **Planner Agent**
+- **Role**: Planner Agent
+- **Responsibilities**:
+  - Creates a comprehensive Migration Plan based on the tutorial.
+  - Identifies key steps, target VMs, and source/target providers.
+  - Coordinates and structures the plan for execution by other agents.
+  
+#### **PM (Project Manager) Agent**
+- **Role**: Project Manager (PM) Agent
+- **Responsibilities**:
+  - Manages the breakdown of tasks for the migration process.
+  - Oversees task execution and ensures agents are working in coordination.
+  - Ensures timelines are followed and adjusts the plan as necessary.
+  - Communicates with all agents to ensure smooth task progression and resolve bottlenecks.
+
 #### **Architect Agent**
 - **Role**: Architect Agent
 - **Responsibilities**:
@@ -24,13 +39,6 @@ AGENTS_DESCRIPTION = """
   - Ensures the application and VMs are functioning correctly post-migration.
   - Checks logs, network settings, and storage allocations for correctness.
   - Provides a final report on the migration’s success.
-
-#### **Planner Agent**
-- **Role**: Planner Agent
-- **Responsibilities**:
-  - Creates a comprehensive Migration Plan based on the tutorial.
-  - Identifies key steps, target VMs, and source/target providers.
-  - Coordinates and structures the plan for execution by other agents.
 
 #### **Networking Agent**
 - **Role**: Networking Agent
