@@ -1,9 +1,11 @@
 import logging
 from termcolor import colored
 from config.config import app_config
+from utils.helpers import loading_animation
+from utils.agent_utils import format_agents_description
+from utils.tools_utils import format_tools_description
 import datetime
 import time
-import sys
 
 # Custom logging levels with colors
 LOG_COLORS = {
@@ -88,73 +90,6 @@ def log_message(
     log(agent_role, message, level=message_type.upper())
 
 
-def format_agents_description(agent_description: str):
-    agents_list = []
-    current_agent = None
-    current_responsibilities = []
-
-    try:
-        for line in agent_description.splitlines():
-            line = line.strip()
-
-            if line.startswith("#### **") and "Agent**" in line:
-                if current_agent:
-                    agents_list.append(
-                        {
-                            "name": current_agent,
-                            "role": current_role,
-                            "responsibilities": current_responsibilities,
-                        }
-                    )
-                current_agent = line.replace("#### **", "").replace("**", "").strip()
-                current_responsibilities = []
-
-            elif line.startswith("- **Role**:"):
-                current_role = line.replace("- **Role**:", "").strip()
-
-            elif line.startswith("- **Responsibilities**:"):
-                continue
-
-            elif line.startswith("- "):
-                current_responsibilities.append(line.replace("- ", "").strip())
-
-        if current_agent:
-            agents_list.append(
-                {
-                    "name": current_agent,
-                    "role": current_role,
-                    "responsibilities": current_responsibilities,
-                }
-            )
-    except Exception as e:
-        log("system", f"Error formatting agents: {str(e)}", level="ERROR")
-
-    return agents_list
-
-
-def format_tools_description(tools_description: str):
-    tools_list = []
-    try:
-        for tool_line in tools_description.splitlines():
-            tool_line = tool_line.strip()
-            if tool_line and tool_line != "Available Tools:":
-                tool_name, *tool_info = tool_line.split(" - ", 1)
-                tools_list.append(
-                    {
-                        "name": tool_name.strip(),
-                        "description": (
-                            tool_info[0].strip()
-                            if tool_info
-                            else "No description available."
-                        ),
-                    }
-                )
-    except Exception as e:
-        log("system", f"Error formatting tools: {str(e)}", level="ERROR")
-
-    return tools_list
-
-
 def log_startup(agents_description: str, tools_description: str):
     print(
         colored(
@@ -200,12 +135,3 @@ def log_startup(agents_description: str, tools_description: str):
             "===============================================", "green", attrs=["bold"]
         )
     )
-
-
-def loading_animation(cycles=3, duration=0.2):
-    """A simple loading animation (rotating bar)."""
-    for _ in range(cycles):
-        for frame in r"-\|/":
-            sys.stdout.write("\r" + frame)
-            sys.stdout.flush()
-            time.sleep(duration)

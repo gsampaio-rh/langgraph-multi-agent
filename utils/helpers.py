@@ -1,7 +1,8 @@
 # utils/helpers.py
 import os
+import time
+import sys
 from datetime import datetime, timezone
-
 
 def get_current_utc_datetime():
     """
@@ -36,3 +37,12 @@ def get_file_content(file_path):
         return content
     except IOError as e:
         raise IOError(f"Error reading file {file_path}: {str(e)}")
+
+
+def loading_animation(cycles=3, duration=0.2):
+    """A simple loading animation (rotating bar)."""
+    for _ in range(cycles):
+        for frame in r"-\|/":
+            sys.stdout.write("\r" + frame)
+            sys.stdout.flush()
+            time.sleep(duration)
