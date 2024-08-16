@@ -60,7 +60,7 @@ class ModelService:
                 self.model_endpoint,
                 headers=self.headers,
                 data=json.dumps(payload),
-                timeout=10,
+                timeout=30,
             )
             response.raise_for_status()
             log_info(agent_role, "🦙 🤝 Model response received.")

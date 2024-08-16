@@ -40,23 +40,15 @@ class ReviewerAgent(Agent):
         sys_prompt = PromptBuilder.build_reviewer_prompt(task)
 
         # Prepare the agent's prompt
-        agent_prompt = f"Agent Update: {agent_update}"
-
-        # Prepare the payload for model invocation
-        payload = self.prepare_payload(sys_prompt, agent_prompt)
+        usr_prompt = f"Agent Update: {agent_update}"
 
         while True:
             self.log_event("info", "⏳ Processing the request...")
-
             # Invoke the model and process the response
-            response_json = self.invoke_model(payload)
-            if "error" in response_json:
-                return response_json
 
-            response_formatted, response_content = self.process_model_response(
-                response_json
+            response_human_message, response_content = self.invoke_model(
+                sys_prompt, usr_prompt
             )
 
-            # Update the state with the new response
-            self.log_event("finished")
+            self.log_event("finished", "")
             return self.state

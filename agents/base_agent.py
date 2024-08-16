@@ -23,7 +23,7 @@ class Agent:
         try:
             self.log_event(
                 "info",
-                f"🫥 Attempting to update state for key: {key}",
+                f"🫥 Attempting to update state for key: '{key}'",
             )
             # self.log_event("info", f"🫥 Attempting to update state for key: {key} with value: {value}")
 

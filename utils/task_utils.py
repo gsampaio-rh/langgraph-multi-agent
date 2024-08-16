@@ -24,22 +24,27 @@ def get_tasks_list(state, task_state_key: str = "manager_response") -> list:
     if not task_list:
         return []
 
-    try:
-        task_list_dict = json.loads(task_list.content)
-        tasks = task_list_dict.get("tasks", [])
+    # Ensure that task_list is a string, since we're expecting to parse it as JSON
+    if isinstance(task_list, dict):
+        # If it's a dict, it's likely that task_list is already parsed, just return the tasks field
+        tasks = task_list.get("tasks", [])
+    elif isinstance(task_list, str):
+        # If it's a string, attempt to parse it
+        try:
+            task_list_dict = json.loads(task_list)
+            tasks = task_list_dict.get("tasks", [])
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Failed to parse task list as JSON. Error: {str(e)}")
+    else:
+        # If it's neither a string nor a dict, we cannot proceed
+        raise ValueError(f"Unexpected type for task list: {type(task_list)}")
 
-        # Filter out invalid tasks (empty tasks or tasks without a 'status' key)
-        valid_tasks = [
-            task
-            for task in tasks
-            if isinstance(task, dict) and task and "status" in task
-        ]
+    # Filter out invalid tasks (empty tasks or tasks without a 'status' key)
+    valid_tasks = [
+        task for task in tasks if isinstance(task, dict) and task and "status" in task
+    ]
 
-        return valid_tasks
-
-    except (TypeError, json.JSONDecodeError) as e:
-        raise ValueError(f"Failed to parse task list. Error: {str(e)}")
-
+    return valid_tasks
 
 def get_task_by_id(state, task_id: str) -> dict:
     """
