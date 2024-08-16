@@ -10,7 +10,7 @@ class ModelConfig:
     model_endpoint: str = os.getenv(
         "MODEL_ENDPOINT", "http://localhost:11434/api/generate"
     )
-    model_name: str = os.getenv("MODEL_NAME", "llama3:instruct")
+    model_name: str = os.getenv("MODEL_NAME", "llama3.1:8b-instruct-fp16")
     temperature: float = float(os.getenv("MODEL_TEMPERATURE", 0.0))
     top_p: float = float(os.getenv("MODEL_TOP_P", 1.0))
     top_k: int = int(os.getenv("MODEL_TOP_K", 0))

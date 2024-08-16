@@ -15,15 +15,10 @@ def main():
     iterations = 10
     config = {"configurable": {"thread_id": "1"}}
     verbose = True
-    # url = "https://raw.githubusercontent.com/rhpds/virt-migration-day2-demo/ba8c21ab4875ff8d2a74266c695dcee75b32396e/content/modules/ROOT/pages/01-mtv-migration.adoc"
-    # user_request = (
-    #     "Researcher Agent: Please crawl this page https://rhpds.github.io/virt-migration-demo/modules/01-mtv-migration.html "
-    #     "and extract all the content. "
-    #     "Architect Agent: Once the content is extracted, please list all the requirements, steps, and tools needed to complete the tutorial."
-    # )
+    
     url = "https://example.com/"
     user_request = f"Just crawl this page: {url}. Just crawl the page and do nothing else! Don't do something else!"
-    # user_request = "Simply crawl this page: https://example.com/"
+    
     dict_inputs = {"user_request": user_request}
     limit = {"recursion_limit": iterations}
 
