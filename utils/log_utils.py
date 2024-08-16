@@ -1,10 +1,18 @@
 # log_utils.py
+import logging
 from termcolor import colored
 from config.config import app_config
-from utils.helpers import get_current_utc_datetime
 import datetime
 import time
 import sys
+
+# Custom logging levels with colors
+LOG_COLORS = {
+    logging.INFO: "green",
+    logging.WARNING: "yellow",
+    logging.ERROR: "red",
+    logging.DEBUG: "blue",
+}
 
 # Default messages
 DEFAULT_START_MESSAGE = "🤔 Started processing..."
@@ -13,69 +21,88 @@ DEFAULT_FINISHED_MESSAGE = "✅ Finished processing.\n"
 DEFAULT_RESPONSE_MESSAGE = "🟢 RESPONSE:"
 DEFAULT_ERROR_MESSAGE = "❌ ERROR:"
 
+class ColoredFormatter(logging.Formatter):
+    """Custom formatter for colored log output based on log level."""
+
+    def __init__(self, agent_role):
+        super().__init__("%(asctime)s - [%(name)s] %(levelname)s: %(message)s")
+        self.agent_role = agent_role
+
+    def format(self, record):
+        log_message = super().format(record)
+        # Get the color for the specific agent from the config
+        agent_info = app_config.agent_config.agent_display_config.get(
+            self.agent_role, {}
+        )
+        agent_color = agent_info.get("color", "white")
+        return colored(log_message, agent_color)
+
+
+def configure_logger(agent_role: str):
+    """Configure a logger for each agent based on their role."""
+    logger = logging.getLogger(agent_role)
+    logger.setLevel(logging.DEBUG)  # Set level to debug for all loggers
+
+    # Create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+
+    # Create formatter with color based on the agent's role and add it to the handler
+    formatter = ColoredFormatter(agent_role)
+    ch.setFormatter(formatter)
+
+    # Add handler to logger if not already added
+    if not logger.hasHandlers():
+        logger.addHandler(ch)
+
+    return logger
+
+
 def log(agent_role: str, message: str, level: str = "INFO"):
     """
-    Log a message with a timestamp for a specific agent.
-
-    Parameters:
-    - agent_role (str): The role of the agent in the app_config.agent_config.agent_display_config.
-    - message (str): The message to log.
-    - level (str): The log level (INFO, WARNING, ERROR, SUCCESS).
+    Log a message with a timestamp for a specific agent using the centralized logger.
+    The log color is based on the agent's role.
     """
-    current_time = get_current_utc_datetime()
-    agent_info = app_config.agent_config.agent_display_config.get(agent_role, {})
-    agent_name = agent_info.get("name", "Unknown Agent")
-    color = agent_info.get("color", "white")
+    logger = configure_logger(agent_role)
 
-    print(colored(f"[{current_time}][{agent_name}] {message}", color))
+    log_func = getattr(logger, level.lower(), logger.info)  # Default to info level
+    log_func(message)
 
 
 def log_start(agent_role: str, message: str = None):
     """
     Log the default start message for a specific agent.
-
-    Parameters:
-    - agent_role (str): The role of the agent.
-    - message (str): An optional custom start message.
     """
-    start_message = f"{DEFAULT_START_MESSAGE} {message}" or DEFAULT_START_MESSAGE
-    log(agent_role, start_message)
+    start_message = (
+        f"{DEFAULT_START_MESSAGE} {message}" if message else DEFAULT_START_MESSAGE
+    )
+    log(agent_role, start_message, level="INFO")
 
 
 def log_info(agent_role: str, message: str = None):
     """
-    Log the default processing message for a specific agent.
-
-    Parameters:
-    - agent_role (str): The role of the agent.
-    - message (str): An optional custom processing message.
+    Log an info message for a specific agent.
     """
     info_message = message or DEFAULT_INFO_MESSAGE
-    log(agent_role, info_message)
+    log(agent_role, info_message, level="INFO")
 
 
 def log_error(agent_role: str, message: str = None):
     """
-    Log the default finished message for a specific agent.
-
-    Parameters:
-    - agent_role (str): The role of the agent.
-    - message (str): An optional custom finished message.
+    Log an error message for a specific agent.
     """
-    error_message = f"{DEFAULT_ERROR_MESSAGE} {message}" or DEFAULT_ERROR_MESSAGE
-    log(agent_role, error_message)
+    error_message = (
+        f"{DEFAULT_ERROR_MESSAGE} {message}" if message else DEFAULT_ERROR_MESSAGE
+    )
+    log(agent_role, error_message, level="ERROR")
 
 
 def log_finished(agent_role: str, message: str = None):
     """
     Log the default finished message for a specific agent.
-
-    Parameters:
-    - agent_role (str): The role of the agent.
-    - message (str): An optional custom finished message.
     """
     finished_message = message or DEFAULT_FINISHED_MESSAGE
-    log(agent_role, finished_message)
+    log(agent_role, finished_message, level="INFO")
 
 
 def format_agents_description(agent_description: str):
