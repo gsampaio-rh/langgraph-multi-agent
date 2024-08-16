@@ -126,18 +126,19 @@ def create_graph() -> StateGraph:
 
     # Add nodes
     graph.add_node("planner", planner_node_function)
-    graph.add_node("manager", pm_node_function)
-    graph.add_node("architect", architect_node_function)
-    graph.add_node("reviewer", reviewer_node_function)
-    graph.add_node("researcher", reseacher_node_function)
+    # graph.add_node("manager", pm_node_function)
+    # graph.add_node("architect", architect_node_function)
+    # graph.add_node("reviewer", reviewer_node_function)
+    # graph.add_node("researcher", reseacher_node_function)
 
     # Define the flow of the graph
     graph.add_edge(START, "planner")
-    graph.add_edge("planner", "manager")
-    graph.add_conditional_edges("manager", should_continue, agents)
-    graph.add_edge("researcher", "reviewer")
-    graph.add_edge("architect", "reviewer")
-    graph.add_edge("reviewer", "manager")
+    graph.add_edge("planner", END)
+    # graph.add_edge("planner", "manager")
+    # graph.add_conditional_edges("manager", should_continue, agents)
+    # graph.add_edge("researcher", "reviewer")
+    # graph.add_edge("architect", "reviewer")
+    # graph.add_edge("reviewer", "manager")
 
     return graph
 

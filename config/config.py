@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
 from custom_tools import tools_names
+from config.agents_description import AGENTS_DESCRIPTION
 import os
 import json
 
@@ -10,7 +11,7 @@ class ModelConfig:
     model_endpoint: str = os.getenv(
         "MODEL_ENDPOINT", "http://localhost:11434/api/generate"
     )
-    model_name: str = os.getenv("MODEL_NAME", "llama3.1:8b-instruct-fp16")
+    model_name: str = os.getenv("MODEL_NAME", "llama3:instruct")
     temperature: float = float(os.getenv("MODEL_TEMPERATURE", 0.0))
     top_p: float = float(os.getenv("MODEL_TOP_P", 1.0))
     top_k: int = int(os.getenv("MODEL_TOP_K", 0))
@@ -71,13 +72,7 @@ class AppConfig:
         """
         Return a formatted string with agent descriptions.
         """
-        return f"""
-            - **Project Planner:** Creates and manages the overall project plan.
-            - **Project Manager:** Manages task execution, monitors progress, and ensures deadlines are met.
-            - **Researcher:** Gathers detailed information as required. The researcher has access to these tools: {tools_names}
-            - **Reviewer:** Reviews work completed by agents, providing feedback.
-            - **Architect:** Designs the system architecture to meet project goals.
-        """
+        return AGENTS_DESCRIPTION
 
 
 def load_config_from_file(file_path: str) -> AppConfig:

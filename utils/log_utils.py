@@ -107,13 +107,49 @@ def log_finished(agent_role: str, message: str = None):
 
 def format_agents_description(agent_description: str):
     agents_list = []
+    current_agent = None
+    current_responsibilities = []
+
     for line in agent_description.splitlines():
-        if line.strip().startswith("- **"):
-            # Extracting and structuring the agent info
-            agent_info = line.strip().split(":")
-            agent_name = agent_info[0].replace("- **", "").replace("**", "").strip()
-            agent_desc = agent_info[1].strip()
-            agents_list.append((agent_name, agent_desc))
+        line = line.strip()
+
+        # Check if the line starts with the agent's role
+        if line.startswith("#### **") and "Agent**" in line:
+            if current_agent:
+                # Append the last agent to the list before moving to the next
+                agents_list.append(
+                    {
+                        "name": current_agent,
+                        "role": current_role,
+                        "responsibilities": current_responsibilities,
+                    }
+                )
+            # Extract the agent name
+            current_agent = line.replace("#### **", "").replace("**", "").strip()
+            current_responsibilities = []  # Reset responsibilities for the new agent
+
+        elif line.startswith("- **Role**:"):
+            # Extract the role description
+            current_role = line.replace("- **Role**:", "").strip()
+
+        elif line.startswith("- **Responsibilities**:"):
+            # Start capturing responsibilities
+            continue
+
+        elif line.startswith("- "):
+            # Add each responsibility to the list
+            current_responsibilities.append(line.replace("- ", "").strip())
+
+    # Add the last agent to the list
+    if current_agent:
+        agents_list.append(
+            {
+                "name": current_agent,
+                "role": current_role,
+                "responsibilities": current_responsibilities,
+            }
+        )
+
     return agents_list
 
 
@@ -153,11 +189,32 @@ def log_startup(agents_description: str, tools_description: str):
     print(colored("\n🛠️  LOADING AGENTS...", "cyan", attrs=["bold"]))
     loading_animation()  # Simulate loading animation
 
-    agents_list = format_agents_description(agents_description)
-    for agent_name, agent_desc in agents_list:
-        print(colored(f"🔹 {agent_name}:", "yellow", attrs=["bold"]))
-        print(colored(f"  {agent_desc}", "white"))
-        time.sleep(0.5)  # Add delay between loading each agent
+    agents_list = format_agents_description(app_config.get_agents_description())
+    # print(agents_list)
+    # Check the structure of the agents_list for debugging
+    if not isinstance(agents_list, list):
+        print("Error: agents_list is not a list. It's:", type(agents_list))
+        print(agents_list)  # Output the content for debugging
+    else:
+        for agent in agents_list:
+            if not isinstance(agent, dict):
+                print("Error: agent is not a dictionary. It's:", type(agent))
+                print(agent)  # Output the content for debugging
+                continue
+
+            # Print the agent's name in yellow, bold
+            print(colored(f"🔹 {agent['name']}:", "yellow", attrs=["bold"]))
+
+            # Print the agent's role in white
+            print(colored(f"  Role: {agent['role']}", "white"))
+
+            # Print the agent's responsibilities, each on a new line
+            print(colored(f"  Responsibilities:", "white", attrs=["bold"]))
+            for responsibility in agent["responsibilities"]:
+                print(colored(f"    - {responsibility}", "white"))
+
+            time.sleep(0.5)  # Add delay between loading each agent
+            print()  # Print a blank line for better readability
 
     # Section: Available Tools
     print(colored("\n🧰 LOADING TOOLS...", "cyan", attrs=["bold"]))
