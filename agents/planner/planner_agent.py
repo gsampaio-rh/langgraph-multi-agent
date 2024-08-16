@@ -29,9 +29,6 @@ class PlannerAgent(Agent):
 
         # Invoke the model and process the response
         response_human_message, response_content = self.invoke_model(sys_prompt, usr_prompt)
-        if "error" in response_content:
-            return response_content
-        
 
         self.log_event("finished", "")
 

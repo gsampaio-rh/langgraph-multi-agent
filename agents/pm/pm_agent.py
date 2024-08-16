@@ -69,9 +69,5 @@ class PMAgent(Agent):
                 sys_prompt, usr_prompt
             )
 
-            # if "error" in response_content:
-            #     return response_content
-
-            self.update_state(f"manager_response", response_human_message)
-            self.log_event("finished", )
+            self.log_event("finished", "")
             return self.state
