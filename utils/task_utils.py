@@ -96,10 +96,10 @@ def get_pending_tasks(state, agent_role: str = None) -> list:
             if agent_role is None or task.get("agent") == agent_role:
                 pending_tasks.append(task)
 
-    if not pending_tasks:
-        raise ValueError(
-            f"No pending tasks found{' for agent ' + agent_role if agent_role else ''}."
-        )
+    # if not pending_tasks:
+    #     raise ValueError(
+    #         f"No pending tasks found{' for agent ' + agent_role if agent_role else ''}."
+    #     )
 
     return pending_tasks
 
@@ -118,7 +118,9 @@ def get_first_pending_task(state, agent_role: str = None) -> list:
     """
     pending_tasks = get_pending_tasks(state, agent_role)
     if not pending_tasks:
-        raise ValueError("No pending tasks found for the researcher.")
+        return (
+            f"No pending tasks found{' for agent ' + agent_role if agent_role else ''}."
+        )
 
     first_task = pending_tasks[0]
     return validate_task(first_task)

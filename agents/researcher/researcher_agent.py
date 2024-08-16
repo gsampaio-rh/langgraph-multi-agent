@@ -162,9 +162,6 @@ class ResearcherAgent(Agent):
                 response_content, pending_task, state_key
             )
 
-            if "error" in tool_result:
-                return tool_result
-
             # Update the user prompt for the next loop iteration based on the tool result
             if tool_result:
                 usr_prompt = self._update_user_prompt(tool_result)

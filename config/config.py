@@ -12,6 +12,9 @@ class ModelConfig:
     )
     model_name: str = os.getenv("MODEL_NAME", "llama3:instruct")
     temperature: float = float(os.getenv("MODEL_TEMPERATURE", 0.0))
+    top_p: float = float(os.getenv("MODEL_TOP_P", 1.0))
+    top_k: int = int(os.getenv("MODEL_TOP_K", 0))
+    repetition_penalty: float = float(os.getenv("MODEL_REPEATITION_PENALTY", 1.0))
     headers: Dict[str, str] = field(
         default_factory=lambda: {"Content-Type": "application/json"}
     )
@@ -21,7 +24,7 @@ class ModelConfig:
 @dataclass
 class AgentConfig:
     roles: List[str] = field(
-        default_factory=lambda: ["planner", "pm", "tools", "reviewer"]
+        default_factory=lambda: ["planner", "pm", "researcher", "reviewer", "architect"]
     )
     max_iterations: int = int(os.getenv("AGENT_MAX_ITERATIONS", 10))
     recursion_limit: int = int(os.getenv("AGENT_RECURSION_LIMIT", 10))
@@ -34,6 +37,7 @@ class AgentConfig:
                 "color": "light_magenta",
             },
             "reviewer": {"name": "Reviewer Agent 🔎", "color": "light_blue"},
+            "architect": {"name": "Architect Agent 📐", "color": "light_yellow"},
         }
     )
 
@@ -72,6 +76,7 @@ class AppConfig:
             - **Project Manager:** Manages task execution, monitors progress, and ensures deadlines are met.
             - **Researcher:** Gathers detailed information as required. The researcher has access to these tools: {tools_names}
             - **Reviewer:** Reviews work completed by agents, providing feedback.
+            - **Architect:** Designs the system architecture to meet project goals.
         """
 
 

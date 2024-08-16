@@ -17,6 +17,11 @@ class ModelService:
         self.model_endpoint = model_config.model_endpoint  # Directly access attributes
         self.model_name = model_config.model_name  # Directly access attributes
         self.temperature = model_config.temperature  # Directly access attributes
+        self.top_p = model_config.top_p  # Directly access attributes
+        self.top_k = model_config.top_k  # Directly access attributes
+        self.repetition_penalty = (
+            model_config.repetition_penalty
+        )  # Directly access attributes
         self.headers = model_config.headers  # Directly access attributes
         self.stop = model_config.stop  # Directly access attributes
 
@@ -38,6 +43,9 @@ class ModelService:
             "system": sys_prompt,
             "stream": False,
             "temperature": self.temperature,
+            "top_p": self.top_p,
+            "top_k": self.top_k,
+            "repetition_penalty": self.repetition_penalty,
         }
 
     @retry(
@@ -63,7 +71,10 @@ class ModelService:
                 timeout=30,
             )
             response.raise_for_status()
-            log_info(agent_role, "🦙 🤝 Model response received.")
+            log_info(
+                agent_role, f"🦙 🤝 Model response received - RESPONSE_CODE {response}."
+            )
+            # print(response.content.strip())
 
             if response.content.strip():
                 try:
