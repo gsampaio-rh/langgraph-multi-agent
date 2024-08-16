@@ -45,12 +45,12 @@ This system leverages the following technologies:
 The system consists of the following agents, each with clearly defined roles and responsibilities:
 
 - **Planner Agent**: Creates the Migration Plan Document (MPD) based on the provided tutorial and instructions.
+- **PM (Project Manager) Agent**: Manages task breakdowns, oversees execution, and facilitates communication between agents.
 - **Architect Agent**: Handles VM identification, network, and storage mapping configuration using the Migration Toolkit for Virtualization (MTV).
 - **Engineer Agent**: Executes the migration plan and monitors the migration process.
 - **Reviewer Agent**: Validates the success of the migration, ensuring VMs and applications are functioning correctly.
 - **Networking Agent**: Ensures proper networking configuration for migrated VMs and verifies application accessibility.
 - **Cleanup Agent**: Cleans up unnecessary resources post-migration and ensures a clean environment.
-- **PM (Project Manager) Agent**: Manages task breakdowns, oversees execution, and facilitates communication between agents.
 
 ### Key Components
 

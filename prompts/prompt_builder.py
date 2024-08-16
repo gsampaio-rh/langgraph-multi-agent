@@ -6,7 +6,7 @@ from prompts.planner_prompt import DEFAULT_SYS_PLANNER_PROMPT
 from prompts.pm_prompt import DEFAULT_SYS_PM_PROMPT
 from prompts.researcher_prompt import DEFAULT_SYS_RESEARCHER_PROMPT
 from prompts.reviewer_prompt import DEFAULT_SYS_REVIEWER_PROMPT
-from prompts.architect_prompt import DEFAULT_ARCHITECT_SYS_PROMPT
+from prompts.architect_prompt import DEFAULT_SYS_ARCHITECT_PROMPT
 
 class PromptBuilder:
     @staticmethod
@@ -34,6 +34,18 @@ class PromptBuilder:
         )
 
     @staticmethod
+    def build_architect_prompt(
+        original_plan: str,
+        feedback_value: str = "",
+    ) -> str:
+        return DEFAULT_SYS_ARCHITECT_PROMPT.format(
+            original_plan=original_plan,
+            tool_names=tool_names,
+            feedback=feedback_value,
+            datetime=get_current_utc_datetime(),
+        )
+
+    @staticmethod
     def build_researcher_prompt(
         scratchpad: str = "",
         tools_description: str = tools_description,
@@ -52,12 +64,5 @@ class PromptBuilder:
     ) -> str:
         return DEFAULT_SYS_REVIEWER_PROMPT.format(
             original_task=task,
-            datetime=get_current_utc_datetime(),
-        )
-
-    @staticmethod
-    def build_architect_prompt(original_plan: str) -> str:
-        return DEFAULT_ARCHITECT_SYS_PROMPT.format(
-            original_plan=original_plan,
             datetime=get_current_utc_datetime(),
         )

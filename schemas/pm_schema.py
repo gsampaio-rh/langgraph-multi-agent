@@ -23,7 +23,6 @@ pm_output_schema = {
                     "agent": {
                         "type": "string",
                         "enum": [
-                            "planner",
                             "architect",
                             "engineer",
                             "reviewer",

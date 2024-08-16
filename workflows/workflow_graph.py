@@ -35,6 +35,17 @@ def pm_node_function(state: AgentGraphState):
         user_request=state["user_request"],
     )
 
+
+def architect_node_function(state: AgentGraphState):
+    ArchitectAgent(
+        state=state,
+        role="architect",
+        model_config=app_config.model_config,
+    ).invoke(
+        user_request=state["user_request"],
+    )
+
+
 def reseacher_node_function(state: AgentGraphState):
     ResearcherAgent(
         state=state,
@@ -53,15 +64,6 @@ def reviewer_node_function(state: AgentGraphState):
     ).invoke(
         user_request=state["user_request"],
         agent_update=get_last_entry_from_state(state, "researcher_response"),
-    )
-
-def architect_node_function(state: AgentGraphState):
-    ArchitectAgent(
-        state=state,
-        role="architect",
-        model_config=app_config.model_config,
-    ).invoke(
-        user_request=state["user_request"],
     )
 
 
@@ -122,20 +124,21 @@ def create_graph() -> StateGraph:
     """
     graph = StateGraph(AgentGraphState)
 
-    agents = ["architect", "researcher", END]
+    agents = ["architect", END]
 
     # Add nodes
     graph.add_node("planner", planner_node_function)
     graph.add_node("manager", pm_node_function)
-    # graph.add_node("architect", architect_node_function)
+    graph.add_node("architect", architect_node_function)
     # graph.add_node("reviewer", reviewer_node_function)
     # graph.add_node("researcher", reseacher_node_function)
 
     # Define the flow of the graph
     graph.add_edge(START, "planner")
     graph.add_edge("planner", "manager")
+    graph.add_conditional_edges("manager", should_continue, agents)
     graph.add_edge("manager", END)
-    # graph.add_conditional_edges("manager", should_continue, agents)
+
     # graph.add_edge("researcher", "reviewer")
     # graph.add_edge("architect", "reviewer")
     # graph.add_edge("reviewer", "manager")
