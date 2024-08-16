@@ -1,6 +1,6 @@
 from typing import Any, Dict
 from state.agent_state import AgentGraphState
-from utils.log_utils import log_start, log_info, log_error, log_finished
+from utils.log_utils import log_message
 from services.model_service import ModelService
 
 
@@ -55,16 +55,10 @@ class Agent:
             raise  # Re-raise the exception for further handling if necessary
 
     def log_event(self, event_type: str, message: str = None):
-        if event_type == "start":
-            log_start(self.role, message)
-        elif event_type == "finished":
-            log_finished(self.role, message)
-        elif event_type == "info":
-            log_info(self.role, message)
-        elif event_type == "error":
-            log_error(self.role, message)
-        else:
-            log_info(self.role, message)  # Fallback to info
+        """
+        Logs an event based on the event type. Falls back to 'info' if the event_type is unknown.
+        """
+        log_message(self.role, message_type=event_type, custom_message=message)
 
     def invoke_model(self, sys_prompt: str, user_prompt: str):
         """

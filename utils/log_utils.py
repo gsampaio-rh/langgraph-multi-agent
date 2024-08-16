@@ -1,4 +1,3 @@
-# log_utils.py
 import logging
 from termcolor import colored
 from config.config import app_config
@@ -14,12 +13,14 @@ LOG_COLORS = {
     logging.DEBUG: "blue",
 }
 
-# Default messages
-DEFAULT_START_MESSAGE = "🤔 Started processing..."
-DEFAULT_INFO_MESSAGE = "ℹ️ Info..."
-DEFAULT_FINISHED_MESSAGE = "✅ Finished processing.\n"
-DEFAULT_RESPONSE_MESSAGE = "🟢 RESPONSE:"
-DEFAULT_ERROR_MESSAGE = "❌ ERROR:"
+DEFAULT_MESSAGES = {
+    "start": "🤔 Started processing...",
+    "info": "ℹ️ Info...",
+    "finished": "✅ Finished processing.\n",
+    "response": "🟢 RESPONSE:",
+    "error": "❌ ERROR:",
+}
+
 
 class ColoredFormatter(logging.Formatter):
     """Custom formatter for colored log output based on log level."""
@@ -30,7 +31,6 @@ class ColoredFormatter(logging.Formatter):
 
     def format(self, record):
         log_message = super().format(record)
-        # Get the color for the specific agent from the config
         agent_info = app_config.agent_config.agent_display_config.get(
             self.agent_role, {}
         )
@@ -41,68 +41,51 @@ class ColoredFormatter(logging.Formatter):
 def configure_logger(agent_role: str):
     """Configure a logger for each agent based on their role."""
     logger = logging.getLogger(agent_role)
-    logger.setLevel(logging.DEBUG)  # Set level to debug for all loggers
 
-    # Create console handler and set level to debug
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-
-    # Create formatter with color based on the agent's role and add it to the handler
-    formatter = ColoredFormatter(agent_role)
-    ch.setFormatter(formatter)
-
-    # Add handler to logger if not already added
+    # Configure the logger only once
     if not logger.hasHandlers():
+        logger.setLevel(logging.DEBUG)
+
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+
+        # Set the formatter based on the agent's role
+        formatter = ColoredFormatter(agent_role)
+        ch.setFormatter(formatter)
         logger.addHandler(ch)
 
     return logger
 
 
 def log(agent_role: str, message: str, level: str = "INFO"):
-    """
-    Log a message with a timestamp for a specific agent using the centralized logger.
-    The log color is based on the agent's role.
-    """
+    """Log a message with a timestamp for a specific agent using the centralized logger."""
     logger = configure_logger(agent_role)
-
-    log_func = getattr(logger, level.lower(), logger.info)  # Default to info level
+    log_func = getattr(logger, level.lower(), logger.info)
     log_func(message)
 
 
-def log_start(agent_role: str, message: str = None):
+# Unified logging function for different message types
+def log_message(
+    agent_role: str, message_type: str = "info", custom_message: str = None
+):
     """
-    Log the default start message for a specific agent.
+    Unified logging function for different message types using if statements.
+    If no custom message is provided, the default message for that type is used.
     """
-    start_message = (
-        f"{DEFAULT_START_MESSAGE} {message}" if message else DEFAULT_START_MESSAGE
-    )
-    log(agent_role, start_message, level="INFO")
+    # Select the message based on the message_type
+    if message_type == "start":
+        message = custom_message or DEFAULT_MESSAGES["start"]
+    elif message_type == "info":
+        message = custom_message or DEFAULT_MESSAGES["info"]
+    elif message_type == "error":
+        message = custom_message or DEFAULT_MESSAGES["error"]
+    elif message_type == "finished":
+        message = custom_message or DEFAULT_MESSAGES["finished"]
+    else:
+        message = custom_message or "ℹ️ Info..."  # Default to info if unknown type
 
-
-def log_info(agent_role: str, message: str = None):
-    """
-    Log an info message for a specific agent.
-    """
-    info_message = message or DEFAULT_INFO_MESSAGE
-    log(agent_role, info_message, level="INFO")
-
-
-def log_error(agent_role: str, message: str = None):
-    """
-    Log an error message for a specific agent.
-    """
-    error_message = (
-        f"{DEFAULT_ERROR_MESSAGE} {message}" if message else DEFAULT_ERROR_MESSAGE
-    )
-    log(agent_role, error_message, level="ERROR")
-
-
-def log_finished(agent_role: str, message: str = None):
-    """
-    Log the default finished message for a specific agent.
-    """
-    finished_message = message or DEFAULT_FINISHED_MESSAGE
-    log(agent_role, finished_message, level="INFO")
+    # Log the message at the appropriate level
+    log(agent_role, message, level=message_type.upper())
 
 
 def format_agents_description(agent_description: str):
@@ -110,74 +93,75 @@ def format_agents_description(agent_description: str):
     current_agent = None
     current_responsibilities = []
 
-    for line in agent_description.splitlines():
-        line = line.strip()
+    try:
+        for line in agent_description.splitlines():
+            line = line.strip()
 
-        # Check if the line starts with the agent's role
-        if line.startswith("#### **") and "Agent**" in line:
-            if current_agent:
-                # Append the last agent to the list before moving to the next
-                agents_list.append(
-                    {
-                        "name": current_agent,
-                        "role": current_role,
-                        "responsibilities": current_responsibilities,
-                    }
-                )
-            # Extract the agent name
-            current_agent = line.replace("#### **", "").replace("**", "").strip()
-            current_responsibilities = []  # Reset responsibilities for the new agent
+            if line.startswith("#### **") and "Agent**" in line:
+                if current_agent:
+                    agents_list.append(
+                        {
+                            "name": current_agent,
+                            "role": current_role,
+                            "responsibilities": current_responsibilities,
+                        }
+                    )
+                current_agent = line.replace("#### **", "").replace("**", "").strip()
+                current_responsibilities = []
 
-        elif line.startswith("- **Role**:"):
-            # Extract the role description
-            current_role = line.replace("- **Role**:", "").strip()
+            elif line.startswith("- **Role**:"):
+                current_role = line.replace("- **Role**:", "").strip()
 
-        elif line.startswith("- **Responsibilities**:"):
-            # Start capturing responsibilities
-            continue
+            elif line.startswith("- **Responsibilities**:"):
+                continue
 
-        elif line.startswith("- "):
-            # Add each responsibility to the list
-            current_responsibilities.append(line.replace("- ", "").strip())
+            elif line.startswith("- "):
+                current_responsibilities.append(line.replace("- ", "").strip())
 
-    # Add the last agent to the list
-    if current_agent:
-        agents_list.append(
-            {
-                "name": current_agent,
-                "role": current_role,
-                "responsibilities": current_responsibilities,
-            }
-        )
+        if current_agent:
+            agents_list.append(
+                {
+                    "name": current_agent,
+                    "role": current_role,
+                    "responsibilities": current_responsibilities,
+                }
+            )
+    except Exception as e:
+        log("system", f"Error formatting agents: {str(e)}", level="ERROR")
 
     return agents_list
 
 
 def format_tools_description(tools_description: str):
     tools_list = []
-    for tool_line in tools_description.split("\n"):
-        tool_line = tool_line.strip()
-        if tool_line and tool_line != "Available Tools:":
-            tool_name, *tool_info = tool_line.split(" - ", 1)
-            tool_name = tool_name.strip()
-            tool_info = (
-                tool_info[0].strip() if tool_info else "No description available."
-            )
-            tools_list.append((tool_name, tool_info))
+    try:
+        for tool_line in tools_description.splitlines():
+            tool_line = tool_line.strip()
+            if tool_line and tool_line != "Available Tools:":
+                tool_name, *tool_info = tool_line.split(" - ", 1)
+                tools_list.append(
+                    {
+                        "name": tool_name.strip(),
+                        "description": (
+                            tool_info[0].strip()
+                            if tool_info
+                            else "No description available."
+                        ),
+                    }
+                )
+    except Exception as e:
+        log("system", f"Error formatting tools: {str(e)}", level="ERROR")
+
     return tools_list
 
+
 def log_startup(agents_description: str, tools_description: str):
-    # Print the application startup header
     print(
         colored(
             "===============================================", "green", attrs=["bold"]
         )
     )
-    print(
-        colored(
-            "WELCOME TO THE MULTI-AGENT SYSTEM", "green", attrs=["bold"]
-        )
-    )
+    print(colored("WELCOME TO THE MULTI-AGENT SYSTEM", "green", attrs=["bold"]))
     print(colored(f"Startup Time: {datetime.datetime.now()}", "green"))
     print(
         colored(
@@ -185,48 +169,31 @@ def log_startup(agents_description: str, tools_description: str):
         )
     )
 
-    # Section: Available Agents
     print(colored("\n🛠️  LOADING AGENTS...", "cyan", attrs=["bold"]))
-    loading_animation()  # Simulate loading animation
+    loading_animation()
 
-    agents_list = format_agents_description(app_config.get_agents_description())
-    # print(agents_list)
-    # Check the structure of the agents_list for debugging
-    if not isinstance(agents_list, list):
-        print("Error: agents_list is not a list. It's:", type(agents_list))
-        print(agents_list)  # Output the content for debugging
-    else:
+    agents_list = format_agents_description(agents_description)
+    if isinstance(agents_list, list):
         for agent in agents_list:
-            if not isinstance(agent, dict):
-                print("Error: agent is not a dictionary. It's:", type(agent))
-                print(agent)  # Output the content for debugging
-                continue
-
-            # Print the agent's name in yellow, bold
             print(colored(f"🔹 {agent['name']}:", "yellow", attrs=["bold"]))
-
-            # Print the agent's role in white
             print(colored(f"  Role: {agent['role']}", "white"))
-
-            # Print the agent's responsibilities, each on a new line
             print(colored(f"  Responsibilities:", "white", attrs=["bold"]))
             for responsibility in agent["responsibilities"]:
                 print(colored(f"    - {responsibility}", "white"))
+            time.sleep(0.5)
+            print()
+    else:
+        log("system", "Error: agents_list is not correctly formatted.", level="ERROR")
 
-            time.sleep(0.5)  # Add delay between loading each agent
-            print()  # Print a blank line for better readability
-
-    # Section: Available Tools
     print(colored("\n🧰 LOADING TOOLS...", "cyan", attrs=["bold"]))
-    loading_animation()  # Simulate loading animation
+    loading_animation()
 
     tools_list = format_tools_description(tools_description)
-    for tool_name, tool_info in tools_list:
-        print(colored(f"🔧 {tool_name}:", "yellow", attrs=["bold"]))
-        print(colored(f"  {tool_info}\n", "white"))
-        time.sleep(0.5)  # Add delay between loading each tool
+    for tool in tools_list:
+        print(colored(f"🔧 {tool['name']}:", "yellow", attrs=["bold"]))
+        print(colored(f"  {tool['description']}\n", "white"))
+        time.sleep(0.5)
 
-    # Section: Starting Workflow
     print(colored("\n🚀 INITIALIZING WORKFLOW...", "green", attrs=["bold"]))
     print(
         colored(
@@ -234,10 +201,11 @@ def log_startup(agents_description: str, tools_description: str):
         )
     )
 
-def loading_animation():
+
+def loading_animation(cycles=3, duration=0.2):
     """A simple loading animation (rotating bar)."""
-    for _ in range(3):  # Loop the animation for a few seconds
+    for _ in range(cycles):
         for frame in r"-\|/":
             sys.stdout.write("\r" + frame)
             sys.stdout.flush()
-            time.sleep(0.2)
+            time.sleep(duration)
