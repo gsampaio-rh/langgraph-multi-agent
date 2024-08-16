@@ -24,15 +24,14 @@ class PlannerAgent(Agent):
 
         sys_prompt = PromptBuilder.build_planner_prompt(user_request, feedback_value)
         usr_prompt = f"User Request: {user_request}"
-        payload = self.prepare_payload(sys_prompt, usr_prompt)
 
         self.log_event("info","⏳ Processing the request..." )
 
         # Invoke the model and process the response
-        response_json = self.invoke_model(payload)
-        response_human_message, response_content = self.process_model_response(
-            response_json
-        )
+        response_human_message, response_content = self.invoke_model(sys_prompt, usr_prompt)
+        if "error" in response_content:
+            return response_content
+        
 
         self.log_event("finished", "")
 

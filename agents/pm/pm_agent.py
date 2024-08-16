@@ -60,18 +60,18 @@ class PMAgent(Agent):
 
         usr_prompt = self.construct_user_prompt(user_request, tasks_list)
         sys_prompt = PromptBuilder.build_pm_prompt(original_plan, tasks_list)
-        payload = self.prepare_payload(sys_prompt, usr_prompt)
 
         while True:
             self.log_event("info","⏳ Processing the request..." )
             # Invoke the model and process the response
-            response_json = self.invoke_model(payload)
-            if "error" in response_json:
-                return response_json
 
-            response_formatted, response_content = self.process_model_response(
-                response_json
+            response_human_message, response_content = self.invoke_model(
+                sys_prompt, usr_prompt
             )
 
+            # if "error" in response_content:
+            #     return response_content
+
+            self.update_state(f"manager_response", response_human_message)
             self.log_event("finished", )
             return self.state
