@@ -1,25 +1,18 @@
-# Multi-Agent Task Management System
+# Multi-Agent Virtual Machine Migration System
 
-Welcome to the **Multi-Agent Task Management System**! This project involves multiple AI agents that collaborate to complete complex tasks. The system helps in managing workflows where different agents handle various aspects of a project, such as planning, task execution, and review.
+## Overview
 
-## Table of Contents
+The Multi-Agent Virtual Machine Migration System is designed to manage and automate the migration of virtual machines (VMs) from VMware to OpenShift using a set of specialized agents. Each agent has a distinct role within the migration process, and the project manager (PM) oversees the execution of the migration tasks.
 
-- [Multi-Agent Task Management System](#multi-agent-task-management-system)
-  - [Table of Contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Technologies Used](#technologies-used)
-  - [Key Concepts](#key-concepts)
-  - [Modules](#modules)
-    - [1. Agents](#1-agents)
-    - [2. Workflows](#2-workflows)
-    - [3. Custom Tools](#3-custom-tools)
-    - [4. Utils](#4-utils)
-    - [5. Config](#5-config)
-  - [How to Run the Project](#how-to-run-the-project)
-  - [Contributing](#contributing)
-  - [License](#license)
-    - [Acknowledgments](#acknowledgments)
-  - [Contact](#contact)
+This system utilizes intelligent agents to handle various aspects of the migration, such as planning, configuration, execution, validation, and cleanup. The agents communicate with each other and the central project manager to ensure a smooth and efficient migration process.
+
+## Features
+
+- **Automated VM Migration**: Handles the entire VM migration lifecycle, from planning to cleanup.
+- **Task-Based Execution**: Breaks down complex migration tasks into smaller, actionable steps.
+- **Multi-Agent Architecture**: Specialized agents handle specific tasks, improving efficiency and accuracy.
+- **Validation and Feedback Loops**: Continuous validation of tasks and automated retries on failure.
+- **Customizable Migration Plan**: Tailor the migration steps to meet specific project requirements.
 
 ## Overview
 
@@ -47,37 +40,41 @@ This system leverages the following technologies:
 3. **Workflow**: The workflow represents the overall flow of tasks, from their creation to completion, managed by different agents working together.
 4. **State**: The state holds information about the tasks and agents, ensuring that agents can track progress and share data effectively.
 
-## Modules
+## Agents
 
-### 1. Agents
+The system consists of the following agents, each with clearly defined roles and responsibilities:
 
-This module contains the different agents involved in the task management system. Each agent has a specific role:
+- **Planner Agent**: Creates the Migration Plan Document (MPD) based on the provided tutorial and instructions.
+- **Architect Agent**: Handles VM identification, network, and storage mapping configuration using the Migration Toolkit for Virtualization (MTV).
+- **Engineer Agent**: Executes the migration plan and monitors the migration process.
+- **Reviewer Agent**: Validates the success of the migration, ensuring VMs and applications are functioning correctly.
+- **Networking Agent**: Ensures proper networking configuration for migrated VMs and verifies application accessibility.
+- **Cleanup Agent**: Cleans up unnecessary resources post-migration and ensures a clean environment.
+- **PM (Project Manager) Agent**: Manages task breakdowns, oversees execution, and facilitates communication between agents.
 
-- **Planner Agent**: Creates project plans based on user input.
-- **PM (Project Manager) Agent**: Manages the breakdown of tasks and oversees the execution.
-- **Researcher Agent**: Executes tasks by gathering information and performing actions based on detailed plans.
-- **Reviewer Agent**: Reviews the outputs of tasks to ensure they meet the acceptance criteria.
+### Key Components
 
-### 2. Workflows
+- **agents/**: Contains the code for each specialized agent involved in the migration process.
+- **config/**: Holds configuration files and agent descriptions.
+- **custom_tools/**: Implements custom tools and utilities to aid in specific migration tasks.
+- **data/**: Markdown files that define the tutorial and steps for the migration plan.
+- **prompts/**: Contains the system prompts for various agents.
+- **services/**: Handles interaction with external models, including API calls and response processing.
+- **state/**: Manages agent states and interactions.
+- **utils/**: General utilities for logging, task management, and helpers.
+- **workflows/**: Orchestrates workflows and agent interactions.
 
-This module handles the workflow and the logic of how tasks flow between agents. It compiles the workflow graph, ensures that agents communicate effectively, and tracks the status of each task.
+## Agent Workflow Example
 
-### 3. Custom Tools
+Here is a typical flow of tasks:
 
-This module includes custom tools that agents can use to perform their tasks. These tools include:
-
-- **DuckDuckGo Search**: Allows agents to search the web for information.
-- **Wikipedia**: Allows agents to query Wikipedia for detailed information on various topics.
-- **Arxiv**: Lets agents query Arxiv for scientific articles.
-- **Website Crawler**: Allows agents to crawl web pages and extract content.
-
-### 4. Utils
-
-Utility functions for logging, handling state, and managing other general-purpose code.
-
-### 5. Config
-
-Handles the configuration of the system, including model settings and agent behaviors. The configuration is done via the `AppConfig`, which allows you to customize the project’s behavior by modifying the configuration values.
+1. **Planner Agent**: Generates the Migration Plan Document (MPD).
+2. **PM Agent**: Breaks down the MPD into tasks and assigns them to the appropriate agents.
+3. **Architect Agent**: Configures the migration settings (e.g., providers, networks).
+4. **Engineer Agent**: Executes the migration plan using the Migration Toolkit for Virtualization (MTV).
+5. **Reviewer Agent**: Validates the successful migration of the VMs.
+6. **Networking Agent**: Ensures that the network configurations are correct.
+7. **Cleanup Agent**: Cleans up the environment post-migration.
 
 ## How to Run the Project
 
