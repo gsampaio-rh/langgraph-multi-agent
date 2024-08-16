@@ -60,10 +60,6 @@ Your response must return an MPD in the following JSON format:
         "Ensure the VMs are powered off before migration.",
         "Check VM size and storage capacity in the target environment.",
         "Validate network settings between VMware and OpenShift."
-    ],
-    "risks": [
-        "Performance degradation during migration.",
-        "Potential network configuration mismatches."
     ]
 }}
 
@@ -91,14 +87,12 @@ Your response must return an MPD in the following JSON format:
     }},
     "validations": [
         "Ensure the VMs are powered off before migration."
-    ],
-    "risks": [
-        "Performance degradation during migration."
     ]
 }}
 
-### Agent Descriptions:
-{agents_description}
+### Feedback Handling:
+If you receive feedback, you must adjust your plan accordingly. Ensure that any issues raised in the feedback are addressed in the relevant sections of the MPD. Here is the feedback received:
+Feedback: {feedback}
 
 Remember:
 - Each section of the MPD should be detailed and aligned with the overall migration objectives.

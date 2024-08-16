@@ -5,7 +5,6 @@ from utils.log_utils import log_message
 from langchain_core.messages.human import HumanMessage
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-
 class ModelService:
     def __init__(self, model_config: dict):
         """

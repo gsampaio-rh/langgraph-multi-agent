@@ -1,8 +1,9 @@
+import jsonschema
+from jsonschema import validate
 from typing import Any, Dict
 from state.agent_state import AgentGraphState
 from utils.log_utils import log_message
 from services.model_service import ModelService
-
 
 class Agent:
     def __init__(self, state: AgentGraphState, role: str, model_config: dict):
@@ -78,3 +79,42 @@ class Agent:
 
         # Process the response
         return response_human_message, response_content
+
+    def validate_model_output(self, response: dict, schema: dict):
+        """
+        Validate the planner's output against the predefined schema.
+
+        Parameters:
+        - response (dict): The JSON response from the planner agent.
+        - schema (dict): The schema to validate the response against.
+
+        Returns:
+        - tuple: (bool, str) where the first value indicates success (True/False),
+        and the second value contains a message (validation passed/failed with reason).
+        """
+        try:
+            # Perform schema validation
+            validate(instance=response, schema=schema)
+            self.log_event(
+                "info", f"📑 🟢 Model response for {self.role} validation passed."
+            )
+            return True, f"{self.role} output validation passed."
+
+        except jsonschema.exceptions.ValidationError as e:
+
+            # Extract detailed error information
+            error_field = list(e.path)  # This gives the path to the invalid field
+            error_message = e.message  # The specific validation error message
+            schema_error = list(e.schema_path)  # Path to the relevant part of the schema
+
+            # Log the detailed error message
+            self.log_event(
+                "error",
+                f"🚨 Model response for {self.role} output validation failed.\n"
+                f"Field: {'.'.join(map(str, error_field)) if error_field else 'N/A'}\n"
+                f"Error: {error_message}\n"
+                f"Schema Error Path: {'.'.join(map(str, schema_error)) if schema_error else 'N/A'}",
+            )
+
+            # Return failure with detailed error information
+            return False, f"{self.role} output validation failed. Field: {'.'.join(map(str, error_field)) if error_field else 'N/A'}, Error: {error_message}"
