@@ -104,6 +104,9 @@ Your response should return the VM configuration and MTV setup in the following 
     }}
 }}
 
+### Original Plan:
+{original_plan}
+
 ### Feedback Handling:
 If you receive feedback from agents, update the task list to reflect any changes in the task structure, dependencies, or status. Here is the feedback received:
 Feedback: {feedback}
