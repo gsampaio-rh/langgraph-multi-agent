@@ -1,4 +1,5 @@
 from langgraph.graph import StateGraph, START, END
+from agents.architect.architect_agent import ArchitectAgent
 from agents.planner.planner_agent import PlannerAgent
 from agents.pm.pm_agent import PMAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
@@ -54,6 +55,15 @@ def reviewer_node_function(state: AgentGraphState):
         agent_update=get_last_entry_from_state(state, "researcher_response"),
     )
 
+def architect_node_function(state: AgentGraphState):
+    ArchitectAgent(
+        state=state,
+        role="architect",
+        model_config=app_config.model_config,
+    ).invoke(
+        user_request=state["user_request"],
+    )
+
 
 def should_continue(state):
     """
@@ -69,24 +79,38 @@ def should_continue(state):
 
     tasks_list = task_utils.get_tasks_list(state)
 
-    # Check if all tasks have the status "done"
-    all_done = all(task["status"] == "done" for task in tasks_list)
+    # Collect agents with pending tasks that have no open dependencies
+    pending_agents = []
 
-    if all_done:
+    for task in tasks_list:
+        # Check if task is not done and has no open dependencies
+        if task["status"] != "done":
+            # Check dependencies
+            dependencies_done = all(
+                dep_task["status"] == "done"
+                for dep_task in tasks_list
+                if dep_task["task_id"] in task["depends_on"]
+            )
+            # Only add the agent if all dependencies are done
+            if dependencies_done:
+                pending_agents.append(task["agent"])
+
+    if pending_agents:
+        print(
+            colored(
+                f"[{get_current_utc_datetime()}] Not all tasks are marked as 'done'.\n"
+                f"These agents {pending_agents} have tasks.\n",
+                "red",
+            )
+        )
+        return pending_agents
+    else:
         print(
             colored(
                 f"[{get_current_utc_datetime()}] All tasks are marked as 'done'.", "green"
             )
         )
-        return False
-    else:
-        print(
-            colored(
-                f"[{get_current_utc_datetime()}] Not all tasks are marked as 'done'.\n",
-                "red",
-            )
-        )
-        return True
+        return END
 
 
 def create_graph() -> StateGraph:
@@ -98,22 +122,22 @@ def create_graph() -> StateGraph:
     """
     graph = StateGraph(AgentGraphState)
 
+    agents = ["architect", "researcher", END]
+
     # Add nodes
-    graph.add_node("planner_node", planner_node_function)
-    graph.add_node("pm_node", pm_node_function)
-    # graph.add_node("tools_node", tools_node_function)
-    graph.add_node("reviewer_node", reviewer_node_function)
-    graph.add_node("researcher_node", reseacher_node_function)
+    graph.add_node("planner", planner_node_function)
+    graph.add_node("manager", pm_node_function)
+    graph.add_node("architect", architect_node_function)
+    graph.add_node("reviewer", reviewer_node_function)
+    graph.add_node("researcher", reseacher_node_function)
 
     # Define the flow of the graph
-    graph.add_edge(START, "planner_node")
-    graph.add_edge("planner_node", "pm_node")
-    graph.add_conditional_edges(
-        "pm_node", should_continue, {True: "researcher_node", False: END}
-    )
-    # graph.add_edge("pm_node", "tools_node")
-    graph.add_edge("researcher_node", "reviewer_node")
-    graph.add_edge("reviewer_node", "pm_node")
+    graph.add_edge(START, "planner")
+    graph.add_edge("planner", "manager")
+    graph.add_conditional_edges("manager", should_continue, agents)
+    graph.add_edge("researcher", "reviewer")
+    graph.add_edge("architect", "reviewer")
+    graph.add_edge("reviewer", "manager")
 
     return graph
 
