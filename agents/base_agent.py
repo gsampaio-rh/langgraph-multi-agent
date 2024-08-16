@@ -57,6 +57,19 @@ class Agent:
         log_func = event_mapping.get(event_type, log)
         log_func(self.role, message)
 
+    def _log_user_prompt(self, usr_prompt: str) -> None:
+        """
+        Logs the user prompt in a pretty-printed format for better readability.
+        """
+        try:
+            usr_prompt_dict = json.loads(usr_prompt)
+            pretty_usr_prompt = json.dumps(usr_prompt_dict, indent=4)
+            self.log_event("processing", "User Prompt:")
+            self.log_event("processing", pretty_usr_prompt)
+        except json.JSONDecodeError as e:
+            self.log_event("error", f"Invalid JSON string provided: {str(e)}")
+            self.log_event("processing", f"User Prompt -> {usr_prompt}")
+
     def prepare_payload(self, sys_prompt: str, prompt: str) -> Dict[str, Any]:
         """
         Prepare the payload for the model API request.
@@ -127,7 +140,7 @@ class Agent:
         """
         response_content = json.loads(response_json.get("response", "{}"))
         response_formatted = HumanMessage(content=json.dumps(response_content))
-        
+
         # Pretty-print the JSON content
         pretty_content = json.dumps(response_content, indent=4)
         self.update_state(f"{self.role}_response", response_formatted)

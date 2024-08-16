@@ -5,7 +5,6 @@ from custom_tools import custom_tools
 
 tool_invoker = ToolInvoker(custom_tools)
 
-
 def process_tool_action(
     response_content: dict, task: dict, state_key: str, agent
 ) -> (Any, bool):

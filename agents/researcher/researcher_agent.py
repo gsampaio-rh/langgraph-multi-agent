@@ -92,7 +92,7 @@ class ResearcherAgent(Agent):
                 tool_result, used_tool = tool_handler.process_tool_action(response_content, pending_task, state_key, self)
             except Exception as e:
                 self.log_event("error", f"Error during tool invocation: {str(e)}")
-                return {"error": str(e)}
+                return {"error": f"Error during tool invocation: {str(e)}"}
 
             # Update the user prompt for the next loop iteration based on the tool result
             if tool_result:
@@ -103,19 +103,6 @@ class ResearcherAgent(Agent):
 
         self.log_event("info", f"Loop limit of {max_loops} reached. Returning the current state.")
         return response_content, used_tool, tool_result
-
-    def _log_user_prompt(self, usr_prompt: str) -> None:
-        """
-        Logs the user prompt in a pretty-printed format for better readability.
-        """
-        try:
-            usr_prompt_dict = json.loads(usr_prompt)
-            pretty_usr_prompt = json.dumps(usr_prompt_dict, indent=4)
-            self.log_event("processing", "User Prompt:")
-            self.log_event("processing", pretty_usr_prompt)
-        except json.JSONDecodeError as e:
-            self.log_event("error", f"Invalid JSON string provided: {str(e)}")
-            self.log_event("processing", f"User Prompt -> {usr_prompt}")
 
     def update_scratchpad(
         self, response_content: Dict[str, Any], usr_prompt: str, scratchpad: str
