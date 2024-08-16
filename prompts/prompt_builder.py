@@ -1,7 +1,12 @@
 # prompts/prompt_builder.py
 from utils.helpers import get_current_utc_datetime
 from config.config import app_config
-from custom_tools import tools_description, tool_names
+from custom_tools import (
+    tool_names,
+    tools_description,
+    vsphere_tool_names,
+    vsphere_tool_descriptions,
+)
 from prompts.planner_prompt import DEFAULT_SYS_PLANNER_PROMPT
 from prompts.pm_prompt import DEFAULT_SYS_PM_PROMPT
 from prompts.researcher_prompt import DEFAULT_SYS_RESEARCHER_PROMPT
@@ -28,7 +33,7 @@ class PromptBuilder:
             original_plan=original_plan,
             task_list=task_list,
             agents_description=agents_description,
-            tool_names=tool_names,
+            vsphere_tool_names=vsphere_tool_names,
             feedback=feedback_value,
             datetime=get_current_utc_datetime(),
         )
@@ -40,7 +45,8 @@ class PromptBuilder:
     ) -> str:
         return DEFAULT_SYS_ARCHITECT_PROMPT.format(
             original_plan=original_plan,
-            tool_names=tool_names,
+            vsphere_tool_names=vsphere_tool_names,
+            vsphere_tool_descriptions=vsphere_tool_descriptions,
             feedback=feedback_value,
             datetime=get_current_utc_datetime(),
         )

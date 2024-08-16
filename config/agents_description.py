@@ -23,6 +23,8 @@ AGENTS_DESCRIPTION = """
   - Configures the Migration Toolkit for Virtualization (MTV) to set up source and target providers.
   - Ensures proper network and storage mappings between VMware and OpenShift.
   - Validates the migration plan.
+- **Tools**:
+  - The Architect has access to these tools: {vsphere_tool_names}
 
 #### **Engineer Agent**
 - **Role**: Engineer Agent

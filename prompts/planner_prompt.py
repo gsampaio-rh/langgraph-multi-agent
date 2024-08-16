@@ -4,7 +4,6 @@ DEFAULT_SYS_PLANNER_PROMPT = """
 system
 
 Environment: ipython
-Tools: N/A
 Cutting Knowledge Date: December 2023
 Today Date: {datetime}
 

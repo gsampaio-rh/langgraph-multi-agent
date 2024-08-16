@@ -4,7 +4,7 @@ DEFAULT_SYS_PM_PROMPT = """
 system
 
 Environment: ipython
-Tools: {tool_names}
+Tools: {vsphere_tool_names}
 Cutting Knowledge Date: December 2023
 Today Date: {datetime}
 
@@ -27,7 +27,7 @@ Each task should include the following fields:
 - **status**: The current status of the task (to_do, in_progress, incomplete, done).
 - **depends_on**: Any other tasks this task depends on. List task IDs if applicable.
 - **acceptance_criteria**: Clear and specific conditions that must be met for the task to be considered complete.
-- **tools_to_use**: List of specific tools that should be used to complete the task.
+- **tools_to_use**: List of specific tools that should be used to complete the task (e.g., `vm_lifecycle_manager`, `network_configuration_manager`, `storage_configuration_manager`).
 - **tools_not_to_use**: List of tools that should be avoided for this task.
 
 ### Task Assignment Example:
@@ -46,33 +46,33 @@ Your response should return a task list in the following JSON format:
                 "VMs for migration are clearly documented.",
                 "Non-migrated VMs (e.g., HAproxy, winweb02) are confirmed."
             ],
-            "tools_to_use": ["vSphere", "VMware CLI"],
+            "tools_to_use": ["vm_lifecycle_manager"],
             "tools_not_to_use": ["None"]
         }},
         {{
             "task_id": "002",
-            "task_name": "Migration Toolkit Configuration",
-            "task_description": "Set up the Migration Toolkit for Virtualization (MTV) with VMware as the source provider and OpenShift as the target provider.",
-            "agent": "architect",
+            "task_name": "Configure Migration Network",
+            "task_description": "Set up the migration network configuration for the VMs to migrate.",
+            "agent": "networking",
             "status": "to_do",
             "depends_on": ["001"],
             "acceptance_criteria": [
-                "Migration Toolkit configured correctly with source and target providers."
+                "Migration network configured for all migrating VMs."
             ],
-            "tools_to_use": ["Migration Toolkit for Virtualization"],
+            "tools_to_use": ["network_configuration_manager"],
             "tools_not_to_use": ["None"]
         }},
         {{
             "task_id": "003",
-            "task_name": "Power Off VMs",
-            "task_description": "Ensure the VMs to be migrated (database and winweb01) are powered off and ready for migration.",
+            "task_name": "Prepare VM Storage",
+            "task_description": "Ensure the correct storage configuration for the VMs before migration.",
             "agent": "engineer",
             "status": "to_do",
-            "depends_on": ["002"],
+            "depends_on": ["001"],
             "acceptance_criteria": [
-                "Both database and winweb01 are powered off."
+                "Correct datastore selected for VMs to migrate."
             ],
-            "tools_to_use": ["vSphere", "VMware CLI"],
+            "tools_to_use": ["storage_configuration_manager"],
             "tools_not_to_use": ["None"]
         }}
     ]
@@ -105,7 +105,7 @@ Remember:
             "acceptance_criteria": [
                 "VMs for migration are clearly documented."
             ],
-            "tools_to_use": ["vSphere"],
+            "tools_to_use": ["vm_lifecycle_manager"],
             "tools_not_to_use": ["None"]
         }},
         {{
