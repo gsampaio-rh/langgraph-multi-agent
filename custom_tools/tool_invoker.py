@@ -41,3 +41,30 @@ class ToolInvoker:
             "error": "Tool Not Found",
             "details": f"Tool '{function_name}' not found in available tools.",
         }
+
+from typing import Any, Dict
+
+
+def invoke_tool(tool: Any, **tool_input: Dict[str, Any]) -> Any:
+    """
+    Invokes the given tool with the provided input parameters.
+
+    :param tool: The tool object to be executed. It must have an `execute()` method.
+    :param tool_input: Dictionary containing the input parameters required by the tool.
+    :return: The result of the tool execution.
+    :raises Exception: If the tool execution fails or the tool does not have an execute method.
+    """
+    try:
+        # Ensure that the tool has an 'execute' method
+        if hasattr(tool, "execute") and callable(tool.execute):
+            # Invoke the tool with the provided inputs
+            result = tool.execute(**tool_input)
+            return result
+        else:
+            raise AttributeError(
+                f"The tool '{tool.__class__.__name__}' does not have an 'execute' method."
+            )
+
+    except Exception as e:
+        # If tool execution fails, raise an exception with the error message
+        raise Exception(f"Tool execution failed: {str(e)}") from e

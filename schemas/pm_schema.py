@@ -32,7 +32,7 @@ pm_output_schema = {
                     },
                     "status": {
                         "type": "string",
-                        "enum": ["to_do", "in_progress", "incomplete", "done"],
+                        "enum": ["pending", "in_progress", "incomplete", "done"],
                         "description": "The current status of the task.",
                     },
                     "depends_on": {

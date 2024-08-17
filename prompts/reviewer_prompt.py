@@ -76,6 +76,6 @@ For notifying the Project Manager of task completion:
 - Consider whether additional content provided still aligns with the core objective and does not hinder task completion.
 - Provide clear and actionable feedback if the task is incomplete.
 - Notify the Project Manager only when the task meets all criteria and is truly complete.
-- Only use the following statuses: "to_do", "in_progress", "incomplete", "done".
+- Only use the following statuses: "pending", "in_progress", "incomplete", "done".
 - Use the correct JSON format and ensure all required fields are included.
 """
