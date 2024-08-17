@@ -4,6 +4,7 @@ from agents.planner.planner_agent import PlannerAgent
 from agents.pm.pm_agent import PMAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
 from agents.researcher.researcher_agent import ResearcherAgent
+from agents.react.react_agent import ReactAgent
 from state.agent_state import get_last_entry_from_state
 from config.config import app_config
 from custom_tools import tools_description
@@ -44,6 +45,14 @@ def architect_node_function(state: AgentGraphState):
     ).invoke(
         user_request=state["user_request"],
     )
+
+
+def react_node_function(state: AgentGraphState):
+    ReactAgent(
+        state=state,
+        role="react",
+        model_config=app_config.model_config,
+    ).invoke(user_request=state["user_request"])
 
 
 def reseacher_node_function(state: AgentGraphState):

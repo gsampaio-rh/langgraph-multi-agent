@@ -1,125 +1,44 @@
-#architect_schema.py
+# architect_schema.py
 
 architect_output_schema = {
     "type": "object",
     "properties": {
-        "vm_configurations": {
+        "task_id": {
+            "type": "string",
+            "description": "A unique identifier for the task.",
+        },
+        "task_name": {
+            "type": "string",
+            "description": "The name of the task.",
+        },
+        "task_plan": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
-                    "vm_name": {"type": "string"},
-                    "os": {"type": "string", "enum": ["Linux", "Windows"]},
-                    "vm_id": {"type": "string"},
-                    "network": {
-                        "type": "object",
-                        "properties": {
-                            "source_network": {"type": "string"},
-                            "target_network": {"type": "string"},
-                        },
-                        "required": ["source_network", "target_network"]
+                    "step_name": {
+                        "type": "string",
+                        "description": "The name of the specific step.",
                     },
-                    "storage": {
-                        "type": "object",
-                        "properties": {
-                            "source_storage": {"type": "string"},
-                            "target_storage": {"type": "string"},
-                            "disk_mappings": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "disk_id": {"type": "string"},
-                                        "source_size": {"type": "string"},
-                                        "target_size": {"type": "string"}
-                                    },
-                                    "required": ["disk_id", "source_size", "target_size"]
-                                },
-                                "minItems": 1
-                            }
-                        },
-                        "required": ["source_storage", "target_storage", "disk_mappings"]
-                    }
+                    "description": {
+                        "type": "string",
+                        "description": "A detailed description of the step.",
+                    },
+                    "tool_needed": {
+                        "type": "string",
+                        "description": "The name of the tool required for the step, or 'None' if no tool is needed.",
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["pending", "in_progress", "completed"],
+                        "description": "The current status of the step.",
+                    },
                 },
-                "required": ["vm_name", "os", "vm_id", "network", "storage"]
+                "required": ["step_name", "description", "tool_needed", "status"],
             },
-            "minItems": 1
+            "description": "An array of steps that comprise the task plan.",
+            "minItems": 1,
         },
-        "mtv_config": {
-            "type": "object",
-            "properties": {
-                "source_provider": {"type": "string", "enum": ["VMware", "Hyper-V", "KVM"]},
-                "target_provider": {"type": "string", "enum": ["OpenShift", "AWS", "Azure", "GCP"]},
-                "migration_tool": {"type": "string"},
-                "provider_configurations": {
-                    "type": "object",
-                    "properties": {
-                        "vmware": {
-                            "type": "object",
-                            "properties": {
-                                "endpoint": {"type": "string"},
-                                "credentials": {
-                                    "type": "object",
-                                    "properties": {
-                                        "username": {"type": "string"},
-                                        "password": {"type": "string"}
-                                    },
-                                    "required": ["username", "password"]
-                                }
-                            },
-                            "required": ["endpoint", "credentials"]
-                        },
-                        "openshift": {
-                            "type": "object",
-                            "properties": {
-                                "cluster_url": {"type": "string"},
-                                "credentials": {
-                                    "type": "object",
-                                    "properties": {
-                                        "username": {"type": "string"},
-                                        "token": {"type": "string"}
-                                    },
-                                    "required": ["username", "token"]
-                                }
-                            },
-                            "required": ["cluster_url", "credentials"]
-                        }
-                    },
-                    "required": ["vmware", "openshift"]
-                }
-            },
-            "required": ["source_provider", "target_provider", "migration_tool", "provider_configurations"]
-        },
-        "validation_checks": {
-            "type": "object",
-            "properties": {
-                "network_validation": {
-                    "type": "object",
-                    "properties": {
-                        "status": {"type": "string"},
-                        "criteria": {"type": "string"}
-                    },
-                    "required": ["status", "criteria"]
-                },
-                "storage_validation": {
-                    "type": "object",
-                    "properties": {
-                        "status": {"type": "string"},
-                        "criteria": {"type": "string"}
-                    },
-                    "required": ["status", "criteria"]
-                },
-                "vm_compatibility_check": {
-                    "type": "object",
-                    "properties": {
-                        "status": {"type": "string"},
-                        "criteria": {"type": "string"}
-                    },
-                    "required": ["status", "criteria"]
-                }
-            },
-            "required": ["network_validation", "storage_validation", "vm_compatibility_check"]
-        }
     },
-    "required": ["vm_configurations", "mtv_config", "validation_checks"]
+    "required": ["task_id", "task_name", "task_plan"],
 }
