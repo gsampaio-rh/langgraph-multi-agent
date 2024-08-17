@@ -1,60 +1,59 @@
 planner_output_schema = {
     "type": "object",
     "properties": {
-        "source_provider": {"type": "string", "enum": ["VMware", "Hyper-V", "KVM"]},
+        "source_provider": {
+            "type": "string",
+            "enum": ["VMware", "Hyper-V", "KVM", "Other"],
+        },
         "target_provider": {
             "type": "string",
-            "enum": ["OpenShift", "AWS", "Azure", "GCP"],
+            "enum": ["OpenShift", "AWS", "Azure", "GCP", "Other"],
         },
-        "vms_to_migrate": {
+        "stages": {
             "type": "array",
             "items": {
                 "type": "object",
                 "properties": {
-                    "vm_name": {"type": "string"},
-                    "os": {"type": "string", "enum": ["Linux", "Windows"]},
-                    "source_network": {"type": "string"},
-                    "target_network": {"type": "string"},
-                    "source_storage": {"type": "string"},
-                    "target_storage": {"type": "string"},
+                    "stage_name": {"type": "string"},
+                    "pre_requisites": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "status": {
+                                    "type": "string",
+                                    "enum": ["pending", "available"],
+                                },
+                                "value": {
+                                    "type": ["null", "string", "array"],
+                                    "items": {"type": "string"},
+                                },
+                            },
+                            "required": ["status", "value"],
+                        },
+                    },
+                    "steps": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                    },
+                    "validations": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                    },
                 },
-                "required": [
-                    "vm_name",
-                    "os",
-                    "source_network",
-                    "target_network",
-                    "source_storage",
-                    "target_storage",
-                ],
+                "required": ["stage_name", "pre_requisites", "steps", "validations"],
             },
             "minItems": 1,
         },
-        "steps": {"type": "array", "items": {"type": "string"}, "minItems": 1},
-        "network_mappings": {
+        "variables": {
             "type": "object",
-            "properties": {
-                "source_network": {"type": "string"},
-                "target_network": {"type": "string"},
+            "additionalProperties": {
+                "type": ["null", "string", "array"],
+                "items": {"type": "string"},
             },
-            "required": ["source_network", "target_network"],
         },
-        "storage_mappings": {
-            "type": "object",
-            "properties": {
-                "source_storage": {"type": "string"},
-                "target_storage": {"type": "string"},
-            },
-            "required": ["source_storage", "target_storage"],
-        },
-        "validations": {"type": "array", "items": {"type": "string"}, "minItems": 1},
     },
-    "required": [
-        "source_provider",
-        "target_provider",
-        "vms_to_migrate",
-        "steps",
-        "network_mappings",
-        "storage_mappings",
-        "validations",
-    ],
+    "required": ["source_provider", "target_provider", "stages", "variables"],
 }
