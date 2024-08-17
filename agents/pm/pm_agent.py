@@ -71,7 +71,7 @@ class PMAgent(Agent):
             )
 
             # Validate the model output
-            is_valid, validation_message = self.validate_model_output(
+            is_valid, json_response, validation_message = self.validate_model_output(
                 response_content, pm_output_schema
             )
 

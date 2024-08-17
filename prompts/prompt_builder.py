@@ -9,9 +9,9 @@ from custom_tools import (
 )
 from prompts.planner_prompt import DEFAULT_SYS_PLANNER_PROMPT
 from prompts.pm_prompt import DEFAULT_SYS_PM_PROMPT
+from prompts.architect_prompt import DEFAULT_SYS_ARCHITECT_PLAN_PROMPT, DEFAULT_SYS_ARCHITECT_EXECUTE_PROMPT
 from prompts.researcher_prompt import DEFAULT_SYS_RESEARCHER_PROMPT
 from prompts.reviewer_prompt import DEFAULT_SYS_REVIEWER_PROMPT
-from prompts.architect_prompt import PLAN_AND_EXECUTE_SYS_PROMPT
 from prompts.react_agent_prompt import DEFAULT_SYS_REACT_AGENT_PROMPT
 
 class PromptBuilder:
@@ -40,14 +40,31 @@ class PromptBuilder:
         )
 
     @staticmethod
-    def build_architect_prompt(
+    def build_architect_plan_prompt(
         original_plan: str,
         feedback_value: str = "",
     ) -> str:
-        return PLAN_AND_EXECUTE_SYS_PROMPT.format(
+        return DEFAULT_SYS_ARCHITECT_PLAN_PROMPT.format(
             original_plan=original_plan,
             vsphere_tool_names=vsphere_tool_names,
             vsphere_tool_descriptions=vsphere_tool_descriptions,
+            feedback=feedback_value,
+            datetime=get_current_utc_datetime(),
+        )
+
+    @staticmethod
+    def build_architect_execute_prompt(
+        original_task_plan: str,
+        vsphere_tool_name: str,
+        vsphere_tool_description: str,
+        scratchpad: str = "",
+        feedback_value: str = "",
+    ) -> str:
+        return DEFAULT_SYS_ARCHITECT_EXECUTE_PROMPT.format(
+            original_task_plan=original_task_plan,
+            vsphere_tool_names=vsphere_tool_name,
+            vsphere_tool_descriptions=vsphere_tool_description,
+            agent_scratchpad=scratchpad,
             feedback=feedback_value,
             datetime=get_current_utc_datetime(),
         )

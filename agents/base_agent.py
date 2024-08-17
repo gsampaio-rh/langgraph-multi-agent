@@ -94,12 +94,15 @@ class Agent:
         and the second value contains a message (validation passed/failed with reason).
         """
         try:
+            # Parse the JSON response object
+            json_response_object = json.loads(response)
+
             # Perform schema validation
-            validate(instance=json.loads(response), schema=schema)
+            validate(instance=json_response_object, schema=schema)
             self.log_event(
                 "info", f"📑 🟢 Model response for {self.role} validation passed."
             )
-            return True, f"{self.role} output validation passed."
+            return True, json_response_object, f"{self.role} output validation passed."
 
         except jsonschema.exceptions.ValidationError as e:
 
@@ -118,4 +121,4 @@ class Agent:
             )
 
             # Return failure with detailed error information
-            return False, f"{self.role} output validation failed. Field: {'.'.join(map(str, error_field)) if error_field else 'N/A'}, Error: {error_message}"
+            return False, None, f"{self.role} output validation failed. Field: {'.'.join(map(str, error_field)) if error_field else 'N/A'}, Error: {error_message}"

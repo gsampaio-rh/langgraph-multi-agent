@@ -35,7 +35,7 @@ class PlannerAgent(Agent):
             )
 
             # Validate the model output
-            is_valid, validation_message = self.validate_model_output(
+            is_valid, json_response, validation_message = self.validate_model_output(
                 response_content, planner_output_schema
             )
 

@@ -1,5 +1,3 @@
-# pm_schema.py
-
 pm_output_schema = {
     "type": "object",
     "properties": {
@@ -69,6 +67,14 @@ pm_output_schema = {
                         },
                         "description": "List of tools not to use for this task.",
                     },
+                    "tool_parameters": {
+                        "type": "object",
+                        "description": "Parameters that need to be provided for each tool to operate effectively.",
+                        "additionalProperties": {
+                            "description": "Unrestricted tool-specific configuration. Can be any type.",
+                            "type": ["string", "number", "array", "object", "boolean"],
+                        },
+                    },
                 },
                 "required": [
                     "task_id",
@@ -80,6 +86,7 @@ pm_output_schema = {
                     "acceptance_criteria",
                     "tools_to_use",
                     "tools_not_to_use",
+                    "tool_parameters",
                 ],
             },
         }
