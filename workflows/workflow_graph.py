@@ -100,7 +100,7 @@ def should_continue(state):
             dependencies_done = all(
                 dep_task["status"] == "done"
                 for dep_task in tasks_list
-                if dep_task["task_id"] in task["depends_on"]
+                if dep_task["task_id"] in task["dependencies"]
             )
             # Only add the agent if all dependencies are done
             if dependencies_done:

@@ -40,30 +40,15 @@ class PromptBuilder:
         )
 
     @staticmethod
-    def build_architect_plan_prompt(
-        original_plan: str,
-        feedback_value: str = "",
-    ) -> str:
-        return DEFAULT_SYS_ARCHITECT_PLAN_PROMPT.format(
-            original_plan=original_plan,
-            vsphere_tool_names=vsphere_tool_names,
-            vsphere_tool_descriptions=vsphere_tool_descriptions,
-            feedback=feedback_value,
-            datetime=get_current_utc_datetime(),
-        )
-
-    @staticmethod
-    def build_architect_execute_prompt(
-        original_task_plan: str,
-        vsphere_tool_name: str,
-        vsphere_tool_description: str,
+    def build_architect_prompt(
+        vsphere_tool_names: str = vsphere_tool_names,
+        vsphere_tool_descriptions: str = vsphere_tool_descriptions,
         scratchpad: str = "",
         feedback_value: str = "",
     ) -> str:
-        return DEFAULT_SYS_ARCHITECT_EXECUTE_PROMPT.format(
-            original_task_plan=original_task_plan,
-            vsphere_tool_names=vsphere_tool_name,
-            vsphere_tool_descriptions=vsphere_tool_description,
+        return DEFAULT_SYS_REACT_AGENT_PROMPT.format(
+            vsphere_tool_names=vsphere_tool_names,
+            vsphere_tool_descriptions=vsphere_tool_descriptions,
             agent_scratchpad=scratchpad,
             feedback=feedback_value,
             datetime=get_current_utc_datetime(),
@@ -71,16 +56,22 @@ class PromptBuilder:
 
     @staticmethod
     def build_react_prompt(
-        original_plan: str,
+        task: str,
+        task_description: str,
+        acceptance_criteria: str,
+        vsphere_tool_names: str = vsphere_tool_names,
+        vsphere_tool_descriptions: str = vsphere_tool_descriptions,
         scratchpad: str = "",
-        tools_description: str = vsphere_tool_descriptions,
-        tool_names: str = vsphere_tool_names,
+        feedback_value: str = "",
     ) -> str:
         return DEFAULT_SYS_REACT_AGENT_PROMPT.format(
-            original_plan=original_plan,
-            tools_description=tools_description,
-            tool_names=tool_names,
+            task=task,
+            task_description=task_description,
+            acceptance_criteria=acceptance_criteria,
+            vsphere_tool_names=vsphere_tool_names,
+            vsphere_tool_descriptions=vsphere_tool_descriptions,
             agent_scratchpad=scratchpad,
+            feedback=feedback_value,
             datetime=get_current_utc_datetime(),
         )
 

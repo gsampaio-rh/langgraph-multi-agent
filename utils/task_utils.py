@@ -63,7 +63,7 @@ def get_task_by_id(state, task_id: str) -> dict:
     task_list = get_tasks_list(state)
 
     for task in task_list:
-        if task.get("task_id") == task_id:
+        if task.get("id") == task_id:
             return task
 
     raise ValueError(f"Task with ID '{task_id}' not found in the task list.")
