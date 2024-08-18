@@ -15,35 +15,32 @@ planner_output_schema = {
                 "type": "object",
                 "properties": {
                     "stage_name": {"type": "string"},
-                    "pre_requisites": {
+                    "goal": {"type": "string"},
+                    "input_data": {
                         "type": "object",
                         "additionalProperties": {
-                            "type": "object",
-                            "properties": {
-                                "status": {
-                                    "type": "string",
-                                    "enum": ["pending", "available"],
-                                },
-                                "value": {
-                                    "type": ["null", "string", "array"],
-                                    "items": {"type": "string"},
-                                },
-                            },
-                            "required": ["status", "value"],
+                            "type": ["null", "string", "array"],
+                            "items": {"type": "string"},
                         },
                     },
-                    "steps": {
+                    "task_breakdown": {
                         "type": "array",
                         "items": {"type": "string"},
                         "minItems": 1,
                     },
-                    "validations": {
+                    "expected_results": {
                         "type": "array",
                         "items": {"type": "string"},
                         "minItems": 1,
                     },
                 },
-                "required": ["stage_name", "pre_requisites", "steps", "validations"],
+                "required": [
+                    "stage_name",
+                    "goal",
+                    "input_data",
+                    "task_breakdown",
+                    "expected_results",
+                ],
             },
             "minItems": 1,
         },
