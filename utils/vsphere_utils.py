@@ -3,24 +3,9 @@ from pyVmomi import vim
 import ssl
 from typing import Tuple, Any
 
-def connect_to_vsphere(
-    host: str,
-    user: str,
-    pwd: str,
-) -> Tuple[str, Any]:
+def connect_to_vsphere(host: str, user: str, pwd: str):
     """
-    Connects to the vSphere environment (vCenter) and returns a confirmation of a successful connection.
-
-    Args:
-        host: The IP address or URL of the vCenter server.
-        user: The username for the vCenter server.
-        pwd: The password for the vCenter server.
-
-    Returns:
-        Tuple[str, Any]: A tuple containing a success message and the ServiceInstance object representing the connection.
-
-    Raises:
-        Exception: If there is an issue with connecting to vCenter.
+    Connects to the vSphere environment and returns a ServiceInstance object.
     """
     try:
         # Bypass SSL verification for the connection
@@ -29,32 +14,24 @@ def connect_to_vsphere(
         # Establish the connection
         si = SmartConnect(host=host, user=user, pwd=pwd, sslContext=context)
 
-        # Return confirmation message and the ServiceInstance object
-        return f"Connected successfully to vCenter at {host}", si
+        # Return the ServiceInstance object and a success message
+        return si, f"Connected successfully to vCenter at {host}"
 
     except Exception as e:
-        raise Exception(f"Failed to connect to vCenter: {str(e)}")
+        return None, f"Failed to connect to vCenter: {str(e)}"
 
 
-def disconnect_from_vsphere(si: Any) -> str:
+def disconnect_from_vsphere(si):
     """
-    Disconnects from the vSphere environment (vCenter).
-
-    Args:
-        si: The ServiceInstance object representing the connection to vCenter.
-
-    Returns:
-        str: A message confirming the disconnection from vCenter.
-
-    Raises:
-        Exception: If there is an issue with disconnecting from vCenter.
+    Disconnects from the vSphere environment.
     """
-    try:
-        Disconnect(si)
-        return "Disconnected successfully from vCenter."
-
-    except Exception as e:
-        raise Exception(f"Failed to disconnect from vCenter: {str(e)}")
+    if si:
+        try:
+            Disconnect(si)
+            return "Disconnected successfully from vCenter."
+        except Exception as e:
+            return f"Failed to disconnect from vCenter: {str(e)}"
+    return "No connection found to disconnect."
 
 
 def list_vms(si) -> str:

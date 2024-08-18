@@ -95,7 +95,7 @@ class ReactAgent(Agent):
                 success, tool_result = self._execute_tool(suggested_tool, tool_input)
                 usr_prompt_dict = {
                     "action": suggested_tool, 
-                    "action_result": tool_result, 
+                    "action_result": str(tool_result), 
                     "success": success
                 }
                 usr_prompt = json.dumps(usr_prompt_dict, indent=4)

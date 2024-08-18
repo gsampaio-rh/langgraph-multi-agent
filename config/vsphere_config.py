@@ -42,13 +42,16 @@ class VsphereManager:
         """
         try:
             # Pass the config parameters to the connect_to_vsphere function
-            self.si, _ = connect_to_vsphere(
+            self.si, msg = connect_to_vsphere(
                 host=self.vsphere_config.host,
                 user=self.vsphere_config.user,
                 pwd=self.vsphere_config.pwd,
             )
-            logging.info("Successfully connected to vCenter.")
-            return None
+
+            if self.si:
+                logging.info("Successfully connected to vCenter.")
+            return msg  # Return the connection message (success or failure)
+
         except Exception as e:
             logging.error(f"Failed to connect to vCenter: {str(e)}")
             return str(e)
@@ -59,12 +62,14 @@ class VsphereManager:
         """
         if self.si:
             try:
-                disconnect_from_vsphere(self.si)
-                logging.info("Successfully disconnected from vCenter.")
+                msg = disconnect_from_vsphere(self.si)
+                logging.info(msg)
             except Exception as e:
                 logging.error(f"Failed to disconnect from vCenter: {str(e)}")
             finally:
                 self.si = None
+        else:
+            logging.info("No connection to disconnect.")
 
     @contextmanager
     def connection(self):
@@ -73,7 +78,7 @@ class VsphereManager:
         """
         error = self.connect()
         try:
-            if error:
+            if not self.si:
                 raise ConnectionError(f"Failed to connect to vCenter: {error}")
             yield self.si
         finally:
