@@ -1,20 +1,13 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
 from config.agents_description import AGENTS_DESCRIPTION
+from config.vsphere_config import (
+    VsphereConfig,
+    VsphereManager,
+)  # Import the new config and manager
+
 import os
 import json
-import configparser
-
-# Read the config file once during initialization
-config = configparser.ConfigParser()
-config_path = os.path.join(os.path.dirname(__file__), ".env.conf")
-
-# Check if the file is being read correctly
-if not config.read(config_path):
-    print(f"Failed to read config file at {config_path}")
-else:
-    print("Config file read successfully")
-    print("Sections found:", config.sections())
 
 @dataclass
 class ModelConfig:
@@ -30,16 +23,6 @@ class ModelConfig:
         default_factory=lambda: {"Content-Type": "application/json"}
     )
     stop: Optional[str] = os.getenv("MODEL_STOP", None)
-
-@dataclass
-class VsphereConfig:
-    """
-    Configuration for vSphere connections.
-    """
-
-    host: str = config.get("vsphere", "host")
-    user: str = config.get("vsphere", "user")
-    pwd: str = config.get("vsphere", "pwd")
 
 
 @dataclass
@@ -62,20 +45,20 @@ class AgentConfig:
         }
     )
 
-
 @dataclass
 class LoggingConfig:
     verbose: bool = bool(int(os.getenv("LOGGING_VERBOSE", "1")))
-
 
 @dataclass
 class AppConfig:
     model_config: ModelConfig = field(default_factory=ModelConfig)
     agent_config: AgentConfig = field(default_factory=AgentConfig)
     logging_config: LoggingConfig = field(default_factory=LoggingConfig)
-    vsphere_config: VsphereConfig = field(
-        default_factory=VsphereConfig
-    )  # Added vSphere config
+    vsphere_config: VsphereConfig = field(default_factory=VsphereConfig)
+    vsphere_manager: VsphereManager = field(init=False)
+
+    def __post_init__(self):
+        self.vsphere_manager = VsphereManager(self.vsphere_config)
 
     def update_from_dict(self, config_dict: Dict[str, Any]):
         """
@@ -92,6 +75,7 @@ class AppConfig:
                 self.logging_config = LoggingConfig(**value)
             elif key == "vsphere_config":
                 self.vsphere_config = VsphereConfig(**value)
+                self.vsphere_manager = VsphereManager(self.vsphere_config)
 
     def get_agents_description(self) -> str:
         """

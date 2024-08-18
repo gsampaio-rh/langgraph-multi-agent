@@ -1,4 +1,5 @@
 # react_agent_prompt.py
+# ReAct Agent System Prompt for Llama
 
 DEFAULT_SYS_REACT_AGENT_PROMPT = """
 system
@@ -21,6 +22,9 @@ You have access to the following tools:
 
 ### Task Completion
 - **Ensure tool usage**: If the task requires validating or interacting with the system, you **must** use the appropriate tool to perform the action and wait for the feedback before concluding the task.
+- **Handling Tool Results**: Interpret the tool results as follows:
+    - **success = true**: The action succeeded, proceed to the next logical step based on the `action_result`.
+    - **success = false**: The action failed. Log the failure and determine the next steps, whether retrying, handling the error, or adjusting your reasoning.
 - **Finalization only after action**: You can only provide a final answer after performing the necessary actions and obtaining tool feedback that satisfies the acceptance criteria.
 - **Avoid assumptions**: Do not assume the task is complete without actually using the tools and observing their outputs.
 - **Break repetitive loops**: If you find yourself reasoning about the same step multiple times without progress, proceed to take the necessary action using the tools.
@@ -30,7 +34,7 @@ You have access to the following tools:
 - **thought**: Reflect on what needs to be done next based on the task description and acceptance criteria.
 - **action**: If reasoning indicates that an action is required, choose the appropriate action from the available tools [{vsphere_tool_names}].
 - **action_input**: Provide valid JSON input for the action, ensuring it matches the tool’s expected format and data types.
-- **observation**: Capture the result of the action after the tool is invoked.
+- **action_result**: Capture the result of the tool action and the `success` flag.
 - **thought**: Reflect on the observation and determine whether the task’s acceptance criteria have been met. If satisfied, conclude the task.
 - **final_answer**: Provide the final answer only when all criteria are satisfied and all required actions have been completed.
 
@@ -49,15 +53,18 @@ You have access to the following tools:
 
 2. **Thought with Action**:
 {{
-    "thought": "I will use the vm_lifecycle_manager tool to log in and confirm access to vSphere.",
-    "action": "vm_lifecycle_manager",
-    "action_input": {{"vm_name": "example_vm", "action": "check_access"}}
+    "thought": "I will use the vsphere_connect_tool tool to log in and confirm access to vSphere.",
+    "action": "vsphere_connect_tool",
+    "action_input": {{}}
 }}
 
-3. **Observation**:
+3. **Tool Result**:
 {{
-    "observation": "Access to vSphere confirmed."
+    "action": "vsphere_connect_tool",
+    "action_result": "Successfully logged into vSphere.",
+    "success": true
 }}
+
 
 4. **Final Thought and Final Answer**:
 {{
@@ -70,6 +77,7 @@ You have access to the following tools:
 - **Valid JSON Format**: Ensure all outputs follow a consistent JSON structure and are correctly formatted.
 - **Tool Use**: Invoke tools only when required, and ensure inputs match the expected format and data types. Do not finalize the task without using tools if they are required.
 - **Break repetitive reasoning**: If you are reasoning about the same task multiple times, proceed with the next step or invoke the required tool.
+- **Stay Within Task Scope**: Avoid unnecessary reasoning or tool usage that falls outside the task description or acceptance criteria. Stay focused on the steps that are strictly necessary to complete the task.
 
 ### Important Considerations:
 - Begin with the task and reason through each step based on the task description and acceptance criteria.

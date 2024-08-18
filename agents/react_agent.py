@@ -7,12 +7,33 @@ from custom_tools.tool_registry import get_tool_by_name
 
 class ReactAgent(Agent):
 
+    def invoke_model_react(self, sys_prompt: str, user_prompt: str):
+        """
+        Use the ModelService to prepare the payload, invoke the model, and process the response.
+        """
+        # Prepare the payload using the ModelService
+        payload = self.model_service.prepare_payload(sys_prompt, user_prompt)
+
+        # Invoke the model and get the response
+        response_json = self.model_service.invoke_model(payload, self.role)
+
+        response_human_message, response_content = (
+            self.model_service.process_model_response(response_json, self.role)
+        )
+
+        # self.update_state(f"{self.role}_response", response_content)
+
+        # Process the response
+        return response_human_message, response_content
+
     def _thinking(self, sys_prompt: str, usr_prompt: str) -> dict:
         """
         Generate a task plan using the model and return the parsed response.
         """
         self.log_event("info", "💭 Thinking...")
-        response_message, response_content = self.invoke_model(sys_prompt, usr_prompt)
+        response_message, response_content = self.invoke_model_react(
+            sys_prompt, usr_prompt
+        )
 
         try:
             return json.loads(response_content), response_message
@@ -104,5 +125,6 @@ class ReactAgent(Agent):
             self.log_event("info", f"🪛 Tool '{tool_name}' executed successfully.")
             return True, tool_result
         except Exception as e:
-            self.log_event("error", f"❌ Tool execution failed: {e}")
-            return False, tool_result
+            error_message = f"❌ Tool execution failed: {e}"
+            self.log_event("error", error_message)
+            return False, error_message

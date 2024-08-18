@@ -1,14 +1,13 @@
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 import ssl
-from config.config import app_config
-
+from typing import Tuple, Any
 
 def connect_to_vsphere(
-    host: str = app_config.vsphere_config.host,
-    user: str = app_config.vsphere_config.user,
-    pwd: str = app_config.vsphere_config.pwd,
-) -> str:
+    host: str,
+    user: str,
+    pwd: str,
+) -> Tuple[str, Any]:
     """
     Connects to the vSphere environment (vCenter) and returns a confirmation of a successful connection.
 
@@ -18,12 +17,11 @@ def connect_to_vsphere(
         pwd: The password for the vCenter server.
 
     Returns:
-        str: A success message indicating the connection to vCenter was established.
+        Tuple[str, Any]: A tuple containing a success message and the ServiceInstance object representing the connection.
 
     Raises:
         Exception: If there is an issue with connecting to vCenter.
     """
-
     try:
         # Bypass SSL verification for the connection
         context = ssl._create_unverified_context()
@@ -31,14 +29,14 @@ def connect_to_vsphere(
         # Establish the connection
         si = SmartConnect(host=host, user=user, pwd=pwd, sslContext=context)
 
-        # Return confirmation message
-        return f"Connected successfully to vCenter at {host}"
+        # Return confirmation message and the ServiceInstance object
+        return f"Connected successfully to vCenter at {host}", si
 
     except Exception as e:
         raise Exception(f"Failed to connect to vCenter: {str(e)}")
 
 
-def disconnect_from_vsphere(si) -> str:
+def disconnect_from_vsphere(si: Any) -> str:
     """
     Disconnects from the vSphere environment (vCenter).
 
@@ -51,7 +49,6 @@ def disconnect_from_vsphere(si) -> str:
     Raises:
         Exception: If there is an issue with disconnecting from vCenter.
     """
-
     try:
         Disconnect(si)
         return "Disconnected successfully from vCenter."

@@ -11,6 +11,7 @@ class Agent:
         self.state = state
         self.role = role
         self.model_service = ModelService(model_config)
+        self.tasks = []
 
     def update_state(self, key: str, value: Any):
         """
@@ -55,6 +56,36 @@ class Agent:
                 "error", f"😭 An error occurred while updating state: {str(e)}"
             )
             raise  # Re-raise the exception for further handling if necessary
+
+    def update_task_status(self, task_id: str, new_status: str):
+        """
+        Update the status of a task and refresh the list of pending tasks.
+
+        Parameters:
+        - task_id (str): The ID of the task to update.
+        - new_status (str): The new status of the task (e.g., 'completed', 'failed', 'in_progress').
+        """
+        task_found = False
+
+        for task in self.tasks:
+            if task["task_id"] == task_id:
+                task["status"] = new_status
+                task_found = True
+                self.log_event(
+                    "info",
+                    f"🔄 Task '{task['task_name']}' status updated to '{new_status}'.",
+                )
+                break
+
+        if not task_found:
+            self.log_event(
+                "error", f"❌ Task with ID '{task_id}' not found in the task list."
+            )
+
+        if new_status == "completed":
+            self.log_event("info", f"✅ Task '{task_id}' completed successfully.")
+        elif new_status == "failed":
+            self.log_event("error", f"⚠️ Task '{task_id}' failed.")
 
     def log_event(self, event_type: str, message: str = None):
         """
