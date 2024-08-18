@@ -6,13 +6,13 @@ pm_output_schema = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "id": {
+                    "task_id": {
                         "type": "string",  # Unique identifier for the task.
                     },
-                    "name": {
+                    "task_name": {
                         "type": "string",  # Short name of the task (e.g., "Validate VMware Access").
                     },
-                    "description": {
+                    "task_description": {
                         "type": "string",  # Detailed description of the task to be executed.
                     },
                     "agent": {
@@ -46,9 +46,9 @@ pm_output_schema = {
                     },
                 },
                 "required": [
-                    "id",
-                    "name",
-                    "description",
+                    "task_id",
+                    "task_name",
+                    "task_description",
                     "agent",
                     "status",
                     "acceptance_criteria",

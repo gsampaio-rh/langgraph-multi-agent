@@ -25,9 +25,9 @@ Each task in the execution plan should be structured as follows:
 {{
     "tasks": [
         {{
-            "id": "string",  # Unique identifier for the task.
-            "name": "string",  # The short name of the task (e.g., "Validate VMware Access").
-            "description": "string",  # A detailed description of the task's actions.
+            "task_id": "string",  # Unique identifier for the task.
+            "task_name": "string",  # The short name of the task (e.g., "Validate VMware Access").
+            "task_description": "string",  # A detailed description of the task's actions.
             "agent": "string",  # The agent responsible for executing the task (must be one of: "architect", "engineer", "networking", "reviewer", "cleanup").
             "status": "pending",  # The current status of the task ("pending", "in-progress", "completed", "failed").
             "dependencies": ["array"],  # Task IDs that must be completed before this task starts.
@@ -42,18 +42,18 @@ Each task in the execution plan should be structured as follows:
 {{
     "tasks": [
         {{
-            "id": "1",
-            "name": "Validate VMware Access",
-            "description": "Ensure access to VMware vSphere is available and functioning properly.",
+            "task_id": "1",
+            "task_name": "Validate VMware Access",
+            "task_description": "Ensure access to VMware vSphere is available and functioning properly.",
             "agent": "architect",
             "status": "pending",
             "dependencies": [],
             "acceptance_criteria": "Access to VMware vSphere confirmed."
         }},
         {{
-            "id": "2",
-            "name": "Retrieve VM List",
-            "description": "Ensure the correct names of the VMs to be migrated are available: 'database', 'winweb01', 'winweb02', 'haproxy'.",
+            "task_id": "2",
+            "task_name": "Retrieve VM List",
+            "task_description": "Ensure the correct names of the VMs to be migrated are available: 'database', 'winweb01', 'winweb02', 'haproxy'.",
             "agent": "architect",
             "status": "pending",
             "dependencies": ["1"],
