@@ -1,75 +1,36 @@
 from langchain.tools import tool
+from config.config import app_config
 from utils.vsphere_utils import (
-    power_off_vm,
-    power_on_vm,
-    create_vm_snapshot,
-    delete_vm_snapshot,
-    revert_vm_to_snapshot,
-    migrate_vm,
-    validate_vm_compatibility,
+    get_all_vms,
     connect_to_vsphere,
     disconnect_from_vsphere,
 )
 
-
 @tool(parse_docstring=True)
-def vm_lifecycle_manager(
-    vm_name: str,
-    action: str,
-    snapshot_name: str = None,
-    target_host: str = None,
-) -> str:
+def list_vms():
     """
-    Manages VM lifecycle operations such as powering on/off, snapshot creation, migration, and more.
+    Retrieves and lists all the virtual machines (VMs) available in the connected vSphere environment.
 
-    Args:
-        vm_name: The name of the VM to perform the action on.
-        action: The lifecycle action to perform (e.g., 'power_on', 'power_off', 'snapshot', 'migrate', 'delete_snapshot', 'revert_snapshot', 'validate').
-        snapshot_name: The name of the snapshot for snapshot-related actions (create, delete, revert).
-        target_host: The target host for VM migration.
+    This function establishes a connection to the vSphere environment, retrieves a list of all VMs present, and disconnects from the vSphere environment upon completion. The VMs are retrieved using the established vSphere connection, and any errors during the process are handled and returned as part of the output.
 
     Returns:
-        str: A success message for the performed action, or an error message in case of failure.
+        str: A success message listing all the virtual machines if the operation is successful, or an error message if the operation fails.
+
     """
     si = None
     try:
         # Connect to vSphere
-        si = connect_to_vsphere()
+        si, content = connect_to_vsphere(
+            host=app_config.vsphereConfig.host,
+            user=app_config.vsphereConfig.user,
+            pwd=app_config.vsphereConfig.pwd,
+        )
 
-        # Perform the requested action
-        if action == "power_on":
-            return power_on_vm(si, vm_name)
-        elif action == "power_off":
-            return power_off_vm(si, vm_name)
-        elif action == "snapshot":
-            if not snapshot_name:
-                raise ValueError(
-                    "snapshot_name must be provided for 'snapshot' action."
-                )
-            return create_vm_snapshot(si, vm_name, snapshot_name)
-        elif action == "migrate":
-            if not target_host:
-                raise ValueError("target_host must be provided for 'migrate' action.")
-            return migrate_vm(si, vm_name, target_host)
-        elif action == "delete_snapshot":
-            if not snapshot_name:
-                raise ValueError(
-                    "snapshot_name must be provided for 'delete_snapshot' action."
-                )
-            return delete_vm_snapshot(si, vm_name, snapshot_name)
-        elif action == "revert_snapshot":
-            if not snapshot_name:
-                raise ValueError(
-                    "snapshot_name must be provided for 'revert_snapshot' action."
-                )
-            return revert_vm_to_snapshot(si, vm_name, snapshot_name)
-        elif action == "validate":
-            return validate_vm_compatibility(si, vm_name)
-        else:
-            raise ValueError(f"Unsupported action: {action}")
+        vms = get_all_vms(si, content)
+        return vms
 
     except Exception as e:
-        return f"Failed to execute {action} on VM '{vm_name}': {str(e)}"
+        return f"Failed to list vms. {str(e)}"
 
     finally:
         if si:

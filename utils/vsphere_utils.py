@@ -7,19 +7,23 @@ def connect_to_vsphere(host: str, user: str, pwd: str):
     """
     Connects to the vSphere environment and returns a ServiceInstance object.
     """
+    # Disable SSL certificate verification (not recommended for production)
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context.verify_mode = ssl.CERT_NONE
+
     try:
-        # Bypass SSL verification for the connection
-        context = ssl._create_unverified_context()
+        # Connect to vCenter Server
+        si = SmartConnect(
+            host=host, user=user, pwd=pwd, sslContext=context
+        )
+        # Retrieve content
+        content = si.RetrieveContent()
+        print(f"Connected successfully to vCenter at {host}")
 
-        # Establish the connection
-        si = SmartConnect(host=host, user=user, pwd=pwd, sslContext=context)
-
-        # Return the ServiceInstance object and a success message
-        return si, f"Connected successfully to vCenter at {host}"
-
+        return si, content
     except Exception as e:
-        return None, f"Failed to connect to vCenter: {str(e)}"
-
+        print(f"Failed to connect to vCenter: {str(e)}")
+        return
 
 def disconnect_from_vsphere(si):
     """
@@ -34,7 +38,7 @@ def disconnect_from_vsphere(si):
     return "No connection found to disconnect."
 
 
-def list_vms(si) -> str:
+def get_all_vms(si, content) -> str:
     """
     Retrieves a list of all virtual machines (VMs) in the vSphere environment.
 
@@ -47,16 +51,26 @@ def list_vms(si) -> str:
     Raises:
         Exception: If there is an issue with retrieving the VMs.
     """
-
+    vm_names = []
     try:
-        content = si.RetrieveContent()
-        vm_names = []
+        # Create container view for Virtual Machines
+        container = content.viewManager.CreateContainerView(content.rootFolder, [vim.VirtualMachine], True)
 
-        for datacenter in content.rootFolder.childEntity:
-            for vm in datacenter.vmFolder.childEntity:
-                vm_names.append(vm.name)
+        # List all VMs
+        vms = container.view
 
-        return f"VMs in the vSphere environment: {', '.join(vm_names)}"
+        # Check if any VMs were retrieved
+        if not vms:
+            # print("No VMs found!")
+            return
+
+        # Print the names of the VMs
+        for vm in vms:
+            # print(f"VM Name: {vm.name}")
+            vm_names.append(vm.name)
+
+        print (f"VMs in the vSphere environment: {', '.join(vm_names)}")
+        return vm_names
 
     except Exception as e:
         raise Exception(f"Failed to retrieve VMs: {str(e)}")
