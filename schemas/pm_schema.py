@@ -6,88 +6,53 @@ pm_output_schema = {
             "items": {
                 "type": "object",
                 "properties": {
-                    "task_id": {
-                        "type": "string",
-                        "description": "Unique identifier for the task.",
+                    "id": {
+                        "type": "string",  # Unique identifier for the task.
                     },
-                    "task_name": {
-                        "type": "string",
-                        "description": "A descriptive name for the task.",
+                    "name": {
+                        "type": "string",  # Short name of the task (e.g., "Validate VMware Access").
                     },
-                    "task_description": {
-                        "type": "string",
-                        "description": "A detailed and specific description of what needs to be done.",
+                    "description": {
+                        "type": "string",  # Detailed description of the task to be executed.
                     },
                     "agent": {
                         "type": "string",
                         "enum": [
                             "architect",
                             "engineer",
-                            "reviewer",
                             "networking",
+                            "reviewer",
                             "cleanup",
-                            "pm",
-                        ],
-                        "description": "The agent responsible for the task.",
+                        ],  # Agent responsible for executing the task (e.g., "Architect Agent").
                     },
                     "status": {
                         "type": "string",
-                        "enum": ["pending", "in_progress", "incomplete", "done"],
-                        "description": "The current status of the task.",
+                        "enum": [
+                            "pending",
+                            "in-progress",
+                            "completed",
+                            "failed",
+                        ],  # Current status of the task.
                     },
-                    "depends_on": {
+                    "dependencies": {
                         "type": "array",
                         "items": {
-                            "type": "string",
-                            "description": "List of task IDs that this task depends on.",
+                            "type": "string",  # Task IDs that must be completed before this task can start.
                         },
-                        "description": "Any other tasks this task depends on.",
+                        "default": [],  # Default is an empty array if there are no dependencies.
                     },
                     "acceptance_criteria": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "description": "Clear and specific conditions that must be met for the task to be considered complete.",
-                        },
-                        "description": "List of acceptance criteria for the task.",
-                    },
-                    "tools_to_use": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "description": "List of specific tools that should be used to complete the task.",
-                        },
-                        "description": "List of tools to use for this task.",
-                    },
-                    "tools_not_to_use": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "description": "List of specific tools that should not be used to complete the task.",
-                        },
-                        "description": "List of tools not to use for this task.",
-                    },
-                    "tool_parameters": {
-                        "type": "object",
-                        "description": "Parameters that need to be provided for each tool to operate effectively.",
-                        "additionalProperties": {
-                            "description": "Unrestricted tool-specific configuration. Can be any type.",
-                            "type": ["string", "number", "array", "object", "boolean"],
-                        },
+                        "type": "string",  # Criteria that must be met to consider the task successfully completed.
                     },
                 },
                 "required": [
-                    "task_id",
-                    "task_name",
-                    "task_description",
+                    "id",
+                    "name",
+                    "description",
                     "agent",
                     "status",
-                    "depends_on",
                     "acceptance_criteria",
-                    "tools_to_use",
-                    "tools_not_to_use",
-                    "tool_parameters",
-                ],
+                ],  # Dependencies are optional.
             },
         }
     },
