@@ -108,7 +108,7 @@ class ReactAgent(Agent):
                 acceptance_criteria=pending_task.get("acceptance_criteria"),
                 scratchpad=scratchpad,
             )
-
+    
     def _execute_tool(self, tool_name: str, tool_input: dict) -> bool:
         """
         Execute the suggested tool and return whether it was successful.
@@ -122,6 +122,7 @@ class ReactAgent(Agent):
 
         try:
             tool_result = invoke_tool(tool, **tool_input)
+            self.log_event("info", f"🪛 \n '{tool_result}' \n")
             self.log_event("info", f"🪛 Tool '{tool_name}' executed successfully.")
             return True, tool_result
         except Exception as e:

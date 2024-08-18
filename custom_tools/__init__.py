@@ -12,10 +12,7 @@ from custom_tools.vsphere.storage_configuration_manager import (
 from custom_tools.vsphere.vm_lifecycle_manager import (
     vm_lifecycle_manager,
 )
-from custom_tools.vsphere.vsphere_connection_manager import (
-    vsphere_connect_tool,
-    vsphere_disconnect_tool
-)
+
 
 # Expose all tools in a list for easier import
 custom_tools = [duckSearch, wiki, arxiv, website_crawl, extract_content]
@@ -29,8 +26,6 @@ tools_description = (
 )
 
 vsphere_tools = [
-    vsphere_connect_tool,
-    vsphere_disconnect_tool,
     vm_lifecycle_manager,
     network_configuration_manager,
     storage_configuration_manager,
