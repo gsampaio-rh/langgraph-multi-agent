@@ -1,21 +1,9 @@
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
 from config.agents_description import AGENTS_DESCRIPTION
-import configparser
 import os
-import logging
 import os
 import json
-
-# Load the configuration from .env.conf
-config = configparser.ConfigParser()
-config_path = os.path.join(os.path.dirname(__file__), ".env.conf")
-
-if not config.read(config_path):
-    logging.error(f"Failed to read config file at {config_path}")
-else:
-    logging.info("Config file read successfully")
-
 
 @dataclass
 class ModelConfig:
@@ -64,9 +52,12 @@ class VsphereConfig:
     Configuration for vSphere connections.
     """
 
-    host: str = config.get("vsphere", "host")
-    user: str = config.get("vsphere", "user")
-    pwd: str = config.get("vsphere", "pwd")
+    host: str = os.getenv("VSPHERE_HOST", "host")
+    user: str = os.getenv("VSPHERE_USER", "user")
+    pwd: str = os.getenv("VSPHERE_PWD", "pwd")
+    # config.get("vsphere", "host")
+    # user: str = config.get("vsphere", "user")
+    # pwd: str = config.get("vsphere", "pwd")
 
 
 @dataclass
