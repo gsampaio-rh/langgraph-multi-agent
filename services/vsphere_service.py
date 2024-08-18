@@ -9,7 +9,7 @@ class VsphereService:
         self.pwd = vsphereConfig.pwd
         self.service_instance = None
 
-    def connect(self):
+    def connect_to_vsphere(self):
         # Disable SSL certificate verification for simplicity
         context = ssl._create_unverified_context()
         try:
@@ -22,7 +22,7 @@ class VsphereService:
             print(f"Failed to connect to vSphere: {e}")
             self.service_instance = None
 
-    def disconnect(self):
+    def disconnect_to_vsphere(self):
         if self.service_instance:
             Disconnect(self.service_instance)
             print("Disconnected from vSphere")

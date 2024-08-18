@@ -4,17 +4,22 @@ from workflows.workflow_graph import create_graph, compile_workflow
 from utils.log_utils import log_startup
 from utils.helpers import get_file_content
 from IPython.display import Image, display
+from services.vsphere_service import VsphereService
+
 
 def main():
 
     log_startup(app_config.get_agents_description(), vsphere_tool_descriptions)
+
+    vsphere_service = VsphereService(app_config.vsphereConfig)
+    vsphere_service.disconnect_to_vsphere()
 
     graph = create_graph()
     workflow = compile_workflow(graph)
     # display(Image(workflow.get_graph().draw_png()))
 
     iterations = 10
-    config = {"configurable": {"thread_id": "1"}}
+    config = {"configurable": {"thread_id": "5"}}
     verbose = True
 
     tutorial_file="data/1_PREPARATION.md"
