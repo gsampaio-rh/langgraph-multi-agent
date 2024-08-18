@@ -13,6 +13,10 @@ from custom_tools.vsphere.storage_configuration_manager import (
 from custom_tools.vsphere.vm_lifecycle_manager import (
     vm_lifecycle_manager,
 )
+from custom_tools.vsphere.vsphere_connection_manager import (
+    vsphere_connect_tool,
+    vsphere_disconnect_tool,
+)
 
 # Register tools by name and module
 tool_registry = {
@@ -24,6 +28,8 @@ tool_registry = {
     "vm_lifecycle_manager": vm_lifecycle_manager,
     "network_configuration_manager": network_configuration_manager,
     "storage_configuration_manager": storage_configuration_manager,
+    "vsphere_connect_tool": vsphere_connect_tool,
+    "vsphere_disconnect_tool": vsphere_disconnect_tool,
 }
 
 

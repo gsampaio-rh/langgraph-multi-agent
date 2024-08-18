@@ -49,20 +49,20 @@ def invoke_tool(tool: Any, **tool_input: Dict[str, Any]) -> Any:
     """
     Invokes the given tool with the provided input parameters.
 
-    :param tool: The tool object to be executed. It must have an `execute()` method.
+    :param tool: The tool object to be executed. It must have an `invoke()` method.
     :param tool_input: Dictionary containing the input parameters required by the tool.
     :return: The result of the tool execution.
-    :raises Exception: If the tool execution fails or the tool does not have an execute method.
+    :raises Exception: If the tool execution fails or the tool does not have an invoke method.
     """
     try:
-        # Ensure that the tool has an 'execute' method
-        if hasattr(tool, "execute") and callable(tool.execute):
+        # Ensure that the tool has an 'invoke' method
+        if hasattr(tool, "invoke") and callable(tool.invoke):
             # Invoke the tool with the provided inputs
-            result = tool.execute(**tool_input)
+            result = tool.invoke(tool_input)
             return result
         else:
             raise AttributeError(
-                f"The tool '{tool.__class__.__name__}' does not have an 'execute' method."
+                f"The tool '{tool.__class__.__name__}' does not have an 'invoke' method."
             )
 
     except Exception as e:

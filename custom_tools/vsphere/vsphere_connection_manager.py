@@ -5,21 +5,16 @@ from utils.vsphere_utils import (
 )
 
 @tool(parse_docstring=True)
-def vsphere_connect_tool(host: str, user: str, pwd: str) -> str:
+def vsphere_connect_tool() -> str:
     """
     Connects to the vSphere environment and returns a success message.
-
-    Args:
-        host: The IP address or URL of the vCenter server.
-        user: The username for the vCenter server.
-        pwd: The password for the vCenter server.
 
     Returns:
         str: A message indicating successful connection or an error message.
     """
     try:
-        si = connect_to_vsphere(host, user, pwd)
-        return f"Successfully connected to vCenter at {host}.", si
+        si = connect_to_vsphere()
+        return f"Successfully connected to vCenter.", si
     except Exception as e:
         return f"Failed to connect to vCenter: {str(e)}"
 
