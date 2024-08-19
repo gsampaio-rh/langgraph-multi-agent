@@ -59,6 +59,7 @@ class ReactAgent(Agent):
         )
 
         success = False
+        
         while True:
             think_response, think_message = self._thinking(sys_prompt, usr_prompt)
 
@@ -104,7 +105,7 @@ class ReactAgent(Agent):
                     "action_result": str(tool_result),
                     "final_thought": final_thought,
                 }
-                print(reason_and_act_output)
+                self.log_event("info", reason_and_act_output)
                 return reason_and_act_output
 
             if suggested_tool:
@@ -115,7 +116,7 @@ class ReactAgent(Agent):
                     "success": success
                 }
                 usr_prompt = json.dumps(usr_prompt_dict, indent=4)
-                print(usr_prompt)
+                self.log_event("info", usr_prompt)
 
             # Update system prompt with the scratchpad history
             sys_prompt = PromptBuilder.build_react_prompt(
