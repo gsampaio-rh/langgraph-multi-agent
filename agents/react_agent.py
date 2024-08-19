@@ -41,7 +41,7 @@ class ReactAgent(Agent):
             self.log_event("error", f"Failed to decode JSON response: {e}")
             return None
 
-    def _reason_and_act(self, user_request: str, pending_task: dict) -> None:
+    def _reason_and_act(self, task_checklist: str, pending_task: dict) -> None:
         """
         Iteratively reason and act until a valid task plan with a final answer is generated.
         """
@@ -88,14 +88,14 @@ class ReactAgent(Agent):
             suggested_tool = think_response.get("action")
             tool_input = think_response.get("action_input")
             action_result = think_response.get("action_result")
-            
+
             if final_answer := think_response.get("final_answer"):
                 # Check if tool was not executed successfully and any of the fields exist (not None or empty)
                 if not success and any([suggested_tool, tool_input, action_result]):
                     self.log_event("error", "❌ Final answer attempted but tool was not executed successfully. Rejecting final answer.")
                     usr_prompt = "Final answer attempted but tool was not executed successfully. Rejecting final answer."
                     continue  # Reject final answer and continue with the loop
-                
+
                 final_thought = think_response.get("thought")
                 self.log_event("info", "Final answer generated.")
                 reason_and_act_output = {
@@ -125,10 +125,14 @@ class ReactAgent(Agent):
                 scratchpad=scratchpad,
             )
 
-    def _execute_tool(self, tool_name: str, tool_input: dict) -> bool:
+    def _execute_tool(self, tool_name: str, tool_input: dict = None) -> bool:
         """
         Execute the suggested tool and return whether it was successful.
         """
+        # Ensure tool_input is a dictionary, even if it's None
+        if tool_input is None:
+            tool_input = {}
+
         self.log_event("info", f"🔧 Executing tool '{tool_name}' with input {tool_input}.")
 
         tool = get_tool_by_name(tool_name)

@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 
 class ArchitectAgent(ReactAgent):
-    
+
     def get_status_symbol(self, task_status):
         """
         Returns the corresponding symbol for the given task status.
@@ -26,6 +26,8 @@ class ArchitectAgent(ReactAgent):
         """
         Logs the tasks in a checklist format, displaying their status with corresponding symbols.
         """
+        task_messages = []
+
         if self.has_pending_tasks():
             # Log the total number of tasks
             self.log_event("info", f"🔢 Number of pending tasks: {len(self.tasks)}")
@@ -39,11 +41,13 @@ class ArchitectAgent(ReactAgent):
                 # Map statuses to checklist symbols
                 status_symbol = self.get_status_symbol(task_status)
 
-                # Log the task as a checklist item
-                self.log_event(
-                    "info", f"{status_symbol} Task ID: {task_id}, Task Name: {task_name}"
-                )
-            
+                # Create the checklist message for the task
+                task_message = f"{status_symbol} Task ID: {task_id}, Task Name: {task_name}, Status: {task_status}"
+                self.log_event("info", task_message)
+                task_messages.append(task_message)
+
+            return task_messages
+
     def has_pending_tasks(self) -> bool:
         """Check if there are any pending tasks."""
         for task in self.tasks:
@@ -63,10 +67,10 @@ class ArchitectAgent(ReactAgent):
             self.log_event("info", "✅ All tasks are completed.")
 
         while self.has_pending_tasks():
-            
+
             # Print the total number of tasks
             # self.log_event("info", f"🔢 Number of pending tasks: {len(self.tasks)}")
-            self.log_task_checklist()
+            task_checklist = self.log_task_checklist()
 
             # Process each pending task one by one
             for task in self.tasks:
@@ -78,7 +82,7 @@ class ArchitectAgent(ReactAgent):
                     f"\n\n### 📝 Working on Task ID: {task_id} - {task_name}\n\n",
                 )
                 # Reason and act on the pending task
-                result = self._reason_and_act(user_request, task)
+                result = self._reason_and_act(task_checklist, task)
 
                 # Check if the task was completed successfully
                 if result:
