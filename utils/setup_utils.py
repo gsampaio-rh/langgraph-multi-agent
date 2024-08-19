@@ -20,9 +20,9 @@ def load_config():
 
 def startup(): 
 
+    log_startup(app_config.get_agents_description(), vsphere_tool_descriptions)
+
     register_tools()
     # load_config()
-
-    log_startup(app_config.get_agents_description(), vsphere_tool_descriptions)
 
     # print("Startup sequence completed successfully")
