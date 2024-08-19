@@ -1,7 +1,7 @@
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 import ssl
-from typing import Tuple, Any
+from typing import Any, Tuple, List
 
 def connect_to_vsphere(host: str, user: str, pwd: str):
     """
@@ -38,7 +38,7 @@ def disconnect_from_vsphere(si):
     return "No connection found to disconnect."
 
 
-def get_all_vms(si, content) -> str:
+def get_all_vms(si, content) -> Tuple[List[vim.VirtualMachine], List[str]]:
     """
     Retrieves a list of all virtual machines (VMs) in the vSphere environment.
 
@@ -71,7 +71,7 @@ def get_all_vms(si, content) -> str:
 
         print (f"VMs in the vSphere environment: {', '.join(vm_names)}")
 
-        return vm_names
+        return vms, vm_names
     except Exception as e:
         raise Exception(f"Failed to retrieve VMs: {str(e)}")
 

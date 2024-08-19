@@ -1,4 +1,5 @@
 from langchain.tools import tool
+from typing import Union, List, Dict
 from config.config import app_config
 from utils.vsphere_utils import (
     get_all_vms,
@@ -8,14 +9,12 @@ from utils.vsphere_utils import (
 )
 
 @tool(parse_docstring=True)
-def list_vms():
+def list_vms() -> Union[List[str], str]:
     """
-    A wrapper around a vSphere utility for listing all available virtual machines (VMs). Useful for retrieving a list of VMs from the connected vSphere environment. Input: None. Returns: A list of VM names or an error message if the operation fails.
-    
-    Input: 
-        None
-    Returns: 
-        A list of VM names or an error message if the operation fails.
+    A wrapper around a vSphere utility for listing all available virtual machines (VMs). Useful for retrieving a list of VMs from the connected vSphere environment.
+
+    Returns:
+        vms: A list of VM names or an error message if the operation fails.
     """
     si = None
     try:
@@ -26,8 +25,8 @@ def list_vms():
             pwd=app_config.vsphereConfig.pwd,
         )
 
-        vms = get_all_vms(si, content)
-        return vms
+        vms, vm_names = get_all_vms(si, content)
+        return vm_names
 
     except Exception as e:
         return f"Failed to list vms. {str(e)}"
@@ -38,14 +37,12 @@ def list_vms():
 
 
 @tool(parse_docstring=True)
-def retrieve_vm_details():
+def retrieve_vm_details() -> Union[List[Dict[str, Union[str, int, list]]], str]:
     """
-    A wrapper around a vSphere utility for extracting detailed information about virtual machines (VMs). Useful for retrieving VM operating systems, resource allocations, and network configurations. Input: None. Returns: A list of dictionaries containing VM details or an error message if the operation fails.
-    
-    Input: 
-        None
-    Returns: 
-        A list of dictionaries containing VM details or an error message if the operation fails.
+    A wrapper around a vSphere utility for extracting detailed information about virtual machines (VMs). Useful for retrieving VM operating systems, resource allocations, and network configurations.
+
+    Returns:
+        vm_details: A list of dictionaries containing VM details or an error message if the operation fails.
     """
     si = None
     try:
