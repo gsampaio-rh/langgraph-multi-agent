@@ -45,6 +45,7 @@ class ArchitectAgent(ReactAgent):
                 if result:
                     # Update the task status to 'completed'
                     self.update_task_status(task["task_id"], "completed")
+                    self.update_state(f"{self.role}_response", result)
                 else:
                     # Handle task failure, potentially reattempt or mark as failed
                     self.update_task_status(task["task_id"], "failed")
