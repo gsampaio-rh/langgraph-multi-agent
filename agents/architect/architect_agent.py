@@ -24,7 +24,7 @@ class ArchitectAgent(ReactAgent):
             self.log_event("info", "✅ All tasks are completed.")
 
         while self.has_pending_tasks():
-            print(self.tasks)
+            # print(self.tasks)
             # Print the total number of tasks
             self.log_event("info", f"🔢 Number of pending tasks: {len(self.tasks)}")
 

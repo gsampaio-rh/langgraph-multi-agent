@@ -58,6 +58,7 @@ class ReactAgent(Agent):
             3  # Set a limit for the number of times to allow repeated responses
         )
 
+        success = False
         while True:
             think_response, think_message = self._thinking(sys_prompt, usr_prompt)
 
@@ -85,8 +86,27 @@ class ReactAgent(Agent):
                     continue  # Retry the reasoning
 
             if final_answer := think_response.get("final_answer"):
+                
+                suggested_tool = think_response.get("action")
+                tool_input = think_response.get("action_input")
+                action_result = think_response.get("action_result")
+                # Ensure that if there's an action, the tool must be used and result must be valid
+                if not success:
+                    self.log_event("error", "Final answer attempted but tool was not executed. Rejecting final answer.")
+                    usr_prompt = "Final answer attempted but tool was not executed. Rejecting final answer."
+                    continue
+
+                final_thought = think_response.get("thought")
                 self.log_event("info", "Final answer generated.")
-                return final_answer
+                reason_and_act_output = {
+                    "task_id": pending_task.get("task_id"),
+                    "suggested_tool": suggested_tool,
+                    "tool_input": tool_input,
+                    "action_result": action_result,
+                    "final_thought": final_thought,
+                }
+                print(reason_and_act_output)
+                return reason_and_act_output
 
             suggested_tool = think_response.get("action")
             tool_input = think_response.get("action_input")
@@ -108,7 +128,7 @@ class ReactAgent(Agent):
                 acceptance_criteria=pending_task.get("acceptance_criteria"),
                 scratchpad=scratchpad,
             )
-    
+
     def _execute_tool(self, tool_name: str, tool_input: dict) -> bool:
         """
         Execute the suggested tool and return whether it was successful.
