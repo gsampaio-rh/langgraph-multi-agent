@@ -70,10 +70,99 @@ def get_all_vms(si, content) -> str:
             vm_names.append(vm.name)
 
         print (f"VMs in the vSphere environment: {', '.join(vm_names)}")
-        return vm_names
 
+        return vm_names
     except Exception as e:
         raise Exception(f"Failed to retrieve VMs: {str(e)}")
+
+
+def get_vm_details(vm) -> dict:
+    """
+    Retrieves details of a specific virtual machine (VM) in the vSphere environment, including:
+        - Operating system
+        - Resource allocations (CPU, memory, disk)
+        - Network configuration (IP, network adapter settings)
+        - Operational status (power state, connection state, overall status)
+
+    Args:
+        vm: The vim.VirtualMachine object representing the VM in vCenter.
+
+    Returns:
+        dict: A dictionary containing VM details.
+    """
+    try:
+        # Initialize the VM details dictionary
+        vm_info = {}
+
+        # Get basic VM info
+        vm_info["name"] = vm.summary.config.name
+        vm_info["operating_system"] = vm.summary.config.guestFullName
+
+        # Resource allocations
+        vm_info["cpu"] = vm.config.hardware.numCPU
+        vm_info["memory_mb"] = vm.config.hardware.memoryMB
+
+        # Disk allocations
+        vm_info["disks"] = []
+        for device in vm.config.hardware.device:
+            if isinstance(device, vim.vm.device.VirtualDisk):
+                disk_info = {
+                    "label": device.deviceInfo.label,
+                    "capacity_gb": device.capacityInKB
+                    / (1024 * 1024),  # Convert KB to GB
+                }
+                vm_info["disks"].append(disk_info)
+
+        # Network configuration
+        vm_info["networks"] = []
+        for net in vm.guest.net:
+            network_info = {
+                "network_name": net.network,
+                "ip_addresses": net.ipAddress,
+                "mac_address": net.macAddress,
+            }
+            vm_info["networks"].append(network_info)
+
+        # Operational Status
+        vm_info["power_state"] = vm.runtime.powerState
+        vm_info["connection_state"] = vm.runtime.connectionState
+        vm_info["overall_status"] = vm.summary.overallStatus
+
+        return vm_info
+
+    except Exception as e:
+        raise Exception(f"Failed to retrieve details for VM: {str(e)}")
+
+
+def get_all_vm_details(content) -> list:
+    """
+    Retrieves details of all virtual machines (VMs) in the vSphere environment.
+
+    Args:
+        content: The vim.ServiceContent object representing the vSphere content.
+
+    Returns:
+        list: A list of dictionaries, each containing details of a VM, including:
+              - Operating system
+              - Resource allocations (CPU, memory, disk)
+              - Network configuration (IP, network adapter settings)
+
+    Raises:
+        Exception: If an error occurs during retrieval of VM details.
+    """
+    vm_details_list = []
+
+    # Traverse all VMs in the vSphere inventory
+    container = content.viewManager.CreateContainerView(
+        content.rootFolder, [vim.VirtualMachine], True
+    )
+    for vm in container.view:
+        vm_details = get_vm_details(vm)
+        vm_details_list.append(vm_details)
+
+    container.Destroy()
+
+    return vm_details_list
 
 
 def find_vm_by_name(si, vm_name: str) -> str:

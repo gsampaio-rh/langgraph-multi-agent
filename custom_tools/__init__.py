@@ -3,9 +3,7 @@ from custom_tools.website_crawl import website_crawl, extract_content
 from custom_tools.duck_search import duckSearch
 from custom_tools.wiki_query import wiki
 from custom_tools.arxiv_query import arxiv
-from custom_tools.vsphere.vm_lifecycle_manager import (
-    list_vms,
-)
+from custom_tools.vsphere.vm_lifecycle_manager import list_vms, retrieve_vm_details
 
 
 # Expose all tools in a list for easier import
@@ -19,9 +17,7 @@ tools_description = (
     render_text_description_and_args(custom_tools).replace("{", "{{").replace("}", "}}")
 )
 
-vsphere_tools = [
-    list_vms,
-]
+vsphere_tools = [list_vms, retrieve_vm_details]
 
 # Create a list of tool names
 vsphere_tool_names = [tool.name for tool in vsphere_tools]
