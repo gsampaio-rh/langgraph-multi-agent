@@ -85,14 +85,17 @@ class ReactAgent(Agent):
                 else:
                     continue  # Retry the reasoning
 
+            suggested_tool = think_response.get("action")
+            tool_input = think_response.get("action_input")
+            action_result = think_response.get("action_result")
+            
             if final_answer := think_response.get("final_answer"):
-
-                # Ensure that if there's an action, the tool must be used and result must be valid
-                if not success:
-                    self.log_event("error", "Final answer attempted but tool was not executed. Rejecting final answer.")
-                    usr_prompt = "Final answer attempted but tool was not executed. Rejecting final answer."
-                    continue
-
+                # Check if tool was not executed successfully and any of the fields exist (not None or empty)
+                if not success and any([suggested_tool, tool_input, action_result]):
+                    self.log_event("error", "❌ Final answer attempted but tool was not executed successfully. Rejecting final answer.")
+                    usr_prompt = "Final answer attempted but tool was not executed successfully. Rejecting final answer."
+                    continue  # Reject final answer and continue with the loop
+                
                 final_thought = think_response.get("thought")
                 self.log_event("info", "Final answer generated.")
                 reason_and_act_output = {
@@ -103,9 +106,6 @@ class ReactAgent(Agent):
                 }
                 print(reason_and_act_output)
                 return reason_and_act_output
-
-            suggested_tool = think_response.get("action")
-            tool_input = think_response.get("action_input")
 
             if suggested_tool:
                 success, tool_result = self._execute_tool(suggested_tool, tool_input)
