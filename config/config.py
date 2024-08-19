@@ -55,9 +55,16 @@ class VsphereConfig:
     host: str = os.getenv("VSPHERE_HOST", "host")
     user: str = os.getenv("VSPHERE_USER", "user")
     pwd: str = os.getenv("VSPHERE_PWD", "pwd")
-    # config.get("vsphere", "host")
-    # user: str = config.get("vsphere", "user")
-    # pwd: str = config.get("vsphere", "pwd")
+
+
+@dataclass
+class OpenshiftConfig:
+    """
+    Configuration for vSphere connections.
+    """
+
+    api_url: str = os.getenv("OPENSHIFT_API_URL", "api_url")
+    token: str = os.getenv("OPENSHIFT_TOKEN", "token")
 
 
 @dataclass
@@ -66,6 +73,7 @@ class AppConfig:
     agent_config: AgentConfig = field(default_factory=AgentConfig)
     logging_config: LoggingConfig = field(default_factory=LoggingConfig)
     vsphereConfig: VsphereConfig = field(default_factory=VsphereConfig)
+    openshiftConfig: OpenshiftConfig = field(default_factory=OpenshiftConfig)
     def update_from_dict(self, config_dict: Dict[str, Any]):
         """
         Update the AppConfig object with values from a dictionary.
@@ -81,6 +89,8 @@ class AppConfig:
                 self.logging_config = LoggingConfig(**value)
             elif key == "vsphereConfig":
                 self.vsphereConfig = VsphereConfig(**value)
+            elif key == "openshiftConfig":
+                self.openshiftConfig = OpenshiftConfig(**value)
 
     def get_agents_description(self) -> str:
         """
