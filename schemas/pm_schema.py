@@ -19,7 +19,8 @@ pm_output_schema = {
                         "type": "string",
                         "enum": [
                             "architect",
-                            "engineer",
+                            "ocp_engineer",
+                            "vsphere_engineer",
                             "networking",
                             "reviewer",
                             "cleanup",

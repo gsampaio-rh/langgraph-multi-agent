@@ -1,7 +1,8 @@
 from langgraph.graph import StateGraph, START, END
-from agents.architect.architect_agent import ArchitectAgent
 from agents.planner.planner_agent import PlannerAgent
 from agents.pm.pm_agent import PMAgent
+from agents.architect.architect_agent import ArchitectAgent
+from agents.engineer.engineer_agent import EngineerAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
 from agents.researcher.researcher_agent import ResearcherAgent
 from state.agent_state import get_last_entry_from_state
@@ -40,6 +41,16 @@ def architect_node_function(state: AgentGraphState):
     ArchitectAgent(
         state=state,
         role="architect",
+        model_config=app_config.model_config,
+    ).invoke(
+        user_request=state["user_request"],
+    )
+
+
+def ocp_engineer_node_function(state: AgentGraphState):
+    EngineerAgent(
+        state=state,
+        role="ocp_engineer",
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"],
@@ -124,13 +135,13 @@ def create_graph() -> StateGraph:
     """
     graph = StateGraph(AgentGraphState)
 
-    agents = ["architect", END]
+    agents = ["architect", "ocp_engineer", END]
 
     # Add nodes
     graph.add_node("planner", planner_node_function)
     graph.add_node("manager", pm_node_function)
     graph.add_node("architect", architect_node_function)
-    # graph.add_node("reviewer", reviewer_node_function)
+    graph.add_node("ocp_engineer", ocp_engineer_node_function)
     # graph.add_node("researcher", reseacher_node_function)
 
     # Define the flow of the graph
