@@ -3,7 +3,6 @@ from termcolor import colored
 from config.config import app_config
 from utils.helpers import loading_animation
 from utils.agent_utils import format_agents_description
-from utils.tools_utils import format_tools_description
 import datetime
 import time
 
@@ -118,15 +117,6 @@ def log_startup(agents_description: str, tools_description: str):
             print()
     else:
         log("system", "Error: agents_list is not correctly formatted.", level="ERROR")
-
-    print(colored("\n🧰 LOADING TOOLS...", "cyan", attrs=["bold"]))
-    loading_animation()
-
-    tools_list = format_tools_description(tools_description)
-    for tool in tools_list:
-        print(colored(f"🔧 {tool['name']}:", "yellow", attrs=["bold"]))
-        print(colored(f"  {tool['description']}\n", "white"))
-        time.sleep(0.5)
 
     print(colored("\n🚀 INITIALIZING WORKFLOW...", "green", attrs=["bold"]))
     print(

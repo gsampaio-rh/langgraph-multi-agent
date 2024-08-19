@@ -1,29 +1,68 @@
-# tool_registry.py
-
-from custom_tools.general.website_crawl import website_crawl, extract_content
-from custom_tools.general.duck_search import duckSearch
-from custom_tools.general.wiki_query import wiki
-from custom_tools.general.arxiv_query import arxiv
-from custom_tools.vsphere.vm_lifecycle_manager import (
-    list_vms,
-    retrieve_vm_details,
-    ensure_vms_not_running
+from custom_tools import (
+    custom_tools,
+    tools_description,
+    vsphere_tools, 
+    vsphere_tool_descriptions,
+    openshift_tools,
+    openshift_tool_descriptions
 )
-from custom_tools.openshift.openshift_tools import ensure_openshift_project_access
+from termcolor import colored
+from utils.helpers import loading_animation
+from utils.tools_utils import format_tools_description
+import time
 
-# Register tools by name and module
-tool_registry = {
-    "website_crawl": website_crawl,
-    "extract_content": extract_content,
-    "duck_search": duckSearch,
-    "wiki": wiki,
-    "arxiv": arxiv,
-    "list_vms": list_vms,
-    "retrieve_vm_details": retrieve_vm_details,
-    "ensure_vms_not_running": ensure_vms_not_running,
-    "ensure_openshift_project_access": ensure_openshift_project_access,
-}
+# Registry to hold all discovered tools
+tool_registry = {}
 
+# Explicitly register tools by category
+def register_tools():
+    """
+    Register tools from various modules manually. Organized by category.
+    """
+    print(colored("\n🧰 REGISTERING TOOLS...", "cyan", attrs=["bold"]))
+
+    # General Tools
+    general_tools = custom_tools
+
+    # Register tools in the registry by name
+    for tool in general_tools:
+        tool_registry[tool.name] = tool
+    for tool in vsphere_tools:
+        tool_registry[tool.name] = tool
+    for tool in openshift_tools:
+        tool_registry[tool.name] = tool
+
+    print(colored("\n🔧 General Tools:\n", "blue", attrs=["bold"]))
+    loading_animation()
+    tools_list = format_tools_description(tools_description)
+    for tool in tools_list:
+        print(colored(f"🔧 {tool['name']}:", "yellow", attrs=["bold"]))
+        print(colored(f"  {tool['description']}\n", "white"))
+        time.sleep(0.5)
+
+    print(colored("\n🔧 vSphere Tools:\n", "blue", attrs=["bold"]))
+    loading_animation()
+    tools_list = format_tools_description(vsphere_tool_descriptions)
+    for tool in tools_list:
+        print(colored(f"🔧 {tool['name']}:", "yellow", attrs=["bold"]))
+        print(colored(f"  {tool['description']}\n", "white"))
+        time.sleep(0.5)
+
+    print(colored("\n🔧 OpenShift Tools:\n", "blue", attrs=["bold"]))
+    loading_animation()
+    tools_list = format_tools_description(openshift_tool_descriptions)
+    for tool in tools_list:
+        print(colored(f"🔧 {tool['name']}:", "yellow", attrs=["bold"]))
+        print(colored(f"  {tool['description']}\n", "white"))
+        time.sleep(0.5)
+
+    print(colored("\n✅ All tools successfully registered.", "green", attrs=["bold"]))
+
+    # Log the registration process
+    print(colored("\n🧰 TOOL REGISTRATION COMPLETED:", "cyan", attrs=["bold"]))
 
 def get_tool_by_name(tool_name):
+    """
+    Retrieve a tool by its name from the tool registry.
+    """
     return tool_registry.get(tool_name, None)
