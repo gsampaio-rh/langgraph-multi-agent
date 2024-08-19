@@ -3,7 +3,12 @@ from agents.base_agent import Agent
 from prompts.prompt_builder import PromptBuilder
 from custom_tools.tool_invoker import invoke_tool
 from custom_tools.tool_registry import get_tool_by_name
-
+from custom_tools import (
+    openshift_tool_names,
+    openshift_tool_descriptions,
+    vsphere_tool_names,
+    vsphere_tool_descriptions,
+)
 
 class ReactAgent(Agent):
 
@@ -45,12 +50,21 @@ class ReactAgent(Agent):
         """
         Iteratively reason and act until a valid task plan with a final answer is generated.
         """
+        if self.role == "ocp_engineer":
+            tool_names =openshift_tool_names
+            tool_descriptions = openshift_tool_descriptions
+        else:
+            tool_names = vsphere_tool_names
+            tool_descriptions = vsphere_tool_descriptions
+        
         usr_prompt = f"Solve this task: {pending_task.get('task_name')}"
         scratchpad = []
         sys_prompt = PromptBuilder.build_react_prompt(
             task=pending_task.get("task_name"),
             task_description=pending_task.get("task_description"),
             acceptance_criteria=pending_task.get("acceptance_criteria"),
+            tool_names=tool_names,
+            tool_descriptions=tool_descriptions,
         )
 
         previous_response = None  # To track repeated outputs
@@ -59,7 +73,7 @@ class ReactAgent(Agent):
         )
 
         success = False
-        
+
         while True:
             think_response, think_message = self._thinking(sys_prompt, usr_prompt)
 

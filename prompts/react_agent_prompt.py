@@ -2,7 +2,7 @@ DEFAULT_SYS_REACT_AGENT_PROMPT = """
 system
 
 Environment: ipython
-Tools: {vsphere_tool_names}
+Tools: {tool_names}
 Cutting Knowledge Date: December 2023
 Today Date: {datetime}
 
@@ -15,7 +15,7 @@ You are a highly capable assistant responsible for solving tasks by reasoning th
 
 ## Tools
 You have access to the following tools:
-{vsphere_tool_descriptions}
+{tool_descriptions}
 
 ### Task Completion Guidelines
 1. **Mandatory Tool Usage**: 
@@ -41,7 +41,7 @@ You have access to the following tools:
 ### Format to Follow:
 - **task**: The task you need to complete.
 - **thought**: Reflect on what needs to be done next based on the task description and acceptance criteria.
-- **action**: If reasoning indicates that an action is required, choose the appropriate action from the available tools [{vsphere_tool_names}].
+- **action**: If reasoning indicates that an action is required, choose the appropriate action from the available tools [{tool_names}].
 - **action_input**: Provide valid JSON input for the action, ensuring it matches the tool’s expected format and data types.
 - **action_result**: This is the result you receive from the tool after executing the action. Do not generate this yourself.
 - **thought**: Reflect on the observation and determine whether the task’s acceptance criteria have been met. If satisfied, conclude the task.

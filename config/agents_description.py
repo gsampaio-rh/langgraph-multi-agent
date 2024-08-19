@@ -26,13 +26,17 @@ AGENTS_DESCRIPTION = """
 - **Tools**:
   - The Architect has access to these tools: {vsphere_tool_names}
 
-#### **Engineer Agent**
-- **Role**: Engineer Agent
+#### **OpenShift Engineer Agent**
+- **Role**: OpenShift Engineer Agent
 - **Responsibilities**:
-  - Executes the migration process as planned by the Architect Agent and Planner Agent.
-  - Monitors the migration process and resolves any issues that arise.
-  - Manages the progression of the VM migration using MTV.
-  - Provides real-time feedback on the migration status.
+  - Sets up and configures the OpenShift environment for the migrated VMs.
+  - Ensures that required OpenShift projects (namespaces) are created and accessible.
+  - Deploys and configures the migrated VMs in OpenShift, ensuring proper integration with storage, networking, and compute resources.
+  - Verifies that the OpenShift environment is correctly configured and ready to host migrated VMs.
+  - Provides troubleshooting and remediation if issues arise during the setup.
+  - Coordinates with the Networking Agent to ensure OpenShift routes, services, and load balancers are configured for migrated applications.
+- **Tools**:
+  - The OpenShift Engineer has access to these tools: {openshift_tool_names}
 
 #### **Reviewer Agent**
 - **Role**: Reviewer Agent

@@ -6,6 +6,7 @@ from custom_tools import (
     tools_description,
     vsphere_tool_names,
     vsphere_tool_descriptions,
+    openshift_tool_names,
 )
 from prompts.planner_prompt import DEFAULT_SYS_PLANNER_PROMPT
 from prompts.pm_prompt import DEFAULT_SYS_PM_PROMPT
@@ -35,6 +36,7 @@ class PromptBuilder:
             task_list=task_list,
             agents_description=agents_description,
             vsphere_tool_names=vsphere_tool_names,
+            openshift_tool_names=openshift_tool_names,
             feedback=feedback_value,
             datetime=get_current_utc_datetime(),
         )
@@ -65,8 +67,8 @@ class PromptBuilder:
         task: str,
         task_description: str,
         acceptance_criteria: str,
-        vsphere_tool_names: str = vsphere_tool_names,
-        vsphere_tool_descriptions: str = vsphere_tool_descriptions,
+        tool_names: str = vsphere_tool_names,
+        tool_descriptions: str = vsphere_tool_descriptions,
         scratchpad: str = "",
         feedback_value: str = "",
     ) -> str:
@@ -74,8 +76,8 @@ class PromptBuilder:
             task=task,
             task_description=task_description,
             acceptance_criteria=acceptance_criteria,
-            vsphere_tool_names=vsphere_tool_names,
-            vsphere_tool_descriptions=vsphere_tool_descriptions,
+            tool_names=tool_names,
+            tool_descriptions=tool_descriptions,
             agent_scratchpad=scratchpad,
             feedback=feedback_value,
             datetime=get_current_utc_datetime(),

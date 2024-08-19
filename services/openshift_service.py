@@ -11,7 +11,7 @@ class OpenShiftService:
     """
 
     def __init__(
-        self, api_url: str = app_config.api_url, token: str = app_config.token
+        self, api_url: str = app_config.openshiftConfig.api_url, token: str = app_config.openshiftConfig.token
     ):
         """
         Initializes the OpenShiftService with API URL and token,
