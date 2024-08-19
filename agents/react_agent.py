@@ -53,10 +53,13 @@ class ReactAgent(Agent):
         if self.role == "ocp_engineer":
             tool_names =openshift_tool_names
             tool_descriptions = openshift_tool_descriptions
+        elif self.role == "vsphere_engineer":
+            tool_names = vsphere_tool_names
+            tool_descriptions = vsphere_tool_descriptions
         else:
             tool_names = vsphere_tool_names
             tool_descriptions = vsphere_tool_descriptions
-        
+
         usr_prompt = f"Solve this task: {pending_task.get('task_name')}"
         scratchpad = []
         sys_prompt = PromptBuilder.build_react_prompt(
@@ -137,6 +140,8 @@ class ReactAgent(Agent):
                 task=pending_task.get("task_name"),
                 task_description=pending_task.get("task_description"),
                 acceptance_criteria=pending_task.get("acceptance_criteria"),
+                tool_names=tool_names,
+                tool_descriptions=tool_descriptions,
                 scratchpad=scratchpad,
             )
 

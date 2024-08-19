@@ -15,22 +15,24 @@ AGENTS_DESCRIPTION = """
   - Ensures timelines are followed and adjusts the plan as necessary.
   - Communicates with all agents to ensure smooth task progression and resolve bottlenecks.
 
-#### **Architect Agent**
-- **Role**: Architect Agent
+#### **vSphere Engineer Agent**
+- **Role**: vSphere Engineer Agent
 - **Responsibilities**:
-  - Handles VM identification and configuration.
-  - Identifies VMs to migrate based on tutorial instructions.
-  - Configures the Migration Toolkit for Virtualization (MTV) to set up source and target providers.
-  - Ensures proper network and storage mappings between VMware and OpenShift.
-  - Validates the migration plan.
+  - Handles VM identification and configuration within the vSphere environment.
+  - Identifies VMs to migrate based on the tutorial instructions.
+  - Manages and configures the Migration Toolkit for Virtualization (MTV) to set up the vSphere source providers.
+  - Ensures proper VM resource allocation (CPU, memory, storage) within vSphere.
+  - Powers off VMs and prepares them for migration if required.
+  - Verifies that the VMs in the vSphere environment are ready for migration.
 - **Tools**:
-  - The Architect has access to these tools: {vsphere_tool_names}
+  - The vSphere Engineer has access to these tools: {vsphere_tool_names}
 
 #### **OpenShift Engineer Agent**
 - **Role**: OpenShift Engineer Agent
 - **Responsibilities**:
   - Sets up and configures the OpenShift environment for the migrated VMs.
   - Ensures that required OpenShift projects (namespaces) are created and accessible.
+  - Configures the Migration Toolkit for Virtualization (MTV) to set up OpenShift as the target provider.
   - Deploys and configures the migrated VMs in OpenShift, ensuring proper integration with storage, networking, and compute resources.
   - Verifies that the OpenShift environment is correctly configured and ready to host migrated VMs.
   - Provides troubleshooting and remediation if issues arise during the setup.

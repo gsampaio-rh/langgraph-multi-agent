@@ -57,6 +57,16 @@ def ocp_engineer_node_function(state: AgentGraphState):
     )
 
 
+def vsphere_engineer_node_function(state: AgentGraphState):
+    EngineerAgent(
+        state=state,
+        role="vsphere_engineer",
+        model_config=app_config.model_config,
+    ).invoke(
+        user_request=state["user_request"],
+    )
+
+
 def reseacher_node_function(state: AgentGraphState):
     ResearcherAgent(
         state=state,
@@ -135,13 +145,14 @@ def create_graph() -> StateGraph:
     """
     graph = StateGraph(AgentGraphState)
 
-    agents = ["architect", "ocp_engineer", END]
+    agents = ["ocp_engineer", "vsphere_engineer", END]
 
     # Add nodes
     graph.add_node("planner", planner_node_function)
     graph.add_node("manager", pm_node_function)
-    graph.add_node("architect", architect_node_function)
+    # graph.add_node("architect", architect_node_function)
     graph.add_node("ocp_engineer", ocp_engineer_node_function)
+    graph.add_node("vsphere_engineer", vsphere_engineer_node_function)
     # graph.add_node("researcher", reseacher_node_function)
 
     # Define the flow of the graph
