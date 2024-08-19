@@ -1,7 +1,7 @@
 from pyVim.connect import SmartConnect, Disconnect
 from pyVmomi import vim
 import ssl
-from typing import Any, Tuple, List
+from typing import Any, Tuple, List, Optional
 
 def connect_to_vsphere(host: str, user: str, pwd: str):
     """
@@ -163,6 +163,39 @@ def get_all_vm_details(content) -> list:
     container.Destroy()
 
     return vm_details_list
+
+
+def get_vm_by_name(content, vm_name: str) -> Optional[vim.VirtualMachine]:
+    """
+    Retrieves a specific virtual machine (VM) by its name from the vSphere environment.
+
+    Args:
+        content: The ServiceContent object representing the vSphere content.
+        vm_name (str): The name of the virtual machine to search for.
+
+    Returns:
+        Optional[vim.VirtualMachine]: The VM object if found, or None if the VM is not found.
+    """
+    try:
+        # Create a container view for Virtual Machines
+        container = content.viewManager.CreateContainerView(
+            content.rootFolder, [vim.VirtualMachine], True
+        )
+
+        # Iterate over all VMs in the container and search for the VM by name
+        for vm in container.view:
+            if vm.name == vm_name:
+                return vm
+
+        # Return None if the VM was not found
+        return None
+
+    except Exception as e:
+        raise Exception(f"Failed to retrieve VM by name '{vm_name}': {str(e)}")
+
+    finally:
+        if container:
+            container.Destroy()
 
 
 def find_vm_by_name(si, vm_name: str) -> str:

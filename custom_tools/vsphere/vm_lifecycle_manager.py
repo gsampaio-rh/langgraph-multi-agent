@@ -5,7 +5,8 @@ from utils.vsphere_utils import (
     get_all_vms,
     connect_to_vsphere,
     disconnect_from_vsphere,
-    get_all_vm_details,
+    get_vm_details,
+    get_vm_by_name
 )
 
 @tool(parse_docstring=True)
@@ -37,12 +38,15 @@ def list_vms() -> Union[List[str], str]:
 
 
 @tool(parse_docstring=True)
-def retrieve_vm_details() -> Union[List[Dict[str, Union[str, int, list]]], str]:
+def retrieve_vm_details(vm_name: str) -> Union[Dict[str, Union[str, int, list]], str]:
     """
-    A wrapper around a vSphere utility for extracting detailed information about virtual machines (VMs). Useful for retrieving VM operating systems, resource allocations, and network configurations.
+    A wrapper around a vSphere utility for extracting detailed information about a specific virtual machine (VM). Useful for retrieving the VM's operating system, resource allocations, and network configurations based on the provided VM name.
+
+    Args:
+        vm_name: The name of the virtual machine to retrieve details for.
 
     Returns:
-        vm_details: A list of dictionaries containing VM details or an error message if the operation fails.
+        vm_details: A dictionary containing VM details or an error message if the operation fails or the VM is not found.
     """
     si = None
     try:
@@ -53,12 +57,18 @@ def retrieve_vm_details() -> Union[List[Dict[str, Union[str, int, list]]], str]:
             pwd=app_config.vsphereConfig.pwd,
         )
 
-        # Get details of all VMs
-        vm_details = get_all_vm_details(content)
+        # Find the VM by name
+        vm = get_vm_by_name(content, vm_name)
+
+        if not vm:
+            return f"VM '{vm_name}' not found."
+
+        # Get detailed information about the found VM
+        vm_details = get_vm_details(vm)
         return vm_details
 
     except Exception as e:
-        return f"Failed to retrieve VM details. {str(e)}"
+        return f"Failed to retrieve details for VM '{vm_name}': {str(e)}"
 
     finally:
         if si:
