@@ -86,10 +86,7 @@ class ReactAgent(Agent):
                     continue  # Retry the reasoning
 
             if final_answer := think_response.get("final_answer"):
-                
-                suggested_tool = think_response.get("action")
-                tool_input = think_response.get("action_input")
-                action_result = think_response.get("action_result")
+
                 # Ensure that if there's an action, the tool must be used and result must be valid
                 if not success:
                     self.log_event("error", "Final answer attempted but tool was not executed. Rejecting final answer.")
@@ -101,8 +98,7 @@ class ReactAgent(Agent):
                 reason_and_act_output = {
                     "task_id": pending_task.get("task_id"),
                     "suggested_tool": suggested_tool,
-                    "tool_input": tool_input,
-                    "action_result": action_result,
+                    "action_result": str(tool_result),
                     "final_thought": final_thought,
                 }
                 print(reason_and_act_output)
@@ -137,8 +133,9 @@ class ReactAgent(Agent):
 
         tool = get_tool_by_name(tool_name)
         if not tool:
-            self.log_event("error", f"❌ Tool '{tool_name}' not found.")
-            return False
+            error_message = f"❌ Tool '{tool_name}' not found."
+            self.log_event("error", error_message)
+            return False, error_message
 
         try:
             tool_result = invoke_tool(tool, **tool_input)
