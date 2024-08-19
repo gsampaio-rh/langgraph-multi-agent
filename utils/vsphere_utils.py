@@ -164,6 +164,75 @@ def get_all_vm_details(content) -> list:
 
     return vm_details_list
 
+def ensure_vm_not_running(
+    vm: vim.VirtualMachine, 
+    warm_migration_supported: bool = False
+) -> Optional[str]:
+    """
+    Ensures that a single VM is not running if 'warm' migration is not supported.
+
+    Args:
+        vm (vim.VirtualMachine): The VM object to check.
+        warm_migration_supported (bool): Whether warm migration (live migration) is supported.
+
+    Returns:
+        Optional[str]: A message confirming the VM's power state or an error message if applicable.
+    """
+    try:
+        power_state = vm.runtime.powerState
+
+        if warm_migration_supported:
+            return f"VM '{vm.name}' is currently {power_state}. No action needed."
+
+        if power_state == vim.VirtualMachinePowerState.poweredOn:
+            # Power off the VM
+            task = vm.PowerOff()
+            task.WaitForCompletion()
+            return (
+                f"VM '{vm.name}' was powered on and has been powered off for migration."
+            )
+        else:
+            return f"VM '{vm.name}' is already powered off."
+
+    except Exception as e:
+        return f"Failed to manage power state for VM '{vm.name}': {str(e)}"
+
+
+def ensure_vms_not_running(
+    vm_names: List[str],
+    si,
+    content,
+    warm_migration_supported: bool = False,
+) -> None:
+    """
+    Ensures that all VMs in the list are not running if 'warm' migration is not supported.
+
+    Args:
+        vm_names (List[str]): A list of VM names targeted for migration.
+        warm_migration_supported (bool): Whether warm migration (live migration) is supported.
+
+    Returns:
+        None
+    """
+    try:
+
+        for vm_name in vm_names:
+            vm = get_vm_by_name(content, vm_name)
+            if not vm:
+                print(f"VM '{vm_name}' not found.")
+                continue
+
+            # Ensure VM is not running if warm migration is not supported
+            result = ensure_vm_not_running(vm, warm_migration_supported)
+            print(result)
+
+    except Exception as e:
+        print(f"Error during the operation: {str(e)}")
+
+    finally:
+        if si:
+            disconnect_from_vsphere(si)
+
 
 def get_vm_by_name(content, vm_name: str) -> Optional[vim.VirtualMachine]:
     """

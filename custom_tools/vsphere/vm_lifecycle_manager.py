@@ -6,7 +6,8 @@ from utils.vsphere_utils import (
     connect_to_vsphere,
     disconnect_from_vsphere,
     get_vm_details,
-    get_vm_by_name
+    get_vm_by_name,
+    ensure_vms_not_running
 )
 
 @tool(parse_docstring=True)
@@ -69,6 +70,45 @@ def retrieve_vm_details(vm_name: str) -> Union[Dict[str, Union[str, int, list]],
 
     except Exception as e:
         return f"Failed to retrieve details for VM '{vm_name}': {str(e)}"
+
+    finally:
+        if si:
+            disconnect_from_vsphere(si)
+
+
+@tool(parse_docstring=True)
+def ensure_vms_not_running(
+    vm_names: List[str], warm_migration_supported: bool = False
+) -> Union[bool, str]:
+    """
+    A wrapper around a vSphere utility for ensuring that multiple virtual machines (VMs) are not running if 'warm' migration is not supported. If warm migration is not supported, the VMs will be powered off if they are running.
+
+    Args:
+        vm_names: A list of virtual machine names to check.
+        warm_migration_supported: Boolean flag indicating whether warm (live) migration is supported. Defaults to False.
+
+    Returns:
+        bool: True if the operation was successful, False if there was an issue.
+        str: An error message if the operation fails.
+    """
+    si = None
+    try:
+        # Connect to vSphere
+        si, content = connect_to_vsphere(
+            host=app_config.vsphereConfig.host,
+            user=app_config.vsphereConfig.user,
+            pwd=app_config.vsphereConfig.pwd,
+        )
+
+        # Use the utility function to ensure VMs are not running
+        ensure_vms_not_running(vm_names, si, content, warm_migration_supported)
+
+        # If the operation succeeds, return True
+        return True
+
+    except Exception as e:
+        # If an error occurs, return a detailed error message
+        return f"Failed to ensure VMs are not running: {str(e)}"
 
     finally:
         if si:

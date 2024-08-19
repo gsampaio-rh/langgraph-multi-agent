@@ -6,7 +6,8 @@ from custom_tools.wiki_query import wiki
 from custom_tools.arxiv_query import arxiv
 from custom_tools.vsphere.vm_lifecycle_manager import (
     list_vms,
-    retrieve_vm_details
+    retrieve_vm_details,
+    ensure_vms_not_running
 )
 
 # Register tools by name and module
@@ -18,6 +19,7 @@ tool_registry = {
     "arxiv": arxiv,
     "list_vms": list_vms,
     "retrieve_vm_details": retrieve_vm_details,
+    "ensure_vms_not_running": ensure_vms_not_running,
 }
 
 
