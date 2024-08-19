@@ -1,5 +1,6 @@
 # utils/tools_utils.py
 
+from langchain.tools.render import render_text_description_and_args
 from custom_tools import (
     custom_tools,
     tools_description,
@@ -82,3 +83,42 @@ def get_vsphere_tool_description(vsphere_tool_name: str) -> str:
 
     # If the tool is not found, return an error message
     return f"Tool '{vsphere_tool_name}' description not found."
+
+
+def collect_tools_from_module(module):
+    """
+    Collect all callable tools from a given module.
+
+    Args:
+        module (module): The module to collect tools from.
+
+    Returns:
+        list: List of tools (functions) found in the module.
+    """
+    return [
+        func
+        for name, func in inspect.getmembers(module)
+        if inspect.isfunction(func)
+        and hasattr(func, "name")  # assuming `name` is a property of your tools
+    ]
+
+def create_tool_registry(tool_modules):
+    """
+    Collect tools, their names, and descriptions from a list of tool modules.
+
+    Args:
+        tool_modules (list): List of modules that contain tools.
+
+    Returns:
+        dict: Dictionary containing tools, names, and descriptions.
+    """
+    tools = []
+    for module in tool_modules:
+        tools.extend(collect_tools_from_module(module))
+
+    tool_names = [tool.name for tool in tools]
+    tool_descriptions = (
+        render_text_description_and_args(tools).replace("{", "{{").replace("}", "}}")
+    )
+
+    return tools, tool_names, tool_descriptions

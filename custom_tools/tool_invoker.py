@@ -42,9 +42,6 @@ class ToolInvoker:
             "details": f"Tool '{function_name}' not found in available tools.",
         }
 
-from typing import Any, Dict
-
-
 def invoke_tool(tool: Any, **tool_input: Dict[str, Any]) -> Any:
     """
     Invokes the given tool with the provided input parameters.
