@@ -19,28 +19,38 @@ tool_names = [tool.name for tool in custom_tools]
 
 # Generate the tools description (already in your code)
 tools_description = (
-    render_text_description_and_args(custom_tools).replace("{", "{{").replace("}", "}}")
+    render_text_description_and_args(custom_tools)
+    .replace("{", "{{")
+    .replace("}", "}}")
 )
 
-vsphere_tools = [list_vms, retrieve_vm_details, ensure_vms_not_running]
+# VSPHERE
+vsphere_tools = [
+    list_vms,
+    retrieve_vm_details,
+    ensure_vms_not_running
+]
 
 # Create a list of tool names
 vsphere_tool_names = [tool.name for tool in vsphere_tools]
 
+# Create a list of tool descriptions
 vsphere_tool_descriptions = (
     render_text_description_and_args(vsphere_tools)
     .replace("{", "{{")
     .replace("}", "}}")
 )
 
-# Openshift
+# OPENSHIFT
+
 openshift_tools = [
     ensure_openshift_project_access,
 ]
 
-# # Create a list of tool names
+# Create a list of tool names
 openshift_tool_names = [tool.name for tool in openshift_tools]
 
+# Create a list of tool descriptions
 openshift_tool_descriptions = (
     render_text_description_and_args(openshift_tools)
     .replace("{", "{{")

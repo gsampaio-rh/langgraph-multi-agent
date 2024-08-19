@@ -85,40 +85,22 @@ def get_vsphere_tool_description(vsphere_tool_name: str) -> str:
     return f"Tool '{vsphere_tool_name}' description not found."
 
 
-def collect_tools_from_module(module):
+# Helper function to generate tool metadata
+def generate_tool_metadata(tools):
     """
-    Collect all callable tools from a given module.
+    Generate tool names and descriptions for a given list of tools.
 
     Args:
-        module (module): The module to collect tools from.
+        tools (list): List of tools (functions decorated with @tool).
 
     Returns:
-        list: List of tools (functions) found in the module.
+        dict: A dictionary with 'names' and 'descriptions' as keys.
     """
-    return [
-        func
-        for name, func in inspect.getmembers(module)
-        if inspect.isfunction(func)
-        and hasattr(func, "name")  # assuming `name` is a property of your tools
-    ]
-
-def create_tool_registry(tool_modules):
-    """
-    Collect tools, their names, and descriptions from a list of tool modules.
-
-    Args:
-        tool_modules (list): List of modules that contain tools.
-
-    Returns:
-        dict: Dictionary containing tools, names, and descriptions.
-    """
-    tools = []
-    for module in tool_modules:
-        tools.extend(collect_tools_from_module(module))
-
     tool_names = [tool.name for tool in tools]
     tool_descriptions = (
         render_text_description_and_args(tools).replace("{", "{{").replace("}", "}}")
     )
-
-    return tools, tool_names, tool_descriptions
+    return {
+        "names": tool_names,
+        "descriptions": tool_descriptions,
+    }
