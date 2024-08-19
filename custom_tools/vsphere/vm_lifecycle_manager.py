@@ -7,7 +7,7 @@ from utils.vsphere_utils import (
     disconnect_from_vsphere,
     get_vm_details,
     get_vm_by_name,
-    ensure_vms_not_running
+    verify_vms_not_running,
 )
 
 @tool(parse_docstring=True)
@@ -77,18 +77,16 @@ def retrieve_vm_details(vm_name: str) -> Union[Dict[str, Union[str, int, list]],
 
 
 @tool(parse_docstring=True)
-def ensure_vms_not_running(
-    vm_names: List[str], warm_migration_supported: bool = False
-) -> Union[bool, str]:
+def ensure_vms_not_running(vm_names: List[str]) -> Union[bool, str]:
     """
-    A wrapper around a vSphere utility for ensuring that multiple virtual machines (VMs) are not running if 'warm' migration is not supported. If warm migration is not supported, the VMs will be powered off if they are running.
+    A wrapper around a vSphere utility for ensuring that multiple virtual machines (VMs) are not running if 'warm' migration is not supported.
+    If warm migration is not supported, the VMs will be powered off if they are running.
 
     Args:
         vm_names: A list of virtual machine names to check.
-        warm_migration_supported: Boolean flag indicating whether warm (live) migration is supported. Defaults to False.
 
     Returns:
-        bool: True if the operation was successful, False if there was an issue.
+        bool: True if the operation was successful.
         str: An error message if the operation fails.
     """
     si = None
@@ -101,7 +99,7 @@ def ensure_vms_not_running(
         )
 
         # Use the utility function to ensure VMs are not running
-        ensure_vms_not_running(vm_names, si, content, warm_migration_supported)
+        verify_vms_not_running(vm_names, si, content)
 
         # If the operation succeeds, return True
         return True

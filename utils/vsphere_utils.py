@@ -164,7 +164,7 @@ def get_all_vm_details(content) -> list:
 
     return vm_details_list
 
-def ensure_vm_not_running(
+def verify_vm_not_running(
     vm: vim.VirtualMachine, 
     warm_migration_supported: bool = False
 ) -> Optional[str]:
@@ -198,7 +198,7 @@ def ensure_vm_not_running(
         return f"Failed to manage power state for VM '{vm.name}': {str(e)}"
 
 
-def ensure_vms_not_running(
+def verify_vms_not_running(
     vm_names: List[str],
     si,
     content,
@@ -223,7 +223,7 @@ def ensure_vms_not_running(
                 continue
 
             # Ensure VM is not running if warm migration is not supported
-            result = ensure_vm_not_running(vm, warm_migration_supported)
+            result = verify_vm_not_running(vm, warm_migration_supported)
             print(result)
 
     except Exception as e:
