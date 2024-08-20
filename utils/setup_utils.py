@@ -24,11 +24,7 @@ def startup():
 
     agents_manager = AgentsManager()
     agents_manager.display_agents()
-    agents_description = agents_manager.get_agent_descriptions()
 
-    # Initialize PromptManager with agent descriptions
-    prompt_manager = PromptManager(agents_description)
-    prompt_manager.load_prompts()
 
     # log_startup(app_config.get_agents_description(), vsphere_tool_descriptions)
 
