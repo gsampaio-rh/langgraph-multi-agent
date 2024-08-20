@@ -73,24 +73,16 @@ def ensure_openshift_providers_ready(
 @tool(parse_docstring=True)
 def create_migration_plan_tool(
     vm_names: List[str],
-    name: str = "default-migration-plan",
-    destination: str = "host",
+    name: str,
     source: str = "vmware",
-    network_map: str = "vmware-qbjcw",
-    storage_map: str = "vmware-wp7cw",
-    namespace: str = "openshift-mtv",
 ) -> Union[Dict, str]:
     """
     A tool to create a migration plan for moving virtual machines (VMs) using the forklift.konveyor.io API. This tool only requires VM names, and the corresponding IDs are fetched automatically.
 
     Args:
         vm_names: A list of VM names to migrate. This arg is mandatory.
-        name: The name of the migration plan. Default is 'default-migration-plan'.
-        destination: The destination provider. Default is 'host'.
+        name: The name of the migration plan. This arg is mandatory.
         source: The source provider. Default is 'vmware'.
-        network_map: The network map used for the migration. Default is 'vmware-qbjcw'.
-        storage_map: The storage map used for the migration. Default is 'vmware-wp7cw'.
-        namespace: The namespace for the migration plan. Default is 'openshift-mtv'.
 
     Returns:
         dict: The created migration plan if successful.
@@ -133,12 +125,8 @@ def create_migration_plan_tool(
         # Call the create_migration_plan method with the gathered information
         result = openshift_service.create_migration_plan(
             name=name,
-            destination=destination,
             source=source,
-            network_map=network_map,
-            storage_map=storage_map,
             vms=vms,
-            namespace=namespace,
         )
 
         print(f"\n4/4 Migration plan RESPONSE - {result}...\n")
@@ -166,27 +154,42 @@ def start_migration_tool(
     try:
         # Create an OpenShiftService instance
         openshift_service = OpenShiftService()
-        print("\n1/3 Connected to Openshift...\n")
+        print("\n1/4 Connected to Openshift...\n")
 
-        # Retrieve the UID of the migration plan by its name
-        plan_uid = openshift_service.get_migration_plan_uid_by_name(
+        # Retrieve the full migration plan object by its name
+        migration_plan = openshift_service.get_migration_plan_by_name(
             plan_name=plan_name, namespace=namespace
         )
 
-        if isinstance(plan_uid, str) and "Error" in plan_uid:
-            return plan_uid  # Return the error if we encountered one
+        if isinstance(migration_plan, str) and "Error" in migration_plan:
+            return migration_plan  # Return the error if we encountered one
 
-        if plan_uid is None:
+        if migration_plan is None:
             return f"Migration plan '{plan_name}' not found."
 
-        print(f"\n2/3 Retrieved migration plan UID: {plan_uid}...\n")
+        # Retrieve the UID of the migration plan
+        plan_uid = migration_plan["metadata"]["uid"]
+        print(f"\n2/4 Retrieved migration plan UID: {plan_uid}...\n")
+
+        # Check the status conditions to verify if the plan is ready
+        ready_status = False
+        conditions = migration_plan.get("status", {}).get("conditions", [])
+        for condition in conditions:
+            if condition.get("type") == "Ready" and condition.get("status") == "True":
+                ready_status = True
+                break
+
+        if not ready_status:
+            return f"Migration plan '{plan_name}' is not ready."
+
+        print(f"\n3/4 Migration plan is ready. Starting migration...\n")
 
         # Start the migration using the retrieved plan UID
         result = openshift_service.start_migration(
             plan_name=plan_name, plan_uid=plan_uid, namespace=namespace
         )
 
-        print(f"\n3/3 Migration started: {result}...\n")
+        print(f"\n4/4 Migration started: {result}...\n")
         return result
 
     except Exception as e:

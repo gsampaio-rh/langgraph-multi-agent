@@ -106,7 +106,7 @@ class ReactAgent(Agent):
                         "error",
                         " ❌  Reasoning stuck in a loop. Forcing a retry or an alternative approach.",
                     )
-                    usr_prompt = f"You keep repeating the same reasoning. Please act now or provide more specific details. Your task is {pending_task.get('task_name')}"
+                    usr_prompt = f"You keep repeating the same reasoning. Your task is {pending_task.get('task_name')}. Please act now or provide more specific details. Take your time and do this step-by-step."
 
                     iteration_limit = 3  # Reset the limit for the next cycle
                 else:

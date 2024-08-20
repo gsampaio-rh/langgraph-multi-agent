@@ -442,18 +442,18 @@ class OpenShiftService:
         except requests.exceptions.RequestException as e:
             return f"Failed to start migration: {str(e)}"
 
-    def get_migration_plan_uid_by_name(
+    def get_migration_plan_by_name(
         self, plan_name: str, namespace: str = "openshift-mtv"
-    ) -> Union[str, None, str]:
+    ) -> Union[Dict, None, str]:
         """
-        Retrieves the UID of a migration plan by its name.
+        Retrieves the entire migration plan object by its name.
 
         Args:
             plan_name (str): The name of the migration plan.
             namespace (str): The namespace where the migration plan is located. Default is 'openshift-mtv'.
 
         Returns:
-            str: The UID of the migration plan if found.
+            Dict: The full migration plan object if found.
             None: If the migration plan is not found.
             str: Error message if the API request fails.
         """
@@ -468,10 +468,10 @@ class OpenShiftService:
             # Parse the JSON response to get the list of migration plans
             plans = response.json().get("items", [])
 
-            # Search for the plan by name and return its UID
+            # Search for the plan by name and return the full plan object
             for plan in plans:
                 if plan["metadata"]["name"] == plan_name:
-                    return plan["metadata"]["uid"]
+                    return plan
 
             # If no plan with the given name is found, return None
             return None
