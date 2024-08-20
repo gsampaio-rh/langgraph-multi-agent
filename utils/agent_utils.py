@@ -1,7 +1,7 @@
 # utils/agent_utils.py
-from config.config import app_config
+from config.app_config import app_config
 
-def format_agents_description(agent_description: str = app_config.get_agents_description()):
+def format_agents_description(agent_description: str):
     agents_list = []
     current_agent = None
     current_responsibilities = []

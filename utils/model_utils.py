@@ -1,5 +1,5 @@
 # utils/setup_model.py
-from config.config import ModelConfig
+from config.model_config import ModelConfig
 
 def setup_ollama_model(model_config: ModelConfig):
     """

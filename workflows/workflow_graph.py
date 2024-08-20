@@ -6,7 +6,7 @@ from agents.engineer.engineer_agent import EngineerAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
 from agents.researcher.researcher_agent import ResearcherAgent
 from state.agent_state import get_last_entry_from_state
-from config.config import app_config
+from config.app_config import app_config
 from custom_tools import tools_description
 from utils.helpers import get_current_utc_datetime
 from termcolor import colored

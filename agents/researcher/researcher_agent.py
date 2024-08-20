@@ -5,7 +5,7 @@ from custom_tools.tool_invoker import ToolInvoker
 from custom_tools import (
     custom_tools,
 )
-from prompts.prompt_builder import PromptBuilder
+from builders.prompt_builder import PromptBuilder
 import json
 
 # Initialize the ToolInvoker outside the class

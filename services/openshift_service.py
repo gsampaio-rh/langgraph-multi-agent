@@ -1,7 +1,7 @@
 from kubernetes import client
 from kubernetes.client.rest import ApiException
 from typing import List, Dict, Union
-from config.config import app_config
+from config.app_config import app_config
 import requests
 
 
@@ -14,10 +14,10 @@ class OpenShiftService:
 
     def __init__(
         self,
-        api_url: str = app_config.openshiftConfig.api_url,
-        console_url: str = app_config.openshiftConfig.console_url,
-        inventory_route: str = app_config.openshiftConfig.inventory_route,
-        token: str = app_config.openshiftConfig.token,
+        api_url: str = app_config.openshift_config.api_url,
+        console_url: str = app_config.openshift_config.console_url,
+        inventory_route: str = app_config.openshift_config.inventory_route,
+        token: str = app_config.openshift_config.token,
     ):
         """
         Initializes the OpenShiftService with API URL, token, and inventory service route,

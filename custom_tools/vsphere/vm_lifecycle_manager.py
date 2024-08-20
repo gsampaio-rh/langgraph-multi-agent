@@ -1,6 +1,6 @@
 from langchain.tools import tool
 from typing import Union, List, Dict
-from config.config import app_config
+from config.app_config import app_config
 from utils.vsphere_utils import (
     get_all_vms,
     connect_to_vsphere,

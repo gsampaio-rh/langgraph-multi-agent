@@ -1,6 +1,6 @@
 from agents.base_agent import Agent
 from utils import task_utils
-from prompts.prompt_builder import PromptBuilder
+from builders.prompt_builder import PromptBuilder
 from typing import Dict, Any
 import json
 

@@ -1,5 +1,5 @@
 from pyVim.connect import SmartConnect, Disconnect
-from config.config import VsphereConfig
+from config.vsphere_config import VsphereConfig
 import ssl
 
 class VsphereService:

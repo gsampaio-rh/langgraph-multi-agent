@@ -1,6 +1,6 @@
 import json
 from agents.base_agent import Agent
-from prompts.prompt_builder import PromptBuilder
+from builders.prompt_builder import PromptBuilder
 from custom_tools.tool_invoker import invoke_tool
 from custom_tools.tool_registry import get_tool_by_name
 from custom_tools import (

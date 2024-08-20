@@ -38,7 +38,6 @@ def get_file_content(file_path):
     except IOError as e:
         raise IOError(f"Error reading file {file_path}: {str(e)}")
 
-
 def loading_animation(cycles=3, duration=0.2):
     """A simple loading animation (rotating bar)."""
     for _ in range(cycles):

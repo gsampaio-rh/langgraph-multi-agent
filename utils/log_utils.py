@@ -1,6 +1,6 @@
 import logging
 from termcolor import colored
-from config.config import app_config
+from config.app_config import app_config
 from utils.helpers import loading_animation
 from utils.agent_utils import format_agents_description
 import datetime

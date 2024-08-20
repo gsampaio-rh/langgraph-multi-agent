@@ -2,10 +2,12 @@ import configparser
 import os
 import logging
 import os
-from config.config import app_config
+from config.app_config import app_config
 from custom_tools import tools_description, vsphere_tool_descriptions
 from utils.log_utils import log_startup
 from custom_tools.tool_registry import register_tools
+from controllers.agents_manager import AgentsManager
+from controllers.prompts_manager import PromptManager
 
 def load_config():
     # Load the configuration from .env.conf
@@ -20,7 +22,14 @@ def load_config():
 
 def startup(): 
 
-    log_startup(app_config.get_agents_description(), vsphere_tool_descriptions)
+    agents_manager = AgentsManager()
+    agents_manager.display_agents()
+    agents_description = agents_manager.get_agent_descriptions()
+
+    # Initialize PromptManager with agent descriptions
+    prompt_manager = PromptManager(agents_description)
+
+    # log_startup(app_config.get_agents_description(), vsphere_tool_descriptions)
 
     register_tools()
     # load_config()

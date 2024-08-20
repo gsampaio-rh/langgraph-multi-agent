@@ -6,7 +6,7 @@ from state.agent_state import (
 from schemas.pm_schema import pm_output_schema
 from utils import task_utils
 from typing import Any, Dict
-from prompts.prompt_builder import PromptBuilder
+from builders.prompt_builder import PromptBuilder
 
 class PMAgent(Agent):
 

@@ -1,6 +1,6 @@
 # prompts/prompt_builder.py
 from utils.helpers import get_current_utc_datetime
-from config.config import app_config
+from config.app_config import app_config
 from custom_tools import (
     tool_names,
     tools_description,
@@ -14,12 +14,13 @@ from prompts.architect_prompt import DEFAULT_SYS_ARCHITECT_REACT_PROMPT
 from prompts.researcher_prompt import DEFAULT_SYS_RESEARCHER_PROMPT
 from prompts.reviewer_prompt import DEFAULT_SYS_REVIEWER_PROMPT
 from prompts.react_agent_prompt import DEFAULT_SYS_REACT_AGENT_PROMPT
+from controllers.agents_manager import AgentsManager
 
 class PromptBuilder:
     @staticmethod
     def build_planner_prompt(user_request: str, feedback_value: str = "") -> str:
         return DEFAULT_SYS_PLANNER_PROMPT.format(
-            agents_description=app_config.get_agents_description(),
+            agents_description="",
             feedback=feedback_value,
             datetime=get_current_utc_datetime(),
         )
@@ -29,7 +30,7 @@ class PromptBuilder:
         original_plan: str,
         task_list: str,
         feedback_value: str = "",
-        agents_description: str = app_config.get_agents_description(),
+        agents_description: str = "",
     ) -> str:
         return DEFAULT_SYS_PM_PROMPT.format(
             original_plan=original_plan,
