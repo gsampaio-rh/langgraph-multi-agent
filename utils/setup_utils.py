@@ -7,7 +7,6 @@ from tools import tools_description, vsphere_tool_descriptions
 from utils.log_utils import log_startup
 from tools.tool_registry import register_tools
 from controllers.agents_manager import AgentsManager
-from controllers.prompts_manager import PromptManager
 
 def load_config():
     # Load the configuration from .env.conf
@@ -24,7 +23,6 @@ def startup():
 
     agents_manager = AgentsManager()
     agents_manager.display_agents()
-
 
     # log_startup(app_config.get_agents_description(), vsphere_tool_descriptions)
 
