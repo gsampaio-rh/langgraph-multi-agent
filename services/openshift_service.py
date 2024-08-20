@@ -1,6 +1,6 @@
 from kubernetes import client
 from kubernetes.client.rest import ApiException
-from typing import Union, List
+from typing import List, Dict, Union
 from config.config import app_config
 
 
@@ -159,3 +159,90 @@ class OpenShiftService:
             return (
                 f"The following providers are not ready: {', '.join(missing_providers)}"
             )
+
+    def create_migration_plan(
+        self,
+        name: str = "default-migration-plan",
+        destination: str = "host",
+        source: str = "vmware",
+        network_map: str = "vmware-qbjcw",
+        storage_map: str = "vmware-wp7cw",
+        vms: List[Dict[str, str]] = None,
+        namespace: str = "openshift-mtv",
+    ) -> Union[Dict, str]:
+        """
+        Creates a migration plan using the forklift.konveyor.io API.
+
+        Args:
+            name (str): The name of the migration plan. Default is 'default-migration-plan'.
+            destination (str): The destination provider. Default is 'host'.
+            source (str): The source provider. Default is 'vmware'.
+            network_map (str): The network map used for the migration. Default is 'vmware-qbjcw'.
+            storage_map (str): The storage map used for the migration. Default is 'vmware-wp7cw.
+            vms (List[Dict[str, str]]): A list of VMs to migrate, each VM represented as a dictionary with 'id' and 'name'. Default is None.
+            namespace (str): The namespace for the migration plan. Default is 'openshift-mtv'.
+
+        Returns:
+            dict: The created migration plan if successful.
+            str: An error message if the operation fails.
+        """
+        if vms is None:
+            vms = [{"id": "vm-12345", "name": "default-vm"}]  # Default VM if none provided
+
+        try:
+            # Prepare the body of the migration plan
+            body = {
+                "apiVersion": "forklift.konveyor.io/v1beta1",
+                "kind": "Plan",
+                "metadata": {
+                    "name": name,
+                    "namespace": namespace
+                },
+                "spec": {
+                    "map": {
+                        "network": {
+                            "apiVersion": "forklift.konveyor.io/v1beta1",
+                            "kind": "NetworkMap",
+                            "name": network_map,
+                            "namespace": namespace
+                        },
+                        "storage": {
+                            "apiVersion": "forklift.konveyor.io/v1beta1",
+                            "kind": "StorageMap",
+                            "name": storage_map,
+                            "namespace": namespace
+                        }
+                    },
+                    "provider": {
+                        "destination": {
+                            "apiVersion": "forklift.konveyor.io/v1beta1",
+                            "kind": "Provider",
+                            "name": destination,
+                            "namespace": namespace
+                        },
+                        "source": {
+                            "apiVersion": "forklift.konveyor.io/v1beta1",
+                            "kind": "Provider",
+                            "name": source,
+                            "namespace": namespace
+                        }
+                    },
+                    "targetNamespace": namespace,
+                    "vms": vms
+                }
+            }
+
+            # Create the migration plan using the Kubernetes custom object API
+            api_instance = client.CustomObjectsApi()
+            created_plan = api_instance.create_namespaced_custom_object(
+                group="forklift.konveyor.io",
+                version="v1beta1",
+                namespace=namespace,
+                plural="plans",
+                body=body
+            )
+
+            return created_plan
+
+        except ApiException as e:
+            return f"Failed to create migration plan: {str(e)}"

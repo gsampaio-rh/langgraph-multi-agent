@@ -82,6 +82,10 @@ class ReactAgent(Agent):
         success = False
 
         while True:
+            self.log_event(
+                "info",
+                f"🗣️ User Prompt: {usr_prompt}",
+            )
             think_response, think_message = self._thinking(sys_prompt, usr_prompt)
 
             if not think_response:
@@ -94,18 +98,21 @@ class ReactAgent(Agent):
                 iteration_limit -= 1
                 self.log_event(
                     "warning",
-                    f"Repeated output detected. Remaining attempts: {iteration_limit}",
+                    f"❌ Repeated output detected. Remaining attempts: {iteration_limit}",
                 )
 
                 if iteration_limit <= 0:
                     self.log_event(
                         "error",
-                        "Reasoning stuck in a loop. Forcing a retry or an alternative approach.",
+                        " ❌  Reasoning stuck in a loop. Forcing a retry or an alternative approach.",
                     )
                     usr_prompt = "You keep repeating the same reasoning. Please act now or provide more specific details."
                     iteration_limit = 3  # Reset the limit for the next cycle
                 else:
                     continue  # Retry the reasoning
+
+            # Update previous_response after comparison
+            previous_response = think_response
 
             suggested_tool = think_response.get("action")
             tool_input = think_response.get("action_input")

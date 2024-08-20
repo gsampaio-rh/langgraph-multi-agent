@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Dict
 from langchain.tools import tool
 from services.openshift_service import OpenShiftService
 
@@ -68,6 +68,62 @@ def ensure_openshift_providers_ready(
 
     except Exception as e:
         return f"Failed to verify providers readiness: {str(e)}"
+
+
+@tool(parse_docstring=True)
+def create_migration_plan_tool(
+    vm_names: List[str] = None,
+    name: str = "default-migration-plan",
+    destination: str = "host",
+    source: str = "vmware",
+    network_map: str = "vmware-qbjcw",
+    storage_map: str = "vmware-wp7cw",
+    namespace: str = "openshift-mtv",
+) -> Union[Dict, str]:
+    """
+    A tool to create a migration plan for moving virtual machines (VMs) using the forklift.konveyor.io API. This tool only requires VM names, and the corresponding IDs are fetched automatically.
+
+    Args:
+        vm_names: A list of VM names to migrate. Default is a single default VM name if none provided.
+        name: The name of the migration plan. Default is 'default-migration-plan'.
+        destination: The destination provider. Default is 'host'.
+        source: The source provider. Default is 'vmware'.
+        network_map: The network map used for the migration. Default is 'vmware-qbjcw'.
+        storage_map: The storage map used for the migration. Default is 'vmware-wp7cw'.
+        namespace: The namespace for the migration plan. Default is 'openshift-mtv'.
+
+    Returns:
+        dict: The created migration plan if successful.
+        str: An error message if the operation fails.
+    """
+    try:
+        # Create an OpenShiftService instance
+        openshift_service = OpenShiftService()
+
+        # If no VM names are provided, use a default VM
+        if not vm_names:
+            vm_names = ["default-vm"]
+
+        # Fetch VM IDs for the given VM names (this logic assumes a lookup function exists)
+        vms = []
+        for vm_name in vm_names:
+            vms.append({"name": vm_name})
+
+        # Call the create_migration_plan method with the gathered information
+        result = openshift_service.create_migration_plan(
+            name=name,
+            destination=destination,
+            source=source,
+            network_map=network_map,
+            storage_map=storage_map,
+            vms=vms,
+            namespace=namespace,
+        )
+
+        return result
+
+    except Exception as e:
+        return f"Failed to create migration plan: {str(e)}"
 
 
 @tool(parse_docstring=True)

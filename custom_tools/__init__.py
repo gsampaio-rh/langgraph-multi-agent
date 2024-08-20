@@ -11,7 +11,8 @@ from custom_tools.vsphere.vm_lifecycle_manager import (
 
 from custom_tools.openshift.openshift_tools import (
     ensure_openshift_project_access,
-    ensure_openshift_providers_ready
+    ensure_openshift_providers_ready,
+    create_migration_plan_tool,
 )
 
 # Expose all tools in a list for easier import
@@ -47,8 +48,9 @@ vsphere_tool_descriptions = (
 # OPENSHIFT
 
 openshift_tools = [
-    ensure_openshift_project_access, 
-    ensure_openshift_providers_ready
+    ensure_openshift_project_access,
+    ensure_openshift_providers_ready,
+    create_migration_plan_tool,
 ]
 
 # Create a list of tool names
