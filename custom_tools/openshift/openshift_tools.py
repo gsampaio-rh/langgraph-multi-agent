@@ -118,11 +118,11 @@ def create_migration_plan_tool(
         vms = []
         for vm_name in vm_names:
             vm_id = openshift_service.lookup_vm_id_by_name(provider_uuid, vm_name)
-            
+
             # Assuming error messages are distinct, e.g., returned as dicts or special error codes
             if isinstance(vm_id, dict) and 'error' in vm_id:
                 return vm_id['error']  # This handles the error case
-            
+
             # Check if VM was found
             if vm_id:
                 vms.append({"id": vm_id, "name": vm_name})
@@ -146,6 +146,51 @@ def create_migration_plan_tool(
 
     except Exception as e:
         return f"Failed to create migration plan: {str(e)}"
+
+
+@tool(parse_docstring=True)
+def start_migration_tool(
+    plan_name: str, namespace: str = "openshift-mtv"
+) -> Union[Dict, str]:
+    """
+    A tool to start a migration for a given migration plan by its name.
+
+    Args:
+        plan_name: The name of the migration plan.
+        namespace: The namespace where the migration plan is located. Default is 'openshift-mtv'.
+
+    Returns:
+        dict: The migration start response if successful.
+        str: An error message if the operation fails.
+    """
+    try:
+        # Create an OpenShiftService instance
+        openshift_service = OpenShiftService()
+        print("\n1/3 Connected to Openshift...\n")
+
+        # Retrieve the UID of the migration plan by its name
+        plan_uid = openshift_service.get_migration_plan_uid_by_name(
+            plan_name=plan_name, namespace=namespace
+        )
+
+        if isinstance(plan_uid, str) and "Error" in plan_uid:
+            return plan_uid  # Return the error if we encountered one
+
+        if plan_uid is None:
+            return f"Migration plan '{plan_name}' not found."
+
+        print(f"\n2/3 Retrieved migration plan UID: {plan_uid}...\n")
+
+        # Start the migration using the retrieved plan UID
+        result = openshift_service.start_migration(
+            plan_name=plan_name, plan_uid=plan_uid, namespace=namespace
+        )
+
+        print(f"\n3/3 Migration started: {result}...\n")
+        return result
+
+    except Exception as e:
+        return f"Failed to start migration: {str(e)}"
 
 
 @tool(parse_docstring=True)

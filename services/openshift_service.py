@@ -38,6 +38,8 @@ class OpenShiftService:
             # Use the custom configuration
             client.Configuration.set_default(configuration)
 
+            self.api_url = api_url
+            self.console_url = console_url
             # Create the CoreV1Api and CustomObjectsApi instances for interacting with resources
             self.core_v1_api = client.CoreV1Api()
             self.custom_objects_api = client.CustomObjectsApi()
@@ -389,3 +391,90 @@ class OpenShiftService:
         except requests.exceptions.RequestException as e:
             print(f"Error retrieving VM information: {str(e)}")
             return f"Error retrieving VM information: {str(e)}"
+
+    def start_migration(
+        self, plan_name: str, plan_uid: str, namespace: str = "openshift-mtv"
+    ) -> Union[Dict, str]:
+        """
+        Starts a migration for the given plan by creating a new Migration resource in the specified namespace.
+
+        Args:
+            plan_name (str): The name of the migration plan.
+            plan_uid (str): The UID of the migration plan.
+            namespace (str): The namespace where the migration plan is located. Default is 'openshift-mtv'.
+
+        Returns:
+            Dict: The response from the API if successful.
+            str: An error message if the operation fails.
+        """
+        # Define the API URL for creating a migration
+        url = f"{self.api_url}/apis/forklift.konveyor.io/v1beta1/namespaces/{namespace}/migrations"
+
+        # Construct the migration payload
+        payload = {
+            "apiVersion": "forklift.konveyor.io/v1beta1",
+            "kind": "Migration",
+            "metadata": {
+                "generateName": f"{plan_name}-",
+                "namespace": namespace,
+                "ownerReferences": [
+                    {
+                        "apiVersion": "forklift.konveyor.io/v1beta1",
+                        "kind": "Plan",
+                        "name": plan_name,
+                        "uid": plan_uid,
+                    }
+                ],
+            },
+            "spec": {
+                "plan": {"name": plan_name, "namespace": namespace, "uid": plan_uid}
+            },
+        }
+
+        try:
+            # Make the POST request to start the migration
+            response = requests.post(url, json=payload, headers=self.headers)
+            response.raise_for_status()  # Raise an error for non-200 responses
+
+            # Return the JSON response if successful
+            return response.json()
+
+        except requests.exceptions.RequestException as e:
+            return f"Failed to start migration: {str(e)}"
+
+    def get_migration_plan_uid_by_name(
+        self, plan_name: str, namespace: str = "openshift-mtv"
+    ) -> Union[str, None, str]:
+        """
+        Retrieves the UID of a migration plan by its name.
+
+        Args:
+            plan_name (str): The name of the migration plan.
+            namespace (str): The namespace where the migration plan is located. Default is 'openshift-mtv'.
+
+        Returns:
+            str: The UID of the migration plan if found.
+            None: If the migration plan is not found.
+            str: Error message if the API request fails.
+        """
+        # Define the API URL for listing the migration plans
+        url = f"{self.api_url}/apis/forklift.konveyor.io/v1beta1/namespaces/{namespace}/plans"
+
+        try:
+            # Make the GET request to list the migration plans
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()  # Raise an error for non-200 responses
+
+            # Parse the JSON response to get the list of migration plans
+            plans = response.json().get("items", [])
+
+            # Search for the plan by name and return its UID
+            for plan in plans:
+                if plan["metadata"]["name"] == plan_name:
+                    return plan["metadata"]["uid"]
+
+            # If no plan with the given name is found, return None
+            return None
+
+        except requests.exceptions.RequestException as e:
+            return f"Error retrieving migration plans: {str(e)}"
