@@ -72,7 +72,7 @@ def ensure_openshift_providers_ready(
 
 @tool(parse_docstring=True)
 def create_migration_plan_tool(
-    vm_names: List[str] = None,
+    vm_names: List[str],
     name: str = "default-migration-plan",
     destination: str = "host",
     source: str = "vmware",
@@ -84,7 +84,7 @@ def create_migration_plan_tool(
     A tool to create a migration plan for moving virtual machines (VMs) using the forklift.konveyor.io API. This tool only requires VM names, and the corresponding IDs are fetched automatically.
 
     Args:
-        vm_names: A list of VM names to migrate. Default is a single default VM name if none provided.
+        vm_names: A list of VM names to migrate. This arg is mandatory.
         name: The name of the migration plan. Default is 'default-migration-plan'.
         destination: The destination provider. Default is 'host'.
         source: The source provider. Default is 'vmware'.
@@ -99,16 +99,37 @@ def create_migration_plan_tool(
     try:
         # Create an OpenShiftService instance
         openshift_service = OpenShiftService()
+        print("\n1/4 Connected to Openshift...\n")
+
+        # Automatically lookup the provider UUID based on the source provider name
+        provider_uuid = openshift_service.lookup_provider_uuid_by_name(source)
+        if isinstance(provider_uuid, str) and "Error" in provider_uuid:
+            return provider_uuid  # Return the error if we encountered one
+
+        if provider_uuid is None:
+            return f"Provider '{source}' not found."
+        print(f"\n2/4 Now I have the provider {provider_uuid}...\n")
 
         # If no VM names are provided, use a default VM
-        if not vm_names:
-            vm_names = ["default-vm"]
+        if vm_names is None:
+            return f"Failed to create migration plan: No VM was provided!"
 
-        # Fetch VM IDs for the given VM names (this logic assumes a lookup function exists)
+        # Fetch VM IDs for the given VM names
         vms = []
         for vm_name in vm_names:
-            vms.append({"name": vm_name})
+            vm_id = openshift_service.lookup_vm_id_by_name(provider_uuid, vm_name)
+            
+            # Assuming error messages are distinct, e.g., returned as dicts or special error codes
+            if isinstance(vm_id, dict) and 'error' in vm_id:
+                return vm_id['error']  # This handles the error case
+            
+            # Check if VM was found
+            if vm_id:
+                vms.append({"id": vm_id, "name": vm_name})
+            else:
+                return f"VM '{vm_name}' not found."
 
+        print(f"\n3/4 Now I have all the VM Names and all the VM IDs {vms}...\n")
         # Call the create_migration_plan method with the gathered information
         result = openshift_service.create_migration_plan(
             name=name,
@@ -120,6 +141,7 @@ def create_migration_plan_tool(
             namespace=namespace,
         )
 
+        print(f"\n4/4 Migration plan RESPONSE - {result}...\n")
         return result
 
     except Exception as e:

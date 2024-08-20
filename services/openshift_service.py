@@ -2,6 +2,7 @@ from kubernetes import client
 from kubernetes.client.rest import ApiException
 from typing import List, Dict, Union
 from config.config import app_config
+import requests
 
 
 class OpenShiftService:
@@ -14,15 +15,18 @@ class OpenShiftService:
     def __init__(
         self,
         api_url: str = app_config.openshiftConfig.api_url,
+        console_url: str = app_config.openshiftConfig.console_url,
+        inventory_route: str = app_config.openshiftConfig.inventory_route,
         token: str = app_config.openshiftConfig.token,
     ):
         """
-        Initializes the OpenShiftService with API URL and token,
+        Initializes the OpenShiftService with API URL, token, and inventory service route,
         and sets up the connection to the OpenShift cluster.
 
         Args:
             api_url (str): The API URL of the OpenShift cluster.
             token (str): The Bearer token to authenticate with the OpenShift API.
+            inventory_service_route (str): The base route for the inventory service.
         """
         try:
             # Set up the Kubernetes API client configuration
@@ -38,10 +42,17 @@ class OpenShiftService:
             self.core_v1_api = client.CoreV1Api()
             self.custom_objects_api = client.CustomObjectsApi()
 
+            # Set the inventory service route and headers
+            self.inventory_service_route = inventory_route
+            self.headers = {
+                "Accept": "application/json",
+                "Authorization": f"Bearer {token}",
+            }
             # Test connection by fetching namespaces
             self._test_connection()
 
         except Exception as e:
+            print(f"Failed to initialize OpenShiftService: {str(e)}")
             raise Exception(f"Failed to initialize OpenShiftService: {str(e)}")
 
     def _test_connection(self):
@@ -51,6 +62,7 @@ class OpenShiftService:
         try:
             self.core_v1_api.list_namespace()
         except ApiException as e:
+            print(f"Failed to connect to OpenShift API: {str(e)}")
             raise Exception(f"Failed to connect to OpenShift API: {str(e)}")
 
     def get_projects(self) -> Union[List[str], str]:
@@ -246,3 +258,134 @@ class OpenShiftService:
 
         except ApiException as e:
             return f"Failed to create migration plan: {str(e)}"
+
+    def get_providers(
+        self, 
+        provider_type: str = "vsphere"
+    ) -> Union[List[Dict], str]:
+        """
+        Retrieves the list of providers for a specific provider type.
+
+        Args:
+            provider_type (str): The type of provider (default: 'vsphere').
+
+        Returns:
+            Union[List[Dict], str]: A list of provider details if successful, or an error message if failed.
+        """
+        url = f"https://{self.inventory_service_route}/providers/{provider_type}"
+
+        try:
+            # Make the GET request to fetch the providers
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            return f"Failed to retrieve providers: {str(e)}"
+
+    def get_vms_for_migration(
+        self, provider_uuid: str, provider_type: str = "vsphere"
+    ) -> Union[List[Dict], str]:
+        """
+        Fetches the list of available VMs for migration from a specific provider in the specified namespace.
+
+        Args:
+            provider_type (str): The type of provider (default: 'vsphere').
+            provider_uuid (str): The UUID of the provider to fetch VMs for.
+
+        Returns:
+            Union[List[Dict], str]: A list of VMs if successful, or an error message if failed.
+        """
+        # Construct the full API URL dynamically
+        url = f"https://{self.inventory_service_route}/providers/{provider_type}/{provider_uuid}/vms?detail=4"
+
+        try:
+            # Make the GET request to fetch the VMs
+            response = requests.get(url, headers=self.headers)
+            response.raise_for_status()  # Raise an error for non-200 responses
+
+            # Parse the JSON response and return the list of VMs
+            return response.json()
+
+        except requests.exceptions.RequestException as e:
+            # Return a formatted error message if the request fails
+            return f"Failed to retrieve VMs: {str(e)}"
+
+    def lookup_provider_uuid_by_name(
+        self, provider_name: str = "vmware", provider_type: str = "vsphere"
+    ) -> Union[str, None, str]:
+        """
+        Looks up the UUID of a provider by its name.
+
+        Args:
+            provider_name (str): The name of the provider (default: 'vmware').
+            provider_type (str): The type of the provider (default: 'vsphere').
+
+        Returns:
+            str: The UUID of the provider if found.
+            None: If the provider is not found.
+            str: Error message if the API request fails.
+        """
+        # Construct the URL to retrieve the providers for the specified provider type
+        url = f"{self.inventory_service_route}/providers/{provider_type}"
+
+        try:
+
+            # Print the request details for debugging
+
+            # Make the GET request to fetch the providers
+            response = requests.get(url, headers=self.headers, verify=False)
+            response.raise_for_status()  # Raise an error for non-200 responses
+
+            # Parse the JSON response to get the list of providers
+            providers = response.json()
+
+            # Search for the provider by name and return its UUID
+            for provider in providers:
+                if provider["name"] == provider_name:
+                    return provider["uid"]
+
+            # If no provider with the given name is found, return None
+            return None
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error retrieving provider information: {str(e)}")
+            return f"Error retrieving provider information: {str(e)}"
+
+    def lookup_vm_id_by_name(
+        self, provider_uuid: str, vm_name: str, provider_type: str = "vsphere"
+    ) -> Union[str, None, str]:
+        """
+        Looks up the ID of a VM by its name within a specific provider.
+
+        Args:
+            provider_uuid (str): The UUID of the provider (e.g., VMware).
+            vm_name (str): The name of the VM to look up.
+            provider_type (str): The type of the provider (default: 'vsphere').
+
+        Returns:
+            str: The ID of the VM if found.
+            None: If the VM is not found.
+            str: Error message if the API request fails.
+        """
+        # Construct the URL to retrieve the VMs for the specified provider
+        url = f"{self.inventory_service_route}/providers/{provider_type}/{provider_uuid}/vms?detail=4"
+
+        try:
+            # Make the GET request to fetch the VMs
+            response = requests.get(url, headers=self.headers, verify=False)
+            response.raise_for_status()  # Raise an error for non-200 responses
+
+            # Parse the JSON response to get the list of VMs
+            vms = response.json()
+
+            # Search for the VM by name and return its ID
+            for vm in vms:
+                if vm["name"] == vm_name:
+                    return vm["id"]
+
+            # If no VM with the given name is found, return None
+            return None
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error retrieving VM information: {str(e)}")
+            return f"Error retrieving VM information: {str(e)}"

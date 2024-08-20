@@ -106,7 +106,8 @@ class ReactAgent(Agent):
                         "error",
                         " ❌  Reasoning stuck in a loop. Forcing a retry or an alternative approach.",
                     )
-                    usr_prompt = "You keep repeating the same reasoning. Please act now or provide more specific details."
+                    usr_prompt = f"You keep repeating the same reasoning. Please act now or provide more specific details. Your task is {pending_task.get('task_name')}"
+
                     iteration_limit = 3  # Reset the limit for the next cycle
                 else:
                     continue  # Retry the reasoning
@@ -121,8 +122,8 @@ class ReactAgent(Agent):
             if final_answer := think_response.get("final_answer"):
                 # Check if tool was not executed successfully and any of the fields exist (not None or empty)
                 if not success and any([suggested_tool, tool_input, action_result]):
-                    self.log_event("error", "❌ Final answer attempted but tool was not executed successfully. Rejecting final answer.")
-                    usr_prompt = "Final answer attempted but tool was not executed successfully. Rejecting final answer."
+                    self.log_event("error", "❌ Final answer attempted but tool was not executed yet. Rejecting final answer.")
+                    usr_prompt = "Final answer attempted but tool was not executed yet. You need to use the tool in order to generate a result. Rejecting final answer."
                     continue  # Reject final answer and continue with the loop
 
                 final_thought = think_response.get("thought")
