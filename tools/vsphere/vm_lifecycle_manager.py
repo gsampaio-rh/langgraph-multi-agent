@@ -111,3 +111,5 @@ def ensure_vms_not_running(vm_names: List[str]) -> Union[bool, str]:
     finally:
         if si:
             disconnect_from_vsphere(si)
+
+vm_lifecycle_manager_tools = [list_vms, retrieve_vm_details, ensure_vms_not_running]

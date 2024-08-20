@@ -220,3 +220,10 @@ def check_openshift_connection() -> Union[bool, str]:
 
     except Exception as e:
         return f"Connection error: {str(e)}"
+
+openshift_tools = [
+    ensure_openshift_project_access,
+    ensure_openshift_providers_ready,
+    create_migration_plan_tool,
+    start_migration_tool,
+]

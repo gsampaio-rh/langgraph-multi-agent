@@ -1,68 +1,81 @@
-from tools import (
-    custom_tools,
-    tools_description,
-    vsphere_tools, 
-    vsphere_tool_descriptions,
-    openshift_tools,
-    openshift_tool_descriptions
-)
+from langchain.tools.render import render_text_description_and_args
 from termcolor import colored
+from typing import List
+from tools.openshift.openshift_tools import openshift_tools
+from tools.vsphere.vm_lifecycle_manager import vm_lifecycle_manager_tools
 from utils.helpers import loading_animation
-from utils.tools_utils import format_tools_description
 import time
 
 # Registry to hold all discovered tools
 tool_registry = {}
 
-# Explicitly register tools by category
-def register_tools():
+# Tool categories and corresponding modules
+TOOL_CATEGORIES = {
+    "vsphere": "tools.vsphere.vm_lifecycle_manager",
+    "openshift": "tools.openshift.openshift_tools",
+}
+
+
+def generate_tool_descriptions(tools):
     """
-    Register tools from various modules manually. Organized by category.
+    Generate tool descriptions using render_text_description_and_args.
+    The descriptions are processed and any curly braces are escaped.
+
+    Args:
+        tools (list): List of tool objects.
+
+    Returns:
+        str: Formatted tool descriptions.
     """
-    print(colored("\n🧰 REGISTERING TOOLS...", "cyan", attrs=["bold"]))
+    return render_text_description_and_args(tools).replace("{", "{{").replace("}", "}}")
 
-    # General Tools
-    general_tools = custom_tools
 
-    # Register tools in the registry by name
-    for tool in general_tools:
-        tool_registry[tool.name] = tool
-    for tool in vsphere_tools:
-        tool_registry[tool.name] = tool
-    for tool in openshift_tools:
-        tool_registry[tool.name] = tool
+def register_tools(category_name, tools_list):
+    """
+    Register tools from the given list, including their generated descriptions,
+    and print them immediately.
 
-    print(colored("\n🔧 General Tools:\n", "blue", attrs=["bold"]))
+    Args:
+        category_name (str): The category name (e.g., 'vSphere', 'OpenShift').
+        tools_list (list): List of tool functions to register.
+    """
+    print(colored(f"\n🔧 {category_name} Tools:\n", "blue", attrs=["bold"]))
     loading_animation()
-    tools_list = format_tools_description(tools_description)
+
+    # Register the tools in the registry by their name and description
     for tool in tools_list:
-        print(colored(f"🔧 {tool['name']}:", "yellow", attrs=["bold"]))
-        print(colored(f"  {tool['description']}\n", "white"))
+        description = generate_tool_descriptions([tool])
+        tool_registry[tool.name] = {"function": tool, "description": description}
+        print(colored(f"🔧 {tool.name}:", "yellow", attrs=["bold"]))
+        print(colored(f"  {description}\n", "white"))
         time.sleep(0.5)
 
-    print(colored("\n🔧 vSphere Tools:\n", "blue", attrs=["bold"]))
-    loading_animation()
-    tools_list = format_tools_description(vsphere_tool_descriptions)
-    for tool in tools_list:
-        print(colored(f"🔧 {tool['name']}:", "yellow", attrs=["bold"]))
-        print(colored(f"  {tool['description']}\n", "white"))
-        time.sleep(0.5)
+    print(
+        colored(
+            f"\n✅ {category_name} tools successfully registered.\n",
+            "green",
+            attrs=["bold"],
+        )
+    )
 
-    print(colored("\n🔧 OpenShift Tools:\n", "blue", attrs=["bold"]))
-    loading_animation()
-    tools_list = format_tools_description(openshift_tool_descriptions)
-    for tool in tools_list:
-        print(colored(f"🔧 {tool['name']}:", "yellow", attrs=["bold"]))
-        print(colored(f"  {tool['description']}\n", "white"))
-        time.sleep(0.5)
 
-    print(colored("\n✅ All tools successfully registered.", "green", attrs=["bold"]))
+def load_tools():
+    """
+    Load and display tools from different categories (General, vSphere, OpenShift),
+    including their descriptions.
+    """
+    # Register and display tools for vSphere Lifecycle Manager
+    register_tools("vSphere Lifecycle Manager", vm_lifecycle_manager_tools)
 
-    # Log the registration process
-    print(colored("\n🧰 TOOL REGISTRATION COMPLETED:", "cyan", attrs=["bold"]))
+    # Register and display tools for OpenShift
+    register_tools("OpenShift", openshift_tools)
+
 
 def get_tool_by_name(tool_name):
     """
-    Retrieve a tool by its name from the tool registry.
+    Retrieve a tool function by its name from the tool registry.
     """
-    return tool_registry.get(tool_name, None)
+    tool_entry = tool_registry.get(tool_name, None)
+    if tool_entry:
+        return tool_entry["function"]  # Return only the function
+    return None

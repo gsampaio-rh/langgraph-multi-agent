@@ -5,7 +5,7 @@ import os
 from config.app_config import app_config
 from tools import tools_description, vsphere_tool_descriptions
 from utils.log_utils import log_startup
-from tools.tool_registry import register_tools
+from tools.tool_registry import load_tools
 from controllers.agents_manager import AgentsManager
 
 def load_config():
@@ -19,14 +19,15 @@ def load_config():
         logging.info("Config file read successfully")
         return config
 
-def startup(): 
+def startup():
+
+    # log_startup(app_config.get_agents_description(), vsphere_tool_descriptions)
 
     agents_manager = AgentsManager()
     agents_manager.display_agents()
 
-    # log_startup(app_config.get_agents_description(), vsphere_tool_descriptions)
-
-    register_tools()
+    load_tools()
+    
     # load_config()
 
     # print("Startup sequence completed successfully")
