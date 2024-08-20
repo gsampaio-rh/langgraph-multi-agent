@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict
 from .model_config import ModelConfig
-from .agent_config import AgentConfig
+from .agents_config import AgentsConfig
 from .logging_config import LoggingConfig
 from .vsphere_config import VsphereConfig
 from .openshift_config import OpenshiftConfig
@@ -11,7 +11,7 @@ import json
 @dataclass
 class AppConfig:
     model_config: ModelConfig = field(default_factory=ModelConfig)
-    agent_config: AgentConfig = field(default_factory=AgentConfig)
+    agents_config: AgentsConfig = field(default_factory=AgentsConfig)
     logging_config: LoggingConfig = field(default_factory=LoggingConfig)
     vsphere_config: VsphereConfig = field(default_factory=VsphereConfig)
     openshift_config: OpenshiftConfig = field(default_factory=OpenshiftConfig)
@@ -25,8 +25,8 @@ class AppConfig:
                 setattr(self, key, value)
             elif key == "model_config":
                 self.model_config = ModelConfig(**value)
-            elif key == "agent_config":
-                self.agent_config = AgentConfig(**value)
+            elif key == "agents_config":
+                self.agents_config = AgentsConfig(**value)
             elif key == "logging_config":
                 self.logging_config = LoggingConfig(**value)
             elif key == "vsphere_config":

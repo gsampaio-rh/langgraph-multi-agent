@@ -1,71 +1,16 @@
-import yaml
+import time
 import os
 from typing import Dict, Any, List
 from termcolor import colored
+from config.app_config import app_config
 from utils.helpers import loading_animation
-import time
 
 
 class AgentsManager:
     def __init__(self):
-        self.description_file = os.path.join(
-            os.path.dirname(__file__), "agents.yaml"
-        )
-        self.agent_descriptions = self.load_and_replace_placeholders()
+        self.agent_descriptions = app_config.agents_config.agents_description
 
-    def load_agent_descriptions(self) -> Dict[str, Any]:
-        """
-        Load the agent descriptions from the YAML file located in the same directory.
-        """
-        print(colored("\n🛠️  LOADING AGENTS...", "cyan", attrs=["bold"]))
-        loading_animation()
-
-        with open(self.description_file, "r") as file:
-            return yaml.safe_load(file)
-
-    def replace_placeholders(self, agent_data: Dict[str, Any], variables: Dict[str, str]) -> Dict[str, Any]:
-        """
-        Replace placeholders in the agent data with actual values from the variables dictionary.
-        """
-
-        for agent in agent_data['agents']:
-
-            # Replace placeholders in responsibilities
-            agent['responsibilities'] = [
-                responsibility.format(**variables) for responsibility in agent.get('responsibilities', [])
-            ]
-
-            # Replace placeholders in tools section if it exists and is a list of strings
-            if "tools" in agent and isinstance(agent["tools"], list):
-                # Properly format the tools section
-                agent["tools"] = [
-                    f"    - **Tools**:\n      - {tool.format(**variables)}"
-                    for tool in agent["tools"]
-                ]
-
-        return agent_data
-
-    def load_and_replace_placeholders(self) -> Dict[str, Any]:
-        """
-        Load agent descriptions and replace any placeholders with actual values.
-        """
-        agent_data = self.load_agent_descriptions()
-
-        # VSPHERE
-        vsphere_tool_names = "list_vms, retrieve_vm_details, ensure_vms_not_running"
-        # OPENSHIFT
-        openshift_tool_names = "ensure_openshift_project_access, ensure_openshift_providers_ready, create_migration_plan_tool, start_migration_tool"
-
-        # Variables to replace placeholders
-        variables = {
-            "vsphere_tool_names": vsphere_tool_names,
-            "openshift_tool_names": openshift_tool_names,
-        }
-
-        # Replace the placeholders in the agent data
-        return self.replace_placeholders(agent_data, variables)
-
-    def format_agents_description(self) -> List[Dict[str, Any]]:
+    def format_agent_descriptions(self) -> List[Dict[str, Any]]:
         """
         Formats the agent descriptions for output.
         """
@@ -79,8 +24,10 @@ class AgentsManager:
         """
         Displays the formatted agent descriptions, including tools if available.
         """
+        print(colored("\n🛠️  LOADING AGENTS...", "cyan", attrs=["bold"]))
+        loading_animation()
         try:
-            agents_list = self.format_agents_description()
+            agents_list = self.format_agent_descriptions()
             for agent in agents_list:
                 print(colored(f"🔹 {agent['name']}:", "yellow", attrs=["bold"]))
                 print(colored(f"  Role: {agent['role']}", "white"))

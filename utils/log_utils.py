@@ -1,10 +1,7 @@
 import logging
 from termcolor import colored
 from config.app_config import app_config
-from utils.helpers import loading_animation
-from utils.agent_utils import format_agents_description
 import datetime
-import time
 
 # Custom logging levels with colors
 LOG_COLORS = {
@@ -31,7 +28,7 @@ class ColoredFormatter(logging.Formatter):
 
     def format(self, record):
         log_message = super().format(record)
-        agent_info = app_config.agent_config.agent_display_config.get(
+        agent_info = app_config.agents_config.agent_display_config.get(
             self.agent_role, {}
         )
         agent_color = agent_info.get("color", "white")
@@ -88,7 +85,7 @@ def log_message(
     log(agent_role, message, level=message_type.upper())
 
 
-def log_startup(agents_description: str, tools_description: str):
+def log_startup():
     print(
         colored(
             "===============================================", "green", attrs=["bold"]
@@ -101,22 +98,6 @@ def log_startup(agents_description: str, tools_description: str):
             "===============================================", "green", attrs=["bold"]
         )
     )
-
-    print(colored("\n🛠️  LOADING AGENTS...", "cyan", attrs=["bold"]))
-    loading_animation()
-
-    agents_list = format_agents_description(agents_description)
-    if isinstance(agents_list, list):
-        for agent in agents_list:
-            print(colored(f"🔹 {agent['name']}:", "yellow", attrs=["bold"]))
-            print(colored(f"  Role: {agent['role']}", "white"))
-            print(colored(f"  Responsibilities:", "white", attrs=["bold"]))
-            for responsibility in agent["responsibilities"]:
-                print(colored(f"    - {responsibility}", "white"))
-            time.sleep(0.5)
-            print()
-    else:
-        log("system", "Error: agents_list is not correctly formatted.", level="ERROR")
 
     print(colored("\n🚀 INITIALIZING WORKFLOW...", "green", attrs=["bold"]))
     print(

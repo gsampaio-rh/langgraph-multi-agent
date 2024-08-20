@@ -3,8 +3,8 @@ from builders.prompt_builder import PromptBuilder
 
 
 class PromptManager:
-    def __init__(self, agents_description: str):
-        self.agents_description = agents_description
+    def __init__(self, agent_descriptions: str):
+        self.agent_descriptions = agent_descriptions
         self.prompts = {}
 
     def load_prompts(self):
@@ -16,9 +16,9 @@ class PromptManager:
 
         # Pre-build and cache common prompts
         self.prompts["planner"] = PromptBuilder.build_planner_prompt(
-            self.agents_description
+            self.agent_descriptions
         )
-        self.prompts["pm"] = PromptBuilder.build_pm_prompt(self.agents_description)
+        self.prompts["pm"] = PromptBuilder.build_pm_prompt(self.agent_descriptions)
         self.prompts["react"] = PromptBuilder.build_react_prompt()
         self.prompts["researcher"] = PromptBuilder.build_researcher_prompt()
         self.prompts["reviewer"] = PromptBuilder.build_reviewer_prompt()
@@ -42,9 +42,9 @@ class PromptManager:
         Delegates to PromptBuilder.
         """
         if prompt_type == "planner":
-            return PromptBuilder.build_planner_prompt(self.agents_description, **kwargs)
+            return PromptBuilder.build_planner_prompt(self.agent_descriptions, **kwargs)
         elif prompt_type == "pm":
-            return PromptBuilder.build_pm_prompt(self.agents_description, **kwargs)
+            return PromptBuilder.build_pm_prompt(self.agent_descriptions, **kwargs)
         elif prompt_type == "react":
             return PromptBuilder.build_react_prompt(**kwargs)
         elif prompt_type == "researcher":
