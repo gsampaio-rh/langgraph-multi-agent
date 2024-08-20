@@ -1,15 +1,15 @@
 from langchain.tools.render import render_text_description_and_args
-from custom_tools.general.website_crawl import website_crawl, extract_content
-from custom_tools.general.duck_search import duckSearch
-from custom_tools.general.wiki_query import wiki
-from custom_tools.general.arxiv_query import arxiv
-from custom_tools.vsphere.vm_lifecycle_manager import (
+from tools.general.website_crawl import website_crawl, extract_content
+from tools.general.duck_search import duckSearch
+from tools.general.wiki_query import wiki
+from tools.general.arxiv_query import arxiv
+from tools.vsphere.vm_lifecycle_manager import (
     list_vms,
     retrieve_vm_details,
     ensure_vms_not_running,
 )
 
-from custom_tools.openshift.openshift_tools import (
+from tools.openshift.openshift_tools import (
     ensure_openshift_project_access,
     ensure_openshift_providers_ready,
     create_migration_plan_tool,

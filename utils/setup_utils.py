@@ -3,9 +3,9 @@ import os
 import logging
 import os
 from config.app_config import app_config
-from custom_tools import tools_description, vsphere_tool_descriptions
+from tools import tools_description, vsphere_tool_descriptions
 from utils.log_utils import log_startup
-from custom_tools.tool_registry import register_tools
+from tools.tool_registry import register_tools
 from controllers.agents_manager import AgentsManager
 from controllers.prompts_manager import PromptManager
 

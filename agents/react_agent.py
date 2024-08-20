@@ -1,9 +1,9 @@
 import json
 from agents.base_agent import Agent
 from builders.prompt_builder import PromptBuilder
-from custom_tools.tool_invoker import invoke_tool
-from custom_tools.tool_registry import get_tool_by_name
-from custom_tools import (
+from tools.tool_invoker import invoke_tool
+from tools.tool_registry import get_tool_by_name
+from tools import (
     openshift_tool_names,
     openshift_tool_descriptions,
     vsphere_tool_names,

@@ -1,7 +1,7 @@
 # tool_handler.py
 from typing import Any, Dict
-from custom_tools.tool_invoker import ToolInvoker
-from custom_tools import custom_tools
+from tools.tool_invoker import ToolInvoker
+from tools import custom_tools
 
 tool_invoker = ToolInvoker(custom_tools)
 
