@@ -60,6 +60,10 @@ class ReactAgent(Agent):
             tool_names = vsphere_tool_names
             tool_descriptions = vsphere_tool_descriptions
 
+        self.log_event(
+            "info",
+            f"💬 I am the {self.role} agent and I have access to these tools: {tool_names}",
+        )
         usr_prompt = f"Solve this task: {pending_task.get('task_name')}"
         scratchpad = []
         sys_prompt = PromptBuilder.build_react_prompt(

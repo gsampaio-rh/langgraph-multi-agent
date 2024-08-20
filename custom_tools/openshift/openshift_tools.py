@@ -33,6 +33,44 @@ def ensure_openshift_project_access(required_projects: List[str]) -> Union[bool,
 
 
 @tool(parse_docstring=True)
+def ensure_openshift_providers_ready(
+    namespace: str = "openshift-mtv",
+) -> Union[bool, str]:
+    """
+    A tool that verifies that both the VMware and Host providers are listed and their statuses are 'Ready'.
+
+    Args:
+        namespace: The namespace where the providers are listed (default: 'openshift-mtv').
+
+    Returns:
+        bool: True if both providers are found and have the 'Ready' status.
+        str: Error message if the operation fails or if the providers are not ready.
+    """
+    try:
+        # Create an OpenShiftService instance
+        client = OpenShiftService()
+
+        # Step 1: Retrieve the providers
+        providers = client.get_providers(namespace)
+
+        # Check if there was an error in retrieving the providers
+        if isinstance(providers, str):
+            return f"Failed to retrieve providers: {providers}"
+
+        # Step 2: Verify that both providers are ready
+        verification_result = client.verify_providers_ready(providers)
+
+        # Return the result of the verification
+        if verification_result is True:
+            return True
+        else:
+            return verification_result
+
+    except Exception as e:
+        return f"Failed to verify providers readiness: {str(e)}"
+
+
+@tool(parse_docstring=True)
 def check_openshift_connection() -> Union[bool, str]:
     """
     A tool that checks the connection to the OpenShift Console.

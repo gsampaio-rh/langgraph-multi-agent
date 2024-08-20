@@ -3,15 +3,18 @@ from kubernetes.client.rest import ApiException
 from typing import Union, List
 from config.config import app_config
 
+
 class OpenShiftService:
     """
     This service class handles interactions with the OpenShift (Kubernetes-based) API,
-    including retrieving namespaces (projects) and checking access to required projects.
-    It also manages its own connection to the OpenShift API.
+    including retrieving namespaces (projects), checking access, retrieving providers,
+    and verifying their readiness.
     """
 
     def __init__(
-        self, api_url: str = app_config.openshiftConfig.api_url, token: str = app_config.openshiftConfig.token
+        self,
+        api_url: str = app_config.openshiftConfig.api_url,
+        token: str = app_config.openshiftConfig.token,
     ):
         """
         Initializes the OpenShiftService with API URL and token,
@@ -31,8 +34,9 @@ class OpenShiftService:
             # Use the custom configuration
             client.Configuration.set_default(configuration)
 
-            # Create the CoreV1Api instance for interacting with core Kubernetes/OpenShift resources
+            # Create the CoreV1Api and CustomObjectsApi instances for interacting with resources
             self.core_v1_api = client.CoreV1Api()
+            self.custom_objects_api = client.CustomObjectsApi()
 
             # Test connection by fetching namespaces
             self._test_connection()
@@ -93,3 +97,65 @@ class OpenShiftService:
 
         except ApiException as e:
             return f"Failed to check project access: {str(e)}"
+
+    def get_providers(self, namespace: str = "openshift-mtv") -> Union[List[dict], str]:
+        """
+        Retrieves the list of Provider resources in the specified namespace.
+
+        Args:
+            namespace (str): The namespace where the providers are listed (default: 'openshift-mtv').
+
+        Returns:
+            List[dict]: A list of Provider resources if successful.
+            str: An error message if the operation fails.
+        """
+        try:
+            providers = self.custom_objects_api.list_namespaced_custom_object(
+                group="forklift.konveyor.io",
+                version="v1beta1",
+                namespace=namespace,
+                plural="providers",
+            )
+            return providers["items"]
+        except ApiException as e:
+            return f"Failed to retrieve providers: {str(e)}"
+
+    def verify_providers_ready(self, providers: List[dict]) -> Union[bool, str]:
+        """
+        Verifies that both the VMware and Host providers are listed and their statuses are 'Ready'.
+
+        Args:
+            providers (List[dict]): The list of Provider objects retrieved from the OpenShift cluster.
+
+        Returns:
+            bool: True if both providers are found and have the 'Ready' status.
+            str: An error message if the providers are not ready or not found.
+        """
+        # Initialize status flags
+        vmware_ready = False
+        host_ready = False
+
+        # Check each provider for 'vmware' and 'host' and verify 'Ready' status
+        for provider in providers:
+            provider_name = provider["metadata"]["name"]
+            if provider_name in ["vmware", "host"]:
+                conditions = provider["status"].get("conditions", [])
+                for condition in conditions:
+                    if condition["type"] == "Ready" and condition["status"] == "True":
+                        if provider_name == "vmware":
+                            vmware_ready = True
+                        elif provider_name == "host":
+                            host_ready = True
+
+        # Verify both providers are ready
+        if vmware_ready and host_ready:
+            return True
+        else:
+            missing_providers = []
+            if not vmware_ready:
+                missing_providers.append("vmware")
+            if not host_ready:
+                missing_providers.append("host")
+            return (
+                f"The following providers are not ready: {', '.join(missing_providers)}"
+            )

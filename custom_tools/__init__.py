@@ -9,7 +9,10 @@ from custom_tools.vsphere.vm_lifecycle_manager import (
     ensure_vms_not_running,
 )
 
-from custom_tools.openshift.openshift_tools import ensure_openshift_project_access
+from custom_tools.openshift.openshift_tools import (
+    ensure_openshift_project_access,
+    ensure_openshift_providers_ready
+)
 
 # Expose all tools in a list for easier import
 custom_tools = [duckSearch, wiki, arxiv, website_crawl, extract_content]
@@ -44,7 +47,8 @@ vsphere_tool_descriptions = (
 # OPENSHIFT
 
 openshift_tools = [
-    ensure_openshift_project_access,
+    ensure_openshift_project_access, 
+    ensure_openshift_providers_ready
 ]
 
 # Create a list of tool names
