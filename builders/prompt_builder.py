@@ -8,6 +8,7 @@ from tools import (
     vsphere_tool_descriptions,
     openshift_tool_names,
 )
+from tools.tool_registry import get_tool_descriptions_by_category
 from prompts.planner_prompt import DEFAULT_SYS_PLANNER_PROMPT
 from prompts.pm_prompt import DEFAULT_SYS_PM_PROMPT
 from prompts.architect_prompt import DEFAULT_SYS_ARCHITECT_REACT_PROMPT

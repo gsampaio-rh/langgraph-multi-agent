@@ -9,12 +9,11 @@ import time
 # Registry to hold all discovered tools
 tool_registry = {}
 
-# Tool categories and corresponding modules
-TOOL_CATEGORIES = {
-    "vsphere": "tools.vsphere.vm_lifecycle_manager",
-    "openshift": "tools.openshift.openshift_tools",
+# Define a mapping of categories to their respective tool lists
+CATEGORY_TOOLS_MAPPING = {
+    "openshift": openshift_tools,
+    "vsphere_lifecycle": vm_lifecycle_manager_tools,
 }
-
 
 def generate_tool_descriptions(tools):
     """
@@ -79,3 +78,60 @@ def get_tool_by_name(tool_name):
     if tool_entry:
         return tool_entry["function"]  # Return only the function
     return None
+
+
+def get_tool_descriptions(tool_name):
+    """
+    Retrieve a tool function by its name from the tool registry.
+    """
+    tool_entry = tool_registry.get(tool_name, None)
+    if tool_entry:
+        return tool_entry["description"]  # Return only the function
+    return None
+
+
+def get_tool_descriptions_by_category(category_name: str):
+    """
+    Generate and return tool descriptions for the given category using generate_tool_descriptions.
+
+    Args:
+        category_name (str): The category name (e.g., 'OpenShift', 'vSphere Lifecycle Manager').
+
+    Returns:
+        str: Formatted tool descriptions for the specified category.
+    """
+    # Get the list of tools based on the category name
+    tools_list = CATEGORY_TOOLS_MAPPING.get(category_name)
+
+    if not tools_list:
+        return f"No tools found for category: {category_name}"
+
+    # Generate descriptions for the tools in this category
+    descriptions = generate_formatted_tool_descriptions(tools_list)
+
+    return descriptions
+
+
+def generate_formatted_tool_descriptions(tools):
+    """
+    Generate formatted tool descriptions for readability.
+    """
+    formatted_descriptions = ""
+
+    for tool in tools:
+        # Tool name and description
+        description = generate_tool_descriptions([tool])
+        formatted_descriptions += f"- **{tool.name}**\n\n"
+        formatted_descriptions += f"    {tool.description}\n\n"
+
+        # Arguments section
+        formatted_descriptions += "    **Arguments**:\n"
+        formatted_descriptions += f"    {str(tool.args)}\n\n"
+
+        # formatted_descriptions += "\n"
+
+        # # Returns section
+        # # formatted_descriptions += f"    **Returns**:\n    - `{tool['returns']}`\n"
+        formatted_descriptions += "\n"
+
+    return formatted_descriptions

@@ -9,6 +9,7 @@ from tools import (
     vsphere_tool_names,
     vsphere_tool_descriptions,
 )
+from tools.tool_registry import get_tool_descriptions_by_category
 
 class ReactAgent(Agent):
 
@@ -51,11 +52,11 @@ class ReactAgent(Agent):
         Iteratively reason and act until a valid task plan with a final answer is generated.
         """
         if self.role == "ocp_engineer":
-            tool_names =openshift_tool_names
-            tool_descriptions = openshift_tool_descriptions
+            tool_names = openshift_tool_names
+            tool_descriptions = get_tool_descriptions_by_category("openshift")
         elif self.role == "vsphere_engineer":
             tool_names = vsphere_tool_names
-            tool_descriptions = vsphere_tool_descriptions
+            tool_descriptions = get_tool_descriptions_by_category("vsphere_lifecycle")
         else:
             tool_names = vsphere_tool_names
             tool_descriptions = vsphere_tool_descriptions

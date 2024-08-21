@@ -79,8 +79,7 @@ def retrieve_vm_details(vm_name: str) -> Union[Dict[str, Union[str, int, list]],
 @tool(parse_docstring=True)
 def ensure_vms_not_running(vm_names: List[str]) -> Union[bool, str]:
     """
-    A wrapper around a vSphere utility for ensuring that multiple virtual machines (VMs) are not running if 'warm' migration is not supported.
-    If warm migration is not supported, the VMs will be powered off if they are running.
+    A wrapper around a vSphere utility for ensuring that multiple virtual machines (VMs) are not running if 'warm' migration is not supported. If warm migration is not supported, the VMs will be powered off if they are running.
 
     Args:
         vm_names: A list of virtual machine names to check.
