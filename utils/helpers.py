@@ -45,3 +45,21 @@ def loading_animation(cycles=3, duration=0.2):
             sys.stdout.write("\r" + frame)
             sys.stdout.flush()
             time.sleep(duration)
+
+
+def get_status_symbol(task_status):
+    """
+    Returns the corresponding symbol for the given task status.
+
+    Args:
+        task_status (str): The status of the task.
+
+    Returns:
+        str: The symbol representing the task status.
+    """
+    status_mapping = {
+        "completed": "✅",
+        "pending": "⏳",
+        "failed": "❌",
+    }
+    return status_mapping.get(task_status, "❔")

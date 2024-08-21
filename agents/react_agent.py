@@ -4,8 +4,6 @@ from builders.prompt_builder import PromptBuilder
 from tools.tool_invoker import invoke_tool
 from tools.tool_registry import (
     get_tool_by_name,
-    get_tool_descriptions_by_category, 
-    get_tool_names_by_category
 )
 
 class ReactAgent(Agent):
