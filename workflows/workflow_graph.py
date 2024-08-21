@@ -4,7 +4,6 @@ from agents.pm.pm_agent import PMAgent
 from agents.architect.architect_agent import ArchitectAgent
 from agents.engineer.engineer_agent import EngineerAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
-from agents.researcher.researcher_agent import ResearcherAgent
 from state.agent_state import get_last_entry_from_state
 from config.app_config import app_config
 from tools import tools_description
@@ -67,16 +66,6 @@ def vsphere_engineer_node_function(state: AgentGraphState):
     )
 
 
-def reseacher_node_function(state: AgentGraphState):
-    ResearcherAgent(
-        state=state,
-        role="researcher",
-        model_config=app_config.model_config,
-    ).invoke(
-        user_request=state["user_request"]
-    )
-
-
 def reviewer_node_function(state: AgentGraphState):
     ReviewerAgent(
         state=state,
@@ -84,7 +73,7 @@ def reviewer_node_function(state: AgentGraphState):
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"],
-        agent_update=get_last_entry_from_state(state, "researcher_response"),
+        agent_update=get_last_entry_from_state(state, "ocp_engineer_response"),
     )
 
 

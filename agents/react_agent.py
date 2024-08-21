@@ -138,7 +138,7 @@ class ReactAgent(Agent):
                     )
                     self.log_event("info", json.dumps(tool_result, indent=4))
                 else:
-                    tool_result = result["result"]
+                    tool_result = f"{result['error']}: {result['details']}"
                     success = False
                     self.log_event("error", json.dumps(result, indent=4))
                 usr_prompt_dict = {
