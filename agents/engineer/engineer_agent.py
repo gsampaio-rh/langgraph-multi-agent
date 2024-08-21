@@ -35,7 +35,7 @@ class EngineerAgent(ReactAgent):
                 if result:
                     # Update the task status to 'completed' via TaskManager
                     self.task_manager.update_task_status(task["task_id"], "completed")
-                    self.state_manager.update_state(f"{self.role}_response", result)
+                    self.update_state(f"{self.role}_response", result)
                 else:
                     # Handle task failure, potentially reattempt or mark as failed
                     self.task_manager.update_task_status(task["task_id"], "failed")
