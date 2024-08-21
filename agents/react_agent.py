@@ -1,10 +1,6 @@
 import json
 from agents.base_agent import Agent
 from builders.prompt_builder import PromptBuilder
-from tools.tool_invoker import invoke_tool
-from tools.tool_registry import (
-    get_tool_by_name,
-)
 
 class ReactAgent(Agent):
 
@@ -132,11 +128,23 @@ class ReactAgent(Agent):
                 return reason_and_act_output
 
             if suggested_tool:
-                success, tool_result = self._execute_tool(suggested_tool, tool_input)
+                result = self.tool_manager.invoke_tool(suggested_tool, tool_input)
+                # Handle success or errors
+                if result.get("success"):
+                    tool_result = result["result"]
+                    success = True
+                    self.log_event(
+                        "info", f"🪛 Tool '{suggested_tool}' executed successfully."
+                    )
+                    self.log_event("info", json.dumps(tool_result, indent=4))
+                else:
+                    tool_result = result["result"]
+                    success = False
+                    self.log_event("error", json.dumps(result, indent=4))
                 usr_prompt_dict = {
-                    "action": suggested_tool, 
-                    "action_result": str(tool_result), 
-                    "success": success
+                    "action": suggested_tool,
+                    "action_result": str(tool_result),
+                    "success": success,
                 }
                 usr_prompt = json.dumps(usr_prompt_dict, indent=4)
                 self.log_event("info", usr_prompt)
@@ -150,29 +158,3 @@ class ReactAgent(Agent):
                 tool_descriptions=self.tool_descriptions,
                 scratchpad=scratchpad,
             )
-
-    def _execute_tool(self, tool_name: str, tool_input: dict = None) -> bool:
-        """
-        Execute the suggested tool and return whether it was successful.
-        """
-        # Ensure tool_input is a dictionary, even if it's None
-        if tool_input is None:
-            tool_input = {}
-
-        self.log_event("info", f"🔧 Executing tool '{tool_name}' with input {tool_input}.")
-
-        tool = get_tool_by_name(tool_name)
-        if not tool:
-            error_message = f"❌ Tool '{tool_name}' not found."
-            self.log_event("error", error_message)
-            return False, error_message
-
-        try:
-            tool_result = invoke_tool(tool, **tool_input)
-            self.log_event("info", f"🪛 \n '{tool_result}' \n")
-            self.log_event("info", f"🪛 Tool '{tool_name}' executed successfully.")
-            return True, tool_result
-        except Exception as e:
-            error_message = f"❌ Tool execution failed: {e}"
-            self.log_event("error", error_message)
-            return False, error_message

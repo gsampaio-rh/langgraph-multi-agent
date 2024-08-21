@@ -10,12 +10,14 @@ from tools.tool_registry import (
     get_tool_names_by_category,
 )
 from controllers.task_manager import TaskManager
+from controllers.tool_manager import ToolManager
 
 class Agent:
     def __init__(self, state: AgentGraphState, role: str, model_config: dict):
         self.state = state
         self.role = role
         self.task_manager = TaskManager(role)
+        self.tool_manager = ToolManager()
         self.model_service = ModelService(model_config)
         self.tool_names, self.tool_descriptions = self._get_agent_tools()
 
