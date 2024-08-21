@@ -24,7 +24,7 @@ pm_output_schema = {
                             "networking",
                             "reviewer",
                             "cleanup",
-                        ],  # Agent responsible for executing the task (e.g., "Architect Agent").
+                        ],  # Agent responsible for executing the task.
                     },
                     "status": {
                         "type": "string",
@@ -45,6 +45,13 @@ pm_output_schema = {
                     "acceptance_criteria": {
                         "type": "string",  # Criteria that must be met to consider the task successfully completed.
                     },
+                    "tool_to_use": {
+                        "type": [
+                            "string",
+                            "null",
+                        ],  # The tool the agent should use, or null if no tool is required.
+                        "default": None,  # Default is None if no tool is specified.
+                    },
                 },
                 "required": [
                     "task_id",
@@ -53,7 +60,7 @@ pm_output_schema = {
                     "agent",
                     "status",
                     "acceptance_criteria",
-                ],  # Dependencies are optional.
+                ],  # Dependencies and tool_to_use are optional.
             },
         }
     },

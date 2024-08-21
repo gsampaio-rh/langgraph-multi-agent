@@ -39,12 +39,13 @@ Your response should return a task list in the following format. This task list 
     "tasks": [
         {{
             "task_id": "string",  # Unique identifier for the task.
-            "task_name": "string",  # The short name of the task (e.g., "Validate VMware Access").
+            "task_name": "string",  # The short name of the task (e.g., "Create Migration Plan").
             "task_description": "string",  # A detailed description of the task's actions.
             "agent": "string",  # The agent responsible for executing the task (must be one of: "ocp_engineer", "vsphere_engineer", "cleanup").
             "status": "pending",  # The current status of the task ("pending", "in_progress", "completed", "failed").
             "dependencies": ["array"],  # Task IDs that must be completed before this task starts.
-            "acceptance_criteria": "string"  # The criteria for determining task success (e.g., "Access to VMware confirmed").
+            "acceptance_criteria": "string",  # The criteria for determining task success (e.g., "Migration plan created and validated").
+            "tool_to_use": "string or null"  # The tool that the agent should use to execute the task. This may be null if no tool is required.
         }}
     ]
 }}
@@ -57,12 +58,23 @@ Your response should return a task list in the following format. This task list 
     "tasks": [
         {{
             "task_id": "task_001",
-            "task_name": "Validate VMware Access",
-            "task_description": "Ensure access to VMware is validated for all migration-related resources.",
+            "task_name": "Create Migration Plan",
+            "task_description": "Create a migration plan for the specified virtual machines.",
             "agent": "vsphere_engineer",
             "status": "pending",
             "dependencies": [],
-            "acceptance_criteria": "Access to VMware confirmed and validated."
+            "acceptance_criteria": "Migration plan created and validated.",
+            "tool_to_use": "create_migration_plan_tool"
+        }},
+        {{
+            "task_id": "task_002",
+            "task_name": "Start Migration",
+            "task_description": "Start the migration process using the migration plan.",
+            "agent": "ocp_engineer",
+            "status": "pending",
+            "dependencies": ["task_001"],
+            "acceptance_criteria": "Migration process successfully started.",
+            "tool_to_use": "start_migration_tool"
         }}
     ]
 }}
@@ -76,17 +88,27 @@ When feedback indicates that a task has been completed, update the task as follo
 {{
     "tasks": [
         {{
-            "task_id": "1",
-            "task_name": "Validate VMware Access",
-            "task_description": "Ensure access to VMware vSphere is available and functioning properly.",
+            "task_id": "task_001",
+            "task_name": "Create Migration Plan",
+            "task_description": "Create a migration plan for the specified virtual machines.",
             "agent": "vsphere_engineer",
             "status": "completed",  # The task status has been updated based on feedback.
             "dependencies": [],
-            "acceptance_criteria": "Access to VMware vSphere confirmed."
+            "acceptance_criteria": "Migration plan created and validated.",
+            "tool_to_use": "create_migration_plan_tool"
+        }},
+        {{
+            "task_id": "task_002",
+            "task_name": "Start Migration",
+            "task_description": "Start the migration process using the migration plan.",
+            "agent": "ocp_engineer",
+            "status": "in_progress",  # Task is currently being executed.
+            "dependencies": ["task_001"],
+            "acceptance_criteria": "Migration process successfully started.",
+            "tool_to_use": "start_migration_tool"
         }}
     ]
 }}
-
 
 ---
 
@@ -101,5 +123,5 @@ Remember:
 - Always prioritize updating existing tasks based on feedback before creating new tasks.
 - Ensure that the original tasks are followed as closely as possible to avoid unnecessary changes in the execution plan.
 - Ensure tasks are marked as complete once their acceptance criteria are met.
-- Maintain the JSON format and ensure all fields are filled out correctly.
+- Maintain the JSON format and ensure all fields are filled out correctly, including the `tool_to_use` field with the appropriate tool name.
 """
