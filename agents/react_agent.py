@@ -1,6 +1,7 @@
 import json
 from agents.base_agent import Agent
 from builders.prompt_builder import PromptBuilder
+from schemas.react_schema import reason_and_act_output_schema
 
 class ReactAgent(Agent):
 
@@ -103,7 +104,7 @@ class ReactAgent(Agent):
         post_tool_limit = 3  # Maximum iterations after a tool is used
         total_interations = 0
         tool_used = None
-        
+
         success = False
 
         while True:
@@ -157,8 +158,24 @@ class ReactAgent(Agent):
                     "action_result": str(tool_result),
                     "final_thought": final_thought,
                 }
-                self.log_event("info", reason_and_act_output)
-                return reason_and_act_output
+                # Validate the model output
+                is_valid, json_response, validation_message = (
+                    self.validate_model_output(
+                        json.dumps(reason_and_act_output),
+                        reason_and_act_output_schema,
+                    )
+                )
+                if is_valid:
+                    self.log_event("info", reason_and_act_output)
+                    return reason_and_act_output
+                else:
+                    # Log the invalid output and provide feedback
+                    self.log_event(
+                        "error", f"❌ Invalid output received: {validation_message}"
+                    )
+                    feedback_value = f"Invalid response: {validation_message}. Please correct and try again."
+
+                    scratchpad.append(feedback_value)
 
             if success:
                 post_tool_counter += 1
