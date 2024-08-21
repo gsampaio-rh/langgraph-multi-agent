@@ -141,16 +141,17 @@ def create_graph() -> StateGraph:
     graph.add_node("manager", pm_node_function)
     graph.add_node("ocp_engineer", ocp_engineer_node_function)
     graph.add_node("vsphere_engineer", vsphere_engineer_node_function)
+    graph.add_node("reviewer", reviewer_node_function)
 
     # Define the flow of the graph
     graph.add_edge(START, "planner")
     graph.add_edge("planner", "manager")
     graph.add_conditional_edges("manager", should_continue, agents)
-    graph.add_edge("manager", END)
+    # graph.add_edge("manager", END)
 
-    # graph.add_edge("researcher", "reviewer")
-    # graph.add_edge("architect", "reviewer")
-    # graph.add_edge("reviewer", "manager")
+    graph.add_edge("ocp_engineer", "reviewer")
+    graph.add_edge("vsphere_engineer", "reviewer")
+    graph.add_edge("reviewer", "manager")
 
     return graph
 

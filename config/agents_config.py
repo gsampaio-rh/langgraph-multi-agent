@@ -10,10 +10,9 @@ class AgentsConfig:
         default_factory=lambda: [
             "planner",
             "pm",
-            "researcher",
             "vsphere_engineer",
             "ocp_engineer",
-            "architect",
+            "reviewer",
         ]
     )
     max_iterations: int = int(os.getenv("AGENT_MAX_ITERATIONS", 10))
@@ -22,13 +21,12 @@ class AgentsConfig:
         default_factory=lambda: {
             "planner": {"name": "Planner Agent 👩🏿‍💻", "color": "cyan"},
             "manager": {"name": "Manager Agent 👩‍💼", "color": "yellow"},
-            "researcher": {"name": "Researcher Agent 🧑‍🔬", "color": "light_magenta"},
             "vsphere_engineer": {
                 "name": "vSphere Engineer 👷‍♀️",
                 "color": "light_yellow",
             },
             "ocp_engineer": {"name": "OCP Engineer 🧑‍💻", "color": "light_red"},
-            "architect": {"name": "Architect Agent 📐", "color": "light_yellow"},
+            "reviewer": {"name": "Reviewer Agent 🤓", "color": "light_green"},
         }
     )
     description_file: str = "agents.yaml"  # Path to the agents description file

@@ -60,6 +60,7 @@ class PMAgent(Agent):
         tasks_list = task_utils.get_tasks_list(self.state)
 
         usr_prompt = self.construct_user_prompt(user_request, tasks_list)
+        print(usr_prompt)
         sys_prompt = PromptBuilder.build_pm_prompt(original_plan, tasks_list)
 
         while True:

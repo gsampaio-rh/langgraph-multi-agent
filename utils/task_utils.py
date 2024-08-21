@@ -63,7 +63,7 @@ def get_task_by_id(state, task_id: str) -> dict:
     task_list = get_tasks_list(state)
 
     for task in task_list:
-        if task.get("id") == task_id:
+        if task.get("task_id") == task_id:
             return task
 
     raise ValueError(f"Task with ID '{task_id}' not found in the task list.")
@@ -124,4 +124,3 @@ def get_first_pending_task(state, agent_role: str = None) -> list:
 
     first_task = pending_tasks[0]
     return first_task
-
