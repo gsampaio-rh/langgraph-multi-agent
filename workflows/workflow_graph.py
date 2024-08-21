@@ -139,10 +139,8 @@ def create_graph() -> StateGraph:
     # Add nodes
     graph.add_node("planner", planner_node_function)
     graph.add_node("manager", pm_node_function)
-    # graph.add_node("architect", architect_node_function)
     graph.add_node("ocp_engineer", ocp_engineer_node_function)
     graph.add_node("vsphere_engineer", vsphere_engineer_node_function)
-    # graph.add_node("researcher", reseacher_node_function)
 
     # Define the flow of the graph
     graph.add_edge(START, "planner")
