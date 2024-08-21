@@ -38,6 +38,47 @@ class ReactAgent(Agent):
             self.log_event("error", f"Failed to decode JSON response: {e}")
             return None
 
+    def _handle_repeated_response(
+        self,
+        think_response: dict,
+        previous_response: dict,
+        iteration_limit: int,
+        pending_task: dict,
+    ):
+        """
+        Handle repeated responses during the reasoning loop.
+        """
+        if think_response == previous_response:
+            iteration_limit -= 1
+            self.log_event("warning", f"❌ Repeated output detected. Remaining attempts: {iteration_limit}")
+
+            if iteration_limit <= 0:
+                self.log_event("error", "❌ Reasoning stuck in a loop. Forcing a retry or an alternative approach.")
+                return {
+                    "retry": True,
+                    "reset_iteration_limit": True,
+                    "new_prompt": f"You keep repeating the same reasoning. Your task is to {pending_task.get('task_name')}. Please act now or provide more specific details."
+                }
+        return {
+            "retry": False,
+            "reset_iteration_limit": False,
+            "new_prompt": None
+        }
+
+    def _handle_tool_result(self, tool_name: str, result: dict) -> (str, bool):
+        """
+        Handle the tool execution result and log accordingly.
+        """
+        if result.get("success"):
+            tool_result = result["result"]
+            self.log_event("info", f"🪛 Tool '{tool_name}' executed successfully.")
+            self.log_event("info", json.dumps(tool_result, indent=4))
+            return tool_result, True
+        else:
+            tool_result = f"{result['error']}: {result['details']}"
+            self.log_event("error", json.dumps(result, indent=4))
+            return tool_result, False
+
     def _reason_and_act(self, task_checklist: str, pending_task: dict) -> None:
         """
         Iteratively reason and act until a valid task plan with a final answer is generated.
@@ -75,22 +116,14 @@ class ReactAgent(Agent):
 
             scratchpad.append(str(think_message))
 
-            # Detect repeated reasoning responses
-            if think_response == previous_response:
-                iteration_limit -= 1
-                self.log_event(
-                    "warning",
-                    f"❌ Repeated output detected. Remaining attempts: {iteration_limit}",
-                )
-
-                if iteration_limit <= 0:
-                    self.log_event(
-                        "error",
-                        " ❌  Reasoning stuck in a loop. Forcing a retry or an alternative approach.",
-                    )
-                    usr_prompt = f"You keep repeating the same reasoning. Your task is {pending_task.get('task_name')}. Please act now or provide more specific details. Take your time and do this step-by-step."
-
-                    iteration_limit = 3  # Reset the limit for the next cycle
+            # Handle repeated responses
+            response_handling = self._handle_repeated_response(
+                think_response, previous_response, iteration_limit, pending_task
+            )
+            if response_handling["retry"]:
+                usr_prompt = response_handling["new_prompt"]
+                if response_handling["reset_iteration_limit"]:
+                    iteration_limit = 3
                     scratchpad = []
                     sys_prompt = PromptBuilder.build_react_prompt(
                         task=pending_task.get("task_name"),
@@ -99,8 +132,7 @@ class ReactAgent(Agent):
                         tool_names=self.tool_names,
                         tool_descriptions=self.tool_descriptions,
                     )
-                else:
-                    continue  # Retry the reasoning
+                continue
 
             # Update previous_response after comparison
             previous_response = think_response
@@ -127,26 +159,18 @@ class ReactAgent(Agent):
                 self.log_event("info", reason_and_act_output)
                 return reason_and_act_output
 
+            # Execute the suggested tool
             if suggested_tool:
                 result = self.tool_manager.invoke_tool(suggested_tool, tool_input)
-                # Handle success or errors
-                if result.get("success"):
-                    tool_result = result["result"]
-                    success = True
-                    self.log_event(
-                        "info", f"🪛 Tool '{suggested_tool}' executed successfully."
-                    )
-                    self.log_event("info", json.dumps(tool_result, indent=4))
-                else:
-                    tool_result = f"{result['error']}: {result['details']}"
-                    success = False
-                    self.log_event("error", json.dumps(result, indent=4))
-                usr_prompt_dict = {
-                    "action": suggested_tool,
-                    "action_result": str(tool_result),
-                    "success": success,
-                }
-                usr_prompt = json.dumps(usr_prompt_dict, indent=4)
+                tool_result, success = self._handle_tool_result(suggested_tool, result)
+                usr_prompt = json.dumps(
+                    {
+                        "action": suggested_tool,
+                        "action_result": str(tool_result),
+                        "success": success,
+                    },
+                    indent=4,
+                )
                 self.log_event("info", usr_prompt)
 
             # Update system prompt with the scratchpad history
