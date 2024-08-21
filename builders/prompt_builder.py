@@ -8,7 +8,10 @@ from tools import (
     vsphere_tool_descriptions,
     openshift_tool_names,
 )
-from tools.tool_registry import get_tool_descriptions_by_category
+from tools.tool_registry import (
+    get_tool_descriptions_by_category,
+    get_tool_names_by_category,
+)
 from prompts.planner_prompt import DEFAULT_SYS_PLANNER_PROMPT
 from prompts.pm_prompt import DEFAULT_SYS_PM_PROMPT
 from prompts.architect_prompt import DEFAULT_SYS_ARCHITECT_REACT_PROMPT
@@ -17,6 +20,12 @@ from prompts.reviewer_prompt import DEFAULT_SYS_REVIEWER_PROMPT
 from prompts.react_agent_prompt import DEFAULT_SYS_REACT_AGENT_PROMPT
 
 class PromptBuilder:
+    openshift_tool_names = get_tool_names_by_category("openshift")
+    openshift_tool_descriptions = get_tool_descriptions_by_category("openshift")
+
+    vsphere_tool_names = get_tool_names_by_category("vsphere_lifecycle")
+    vsphere_tool_descriptions = get_tool_descriptions_by_category("vsphere_lifecycle")
+
     @staticmethod
     def build_planner_prompt(
         user_request: str, 

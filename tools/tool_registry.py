@@ -135,3 +135,19 @@ def generate_formatted_tool_descriptions(tools):
         formatted_descriptions += "\n"
 
     return formatted_descriptions
+
+
+def get_tool_names_by_category(category_name: str):
+    """
+    Retrieve tool names for the given category.
+    """
+    # Get the list of tools based on the category name
+    tools_list = CATEGORY_TOOLS_MAPPING.get(category_name)
+
+    if not tools_list:
+        return [f"No tools found for category: {category_name}"]
+
+    # Extract and return tool names
+    tool_names = [tool.name for tool in tools_list]
+
+    return tool_names
