@@ -55,16 +55,58 @@ class ReactAgent(Agent):
 
             if iteration_limit <= 0:
                 self.log_event("error", "❌ Reasoning stuck in a loop. Forcing a retry or an alternative approach.")
-                return {
-                    "retry": True,
-                    "reset_iteration_limit": True,
-                    "new_prompt": f"You keep repeating the same reasoning. Your task is to {pending_task.get('task_name')}. Please act now or provide more specific details."
-                }
+                return self._force_retry(pending_task)
         return {
             "retry": False,
             "reset_iteration_limit": False,
             "new_prompt": None
         }
+
+    def _force_retry(self, pending_task: dict) -> dict:
+        """
+        Force a retry with a modified prompt when reasoning is stuck in a loop.
+        """
+        return {
+            "retry": True,
+            "reset_iteration_limit": True,
+            "new_prompt": (
+                f"You keep repeating the same reasoning. Your task is to {pending_task.get('task_name')}. "
+                "Please act now or provide more specific details."
+            ),
+        }
+
+    def _build_system_prompt(self, pending_task: dict, scratchpad: list = None) -> str:
+        """
+        Build the system prompt with the task details and optional scratchpad history.
+        """
+        return PromptBuilder.build_react_prompt(
+            task=pending_task.get("task_name"),
+            task_description=pending_task.get("task_description"),
+            acceptance_criteria=pending_task.get("acceptance_criteria"),
+            tool_names=self.tool_names,
+            tool_descriptions=self.tool_descriptions,
+            scratchpad=scratchpad,
+        )
+
+    def _log_iteration_state(
+        self,
+        usr_prompt: str,
+        tool_used: str,
+        total_iterations: int,
+        iteration_limit: int,
+        post_tool_counter: int,
+    ):
+        """
+        Log the state of each reasoning iteration.
+        """
+        self.log_event(
+            "info",
+            f"🗣️ User Prompt: {usr_prompt}\n"
+            f"🔄 Total Iterations: {total_iterations}\n"
+            f"🛠️ Tool Used: {tool_used if tool_used else 'None'}\n"
+            f"⏳ Remaining Repeated Iteration Limit: {iteration_limit}\n"
+            f"🔄 Post-Tool Iterations: {post_tool_counter}\n",
+        )
 
     def _handle_tool_result(self, tool_name: str, result: dict) -> (str, bool):
         """
@@ -90,34 +132,28 @@ class ReactAgent(Agent):
         )
         usr_prompt = f"Solve this task: {pending_task.get('task_name')}"
         scratchpad = []
-        sys_prompt = PromptBuilder.build_react_prompt(
-            task=pending_task.get("task_name"),
-            task_description=pending_task.get("task_description"),
-            acceptance_criteria=pending_task.get("acceptance_criteria"),
-            tool_names=self.tool_names,
-            tool_descriptions=self.tool_descriptions,
-        )
+        sys_prompt = self._build_system_prompt(pending_task)
 
         previous_response = None  # To track repeated outputs
         iteration_limit = 3 # Set a limit for the number of times to allow repeated responses
         post_tool_counter = 0  # Count how many times we reason after executing a tool
         post_tool_limit = 3  # Maximum iterations after a tool is used
-        total_interations = 0
+        total_iterations = 0
         tool_used = None
 
         success = False
 
         while True:
 
-            self.log_event(
-                "info",
-                f"🗣️ User Prompt: {usr_prompt}\n"
-                f"🔄 Total Iterations: {total_interations}\n"
-                f"🛠️ Tool Used: {tool_used if tool_used else 'None'}\n"
-                f"⏳ Remaining Repeated Iteration Limit: {iteration_limit}\n"
-                f"🔄 Post-Tool Iterations: {post_tool_counter}/{post_tool_limit}\n",
+            self._log_iteration_state(
+                usr_prompt,
+                tool_used,
+                total_iterations,
+                iteration_limit,
+                post_tool_counter,
             )
-            total_interations += 1
+            total_iterations += 1
+
             think_response, think_message = self._thinking(sys_prompt, usr_prompt)
 
             if not think_response:
@@ -211,11 +247,4 @@ class ReactAgent(Agent):
                     scratchpad = []
 
             # Update system prompt with the scratchpad history
-            sys_prompt = PromptBuilder.build_react_prompt(
-                task=pending_task.get("task_name"),
-                task_description=pending_task.get("task_description"),
-                acceptance_criteria=pending_task.get("acceptance_criteria"),
-                tool_names=self.tool_names,
-                tool_descriptions=self.tool_descriptions,
-                scratchpad=scratchpad,
-            )
+            sys_prompt = self._build_system_prompt(pending_task, scratchpad)
