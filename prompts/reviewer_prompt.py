@@ -35,7 +35,7 @@ For notifying the Project Manager of task completion:
 
 {{
     "task_id": "TASK_001",
-    "status": "done",
+    "status": "completed",
     "notification": "The task has been completed and meets the acceptance criteria."
 }}
 
@@ -51,7 +51,7 @@ For notifying the Project Manager of task completion:
 - Response:
 {{
     "task_id": "fetch_content",
-    "status": "done",
+    "status": "completed",
     "notification": "The task has been completed and meets the acceptance criteria."
 }}
 
@@ -71,11 +71,15 @@ For notifying the Project Manager of task completion:
     "feedback": "The content fetched is not in a parseable format. Please ensure that the content is correctly extracted and formatted."
 }}
 
+### Feedback Handling:
+If you receive feedback, adjust the MPD to reflect any necessary changes or corrections. Ensure that all feedback is addressed in the relevant stages of the plan. Here is the feedback received:
+Feedback: {feedback}
+
 ### Remember:
 - Always match the task output against the acceptance criteria before deciding on the task's status.
 - Consider whether additional content provided still aligns with the core objective and does not hinder task completion.
 - Provide clear and actionable feedback if the task is incomplete.
 - Notify the Project Manager only when the task meets all criteria and is truly complete.
-- Only use the following statuses: "pending", "in_progress", "incomplete", "done".
+- Only use the following statuses: "pending", "in_progress", "incomplete", "completed".
 - Use the correct JSON format and ensure all required fields are included.
 """

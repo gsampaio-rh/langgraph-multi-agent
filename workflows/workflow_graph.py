@@ -95,22 +95,22 @@ def should_continue(state):
     pending_agents = []
 
     for task in tasks_list:
-        # Check if task is not done and has no open dependencies
-        if task["status"] != "done":
+        # Check if task is not completed and has no open dependencies
+        if task["status"] != "completed":
             # Check dependencies
-            dependencies_done = all(
-                dep_task["status"] == "done"
+            dependencies_completed = all(
+                dep_task["status"] == "completed"
                 for dep_task in tasks_list
                 if dep_task["task_id"] in task["dependencies"]
             )
-            # Only add the agent if all dependencies are done
-            if dependencies_done:
+            # Only add the agent if all dependencies are completed
+            if dependencies_completed:
                 pending_agents.append(task["agent"])
 
     if pending_agents:
         print(
             colored(
-                f"[{get_current_utc_datetime()}] Not all tasks are marked as 'done'.\n"
+                f"[{get_current_utc_datetime()}] Not all tasks are marked as 'completed'.\n"
                 f"These agents {pending_agents} have tasks.\n",
                 "red",
             )
@@ -119,7 +119,8 @@ def should_continue(state):
     else:
         print(
             colored(
-                f"[{get_current_utc_datetime()}] All tasks are marked as 'done'.", "green"
+                f"[{get_current_utc_datetime()}] All tasks are marked as 'completed'.",
+                "green",
             )
         )
         return END

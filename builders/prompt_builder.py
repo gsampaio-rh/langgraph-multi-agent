@@ -98,23 +98,12 @@ class PromptBuilder:
         )
 
     @staticmethod
-    def build_researcher_prompt(
-        scratchpad: str = "",
-        tools_description: str = tools_description,
-        tool_names: str = tool_names,
-    ) -> str:
-        return DEFAULT_SYS_RESEARCHER_PROMPT.format(
-            tools_description=tools_description,
-            tool_names=tool_names,
-            agent_scratchpad=scratchpad,
-            datetime=get_current_utc_datetime(),
-        )
-
-    @staticmethod
     def build_reviewer_prompt(
-        task: dict
+        original_task: dict,
+        feedback_value: str = "",
     ) -> str:
         return DEFAULT_SYS_REVIEWER_PROMPT.format(
-            original_task=task,
+            original_task=original_task,
+            feedback=feedback_value,
             datetime=get_current_utc_datetime(),
         )

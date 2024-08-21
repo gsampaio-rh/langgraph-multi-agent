@@ -4,8 +4,8 @@ execute_step_output_schema = {
         "step_name": {"type": "string"},  # Name of the step being executed
         "status": {
             "type": "string",
-            "enum": ["done", "failed"],
-        },  # Status of the step (done or failed)
+            "enum": ["completed", "failed"],
+        },  # Status of the step (completed or failed)
         "result": {
             "oneOf": [
                 {

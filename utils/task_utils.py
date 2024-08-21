@@ -90,8 +90,8 @@ def get_pending_tasks(state, agent_role: str = None) -> list:
 
     pending_tasks = []
     for task in task_list:
-        # Check if the task is pending (not 'done')
-        if task.get("status") != "done":
+        # Check if the task is pending (not 'completed')
+        if task.get("status") != "completed":
             # If an agent_role is specified, filter by role; otherwise, add all pending tasks
             if agent_role is None or task.get("agent") == agent_role:
                 pending_tasks.append(task)

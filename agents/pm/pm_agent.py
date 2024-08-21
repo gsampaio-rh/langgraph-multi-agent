@@ -23,7 +23,7 @@ class PMAgent(Agent):
         if not all_reviewer_responses or all_reviewer_responses == "":
             self.log_event(
                 "info",
-                "🟡 Not all tasks are done but the reviewer didn't send any response yet.",
+                "🟡 Not all tasks are completed but the reviewer didn't send any response yet.",
             )
             return "Some tasks remain incomplete, but no feedback has been provided by the reviewer. No updates are required at this time."
 
@@ -60,7 +60,7 @@ class PMAgent(Agent):
         tasks_list = task_utils.get_tasks_list(self.state)
 
         usr_prompt = self.construct_user_prompt(user_request, tasks_list)
-        print(usr_prompt)
+        self.log_event("info", usr_prompt)
         sys_prompt = PromptBuilder.build_pm_prompt(original_plan, tasks_list)
 
         while True:

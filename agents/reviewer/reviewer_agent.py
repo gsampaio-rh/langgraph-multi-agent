@@ -1,9 +1,9 @@
-import json
 from agents.base_agent import Agent
 from utils import task_utils
 from typing import Dict, Any
 from builders.prompt_builder import PromptBuilder
 from state.agent_state import get_last_entry_from_state
+from schemas.reviewer_schema import task_completion_schema
 
 class ReviewerAgent(Agent):
 
@@ -88,8 +88,32 @@ class ReviewerAgent(Agent):
                             sys_prompt, usr_prompt
                         )
 
-                        self.log_event("finished", "")
-                        return self.state
+                        # Validate the model output
+                        is_valid, json_response, validation_message = (
+                            self.validate_model_output(
+                                response_content, task_completion_schema
+                            )
+                        )
+
+                        if is_valid:
+                            self.log_event("finished", "")
+                            return self.state
+                        else:
+                            # Log the invalid output and provide feedback
+                            self.log_event(
+                                "error", f"❌ Invalid output received: {validation_message}"
+                            )
+                            feedback_value = f"Invalid response: {validation_message}. Please correct and try again."
+
+                            # Update the prompt with feedback
+                            sys_prompt = PromptBuilder.build_reviewer_prompt(
+                                original_task, feedback_value
+                            )
+
+                            # Retry the request with feedback
+                            self.log_event(
+                                "info", f"Retrying the request with feedback: {feedback_value}"
+                            )
 
         except Exception as e:
             error_message = f"❌ Error occurred: {str(e)}"
