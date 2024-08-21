@@ -61,7 +61,7 @@ class PMAgent(Agent):
 
         usr_prompt = self.construct_user_prompt(user_request, tasks_list)
         self.log_event("info", usr_prompt)
-        sys_prompt = PromptBuilder.build_pm_prompt(original_plan, tasks_list)
+        sys_prompt = PromptBuilder.build_pm_prompt(tasks_list)
 
         while True:
             self.log_event("info", "⏳ Processing the request...")
@@ -87,9 +87,7 @@ class PMAgent(Agent):
                 feedback_value = f"Invalid response: {validation_message}. Please correct and try again."
 
                 # Update the prompt with feedback
-                sys_prompt = PromptBuilder.build_pm_prompt(
-                    original_plan, tasks_list, feedback_value
-                )
+                sys_prompt = PromptBuilder.build_pm_prompt(tasks_list, feedback_value)
 
                 # Retry the request with feedback
                 self.log_event(

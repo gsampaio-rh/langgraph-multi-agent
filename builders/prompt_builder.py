@@ -40,14 +40,12 @@ class PromptBuilder:
 
     @staticmethod
     def build_pm_prompt(
-        original_plan: str,
-        task_list: str,
+        original_tasks_list: str,
         feedback_value: str = "",
         agents_description: str = app_config.agents_config.agents_description,
     ) -> str:
         return DEFAULT_SYS_PM_PROMPT.format(
-            original_plan=original_plan,
-            task_list=task_list,
+            original_tasks_list=original_tasks_list,
             agents_description=agents_description,
             vsphere_tool_names=vsphere_tool_names,
             openshift_tool_names=openshift_tool_names,

@@ -30,7 +30,7 @@ pm_output_schema = {
                         "type": "string",
                         "enum": [
                             "pending",
-                            "in-progress",
+                            "in_progress",
                             "completed",
                             "failed",
                         ],  # Current status of the task.

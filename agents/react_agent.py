@@ -208,6 +208,7 @@ class ReactAgent(Agent):
                 if success:
                     # Reset the post-tool counter because we just used a tool
                     post_tool_counter = 0
+                    scratchpad = []
 
             # Update system prompt with the scratchpad history
             sys_prompt = PromptBuilder.build_react_prompt(
