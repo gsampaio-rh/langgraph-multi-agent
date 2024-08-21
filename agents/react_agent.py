@@ -48,19 +48,9 @@ class ReactAgent(Agent):
         """
         Iteratively reason and act until a valid task plan with a final answer is generated.
         """
-        if self.role == "ocp_engineer":
-            tool_names = get_tool_names_by_category("openshift")
-            tool_descriptions = get_tool_descriptions_by_category("openshift")
-        elif self.role == "vsphere_engineer":
-            tool_names = get_tool_names_by_category("vsphere_lifecycle")
-            tool_descriptions = get_tool_descriptions_by_category("vsphere_lifecycle")
-        else:
-            tool_names = get_tool_names_by_category("vsphere_lifecycle")
-            tool_descriptions = get_tool_descriptions_by_category("vsphere_lifecycle")
-
         self.log_event(
             "info",
-            f"💬 I am the {self.role} agent and I have access to these tools: {tool_names}",
+            f"💬 I am the {self.role} agent and I have access to these tools: {self.tool_names}",
         )
         usr_prompt = f"Solve this task: {pending_task.get('task_name')}"
         scratchpad = []
@@ -68,8 +58,8 @@ class ReactAgent(Agent):
             task=pending_task.get("task_name"),
             task_description=pending_task.get("task_description"),
             acceptance_criteria=pending_task.get("acceptance_criteria"),
-            tool_names=tool_names,
-            tool_descriptions=tool_descriptions,
+            tool_names=self.tool_names,
+            tool_descriptions=self.tool_descriptions,
         )
 
         previous_response = None  # To track repeated outputs
@@ -112,8 +102,8 @@ class ReactAgent(Agent):
                         task=pending_task.get("task_name"),
                         task_description=pending_task.get("task_description"),
                         acceptance_criteria=pending_task.get("acceptance_criteria"),
-                        tool_names=tool_names,
-                        tool_descriptions=tool_descriptions,
+                        tool_names=self.tool_names,
+                        tool_descriptions=self.tool_descriptions,
                     )
                 else:
                     continue  # Retry the reasoning
@@ -158,8 +148,8 @@ class ReactAgent(Agent):
                 task=pending_task.get("task_name"),
                 task_description=pending_task.get("task_description"),
                 acceptance_criteria=pending_task.get("acceptance_criteria"),
-                tool_names=tool_names,
-                tool_descriptions=tool_descriptions,
+                tool_names=self.tool_names,
+                tool_descriptions=self.tool_descriptions,
                 scratchpad=scratchpad,
             )
 

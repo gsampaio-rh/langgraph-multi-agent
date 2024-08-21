@@ -1,16 +1,21 @@
 import json
 import jsonschema
 from jsonschema import validate
-from typing import Any, Dict
+from typing import Any
 from state.agent_state import AgentGraphState
-from utils.log_utils import log_message
 from services.model_service import ModelService
+from utils.log_utils import log_message
+from tools.tool_registry import (
+    get_tool_descriptions_by_category,
+    get_tool_names_by_category,
+)
 
 class Agent:
     def __init__(self, state: AgentGraphState, role: str, model_config: dict):
         self.state = state
         self.role = role
         self.model_service = ModelService(model_config)
+        self.tool_names, self.tool_descriptions = self._get_agent_tools()
         self.tasks = []
 
     def update_state(self, key: str, value: Any):
@@ -92,6 +97,22 @@ class Agent:
         Logs an event based on the event type. Falls back to 'info' if the event_type is unknown.
         """
         log_message(self.role, message_type=event_type, custom_message=message)
+
+    def _get_agent_tools(self):
+        """
+        Get the tool names and descriptions available to the agent based on their role.
+        """
+        if self.role == "ocp_engineer":
+            tool_names = get_tool_names_by_category("openshift")
+            tool_descriptions = get_tool_descriptions_by_category("openshift")
+        elif self.role == "vsphere_engineer":
+            tool_names = get_tool_names_by_category("vsphere_lifecycle")
+            tool_descriptions = get_tool_descriptions_by_category("vsphere_lifecycle")
+        else:
+            tool_names = []
+            tool_descriptions = []
+
+        return tool_names, tool_descriptions
 
     def invoke_model(self, sys_prompt: str, user_prompt: str):
         """
