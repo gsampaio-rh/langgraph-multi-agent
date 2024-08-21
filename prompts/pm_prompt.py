@@ -33,7 +33,7 @@ The following is the list of original tasks that have been defined. Use this lis
 
 ### Output Format (Task Structure):
 
-Each task in the execution plan should be structured as follows:
+Your response should return a task list in the following format. This task list is central to ensuring that all migration tasks are tracked and executed correctly:
 
 {{
     "tasks": [
@@ -45,6 +45,24 @@ Each task in the execution plan should be structured as follows:
             "status": "pending",  # The current status of the task ("pending", "in_progress", "completed", "failed").
             "dependencies": ["array"],  # Task IDs that must be completed before this task starts.
             "acceptance_criteria": "string"  # The criteria for determining task success (e.g., "Access to VMware confirmed").
+        }}
+    ]
+}}
+
+---
+
+### Example of a Task List:
+
+{{
+    "tasks": [
+        {{
+            "task_id": "task_001",
+            "task_name": "Validate VMware Access",
+            "task_description": "Ensure access to VMware is validated for all migration-related resources.",
+            "agent": "vsphere_engineer",
+            "status": "pending",
+            "dependencies": [],
+            "acceptance_criteria": "Access to VMware confirmed and validated."
         }}
     ]
 }}
@@ -68,7 +86,6 @@ When feedback indicates that a task has been completed, update the task as follo
         }}
     ]
 }}
-
 
 
 ---

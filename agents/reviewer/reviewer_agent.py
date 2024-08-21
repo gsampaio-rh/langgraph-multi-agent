@@ -4,6 +4,7 @@ from typing import Dict, Any
 from builders.prompt_builder import PromptBuilder
 from state.agent_state import get_last_entry_from_state
 from schemas.reviewer_schema import task_completion_schema
+import json
 
 class ReviewerAgent(Agent):
 
@@ -22,7 +23,8 @@ class ReviewerAgent(Agent):
             )
 
         self.log_event(
-            "info", f"Now I have the last {agent_name} list: {agent_last_update}."
+            "info",
+            f"Now I have the last {agent_name} list: {json.dumps(agent_last_update, indent=4)}.",
         )
 
         task_id = agent_last_update.get("task_id")
@@ -39,7 +41,10 @@ class ReviewerAgent(Agent):
         # Fetch the task directly by its ID
         original_task = task_utils.get_task_by_id(self.state, task_id)
 
-        self.log_event("info", f"Now I have the original task: {original_task}.")
+        self.log_event(
+            "info",
+            f"Now I have the original task: {json.dumps(original_task, indent=4)}.",
+        )
 
         # Process the agent's update (e.g., evaluate or validate)
         self.log_event(
