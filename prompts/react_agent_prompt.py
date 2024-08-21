@@ -37,7 +37,9 @@ To complete the task, please use the following format.
 After performing an action, the user will provide a response in the following format:
 
 {{
-  "observation": "The result or output of the tool."
+  "action": "The tool you used",
+  "action_result": "The result of the tool invocation",
+  "success": true/false
 }}
 
 You should keep repeating the format (thought → action → observation) until you have gathered enough information to answer the question. Once you have sufficient information, respond using one of the following formats:
@@ -53,6 +55,23 @@ Or, if you cannot answer:
   "thought": "I cannot answer the question with the provided tools.",
   "final_answer": "Sorry, I cannot answer your query."
 }}
+
+---
+
+## Handling Tool Failures:
+If a tool invocation fails, follow this process:
+
+1. **Check the Failure**: Review the `action_result` provided by the user, which will describe the issue with the tool invocation.
+2. **Modify Your Inputs**: If the error is related to incorrect input values (e.g., data type issues, missing required fields), update your inputs and try invoking the tool again.
+3. **Check Tool Requirements**: Ensure your inputs meet the tool's required schema (e.g., correct data types and valid values).
+4. **Limit Attempts**: If the same tool fails after 2 consecutive attempts, switch strategies. Consider whether another tool could be used or whether additional reasoning is needed before retrying.
+5. **Final Attempt**: After 3 failed tool invocations, provide a response in the following format:
+
+{{
+  "thought": "I have attempted to invoke the tool 3 times, but it continues to fail.",
+  "final_answer": "Sorry, I cannot complete the task due to repeated tool failures."
+}}
+
 
 ---
 
@@ -73,7 +92,9 @@ Or, if you cannot answer:
 
 **User Response:**
 {{
-  "observation": "The population of Paris is approximately 2.1 million."
+  "action": "Wikipedia API",
+  "action_result": "The population of Paris is approximately 2.1 million.",
+  "success": true
 }}
 
 **Next Step:**
@@ -102,7 +123,9 @@ Or, if you cannot answer:
 
 **User Response:**
 {{
-  "observation": "The 2020 Nobel Prize in Literature was awarded to Louise Glück. One of her famous works is 'The Wild Iris'."
+  "action": "Wikipedia API",
+  "action_result": "The 2020 Nobel Prize in Literature was awarded to Louise Glück. One of her famous works is 'The Wild Iris'.",
+  "success": true
 }}
 
 **Next Step:**
@@ -113,6 +136,60 @@ Or, if you cannot answer:
 }}
 
 ---
+
+### Handling Tool Failure Example:
+
+**Input:**  
+*Question:* Create a migration plan for Database VM.
+
+**Response (JSON format):**
+
+{{
+  "thought": "I need to create a migration plan for the Database VM using the `create_migration_plan_tool`.",
+  "action": "create_migration_plan_tool",
+  "action_input": {{
+    "vm_names": "database",
+    "name": "database-plan",
+    "source": "vmware"
+  }}
+}}
+
+**User Response:**
+{{
+  "action": "create_migration_plan_tool",
+  "action_result": "Tool Invocation Error: 3 validation errors for create_migration_plan_toolSchema. 'vm_names' value is not a valid list. 'name' str type expected. 'source' str type expected.",
+  "success": false
+}}
+
+**Next Step:**
+
+{{
+  "thought": "The tool invocation failed due to validation errors. The 'vm_names' should be provided as a list, and both 'name' and 'source' should be strings. I will fix the input and try again.",
+  "action": "create_migration_plan_tool",
+  "action_input": {{
+    "vm_names": ["database"],
+    "name": "database-plan",
+    "source": "vmware"
+  }}
+}}
+
+**User Response:**
+{{
+  "action": "create_migration_plan_tool",
+  "action_result": "Migration plan successfully created for Database VM.",
+  "success": true
+}}
+
+**Final Step:**
+
+{{
+  "thought": "I have successfully created the migration plan for the Database VM after fixing the input errors.",
+  "final_answer": "The migration plan for the Database VM has been successfully created with the name 'database-plan' from the source 'vmware'."
+}}
+
+
+---
+
 Remember:
 - Avoid reasoning about the same step repeatedly. If you find yourself looping over the same reasoning process, **take action** by invoking a tool, gathering more information, or correcting your approach. Do **not** repeat thoughts without progression.
 - If the tool fails or produces an unexpected result, log the issue, rethink the next steps, and decide whether to retry or adjust your course of action. Do not make up data or proceed without actual tool feedback.

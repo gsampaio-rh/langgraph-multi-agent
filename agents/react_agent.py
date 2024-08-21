@@ -98,17 +98,25 @@ class ReactAgent(Agent):
         )
 
         previous_response = None  # To track repeated outputs
-        iteration_limit = (
-            3  # Set a limit for the number of times to allow repeated responses
-        )
-
+        iteration_limit = 3 # Set a limit for the number of times to allow repeated responses
+        post_tool_counter = 0  # Count how many times we reason after executing a tool
+        post_tool_limit = 3  # Maximum iterations after a tool is used
+        total_interations = 0
+        tool_used = None
+        
         success = False
 
         while True:
+
             self.log_event(
                 "info",
-                f"🗣️ User Prompt: {usr_prompt}",
+                f"🗣️ User Prompt: {usr_prompt}\n"
+                f"🔄 Total Iterations: {total_interations}\n"
+                f"🛠️ Tool Used: {tool_used if tool_used else 'None'}\n"
+                f"⏳ Remaining Repeated Iteration Limit: {iteration_limit}\n"
+                f"🔄 Post-Tool Iterations: {post_tool_counter}/{post_tool_limit}\n",
             )
+            total_interations += 1
             think_response, think_message = self._thinking(sys_prompt, usr_prompt)
 
             if not think_response:
@@ -125,13 +133,6 @@ class ReactAgent(Agent):
                 if response_handling["reset_iteration_limit"]:
                     iteration_limit = 3
                     scratchpad = []
-                    sys_prompt = PromptBuilder.build_react_prompt(
-                        task=pending_task.get("task_name"),
-                        task_description=pending_task.get("task_description"),
-                        acceptance_criteria=pending_task.get("acceptance_criteria"),
-                        tool_names=self.tool_names,
-                        tool_descriptions=self.tool_descriptions,
-                    )
                 continue
 
             # Update previous_response after comparison
@@ -159,8 +160,23 @@ class ReactAgent(Agent):
                 self.log_event("info", reason_and_act_output)
                 return reason_and_act_output
 
+            if success:
+                post_tool_counter += 1
+                if post_tool_counter >= post_tool_limit:
+                    self.log_event(
+                        "error",
+                        "❌ Exceeded maximum iterations after tool execution without reaching a final answer.",
+                    )
+                    usr_prompt = (
+                                    f"❌ Exceeded maximum iterations after tool execution without reaching a final answer.\n"
+                                    f"Here's the tool {tool_used} response: {str(tool_result)}.\n\n"
+                                    "Provide a final answer"
+                                )
+                    continue  # Reject final answer and continue with the loop
+
             # Execute the suggested tool
             if suggested_tool:
+                tool_used = suggested_tool
                 result = self.tool_manager.invoke_tool(suggested_tool, tool_input)
                 tool_result, success = self._handle_tool_result(suggested_tool, result)
                 usr_prompt = json.dumps(
@@ -172,6 +188,9 @@ class ReactAgent(Agent):
                     indent=4,
                 )
                 self.log_event("info", usr_prompt)
+                if success:
+                    # Reset the post-tool counter because we just used a tool
+                    post_tool_counter = 0
 
             # Update system prompt with the scratchpad history
             sys_prompt = PromptBuilder.build_react_prompt(
