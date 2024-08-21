@@ -91,16 +91,19 @@ def create_migration_plan_tool(
     try:
         # Create an OpenShiftService instance
         openshift_service = OpenShiftService()
-        print("\n1/4 Connected to Openshift...\n")
+        print("\n1/5 Connected to Openshift...\n")
 
         # Automatically lookup the provider UUID based on the source provider name
-        provider_uuid = openshift_service.lookup_provider_uuid_by_name(source)
-        if isinstance(provider_uuid, str) and "Error" in provider_uuid:
-            return provider_uuid  # Return the error if we encountered one
+        vmware_provider_uuid = openshift_service.lookup_provider_uuid_by_name(
+            provider_name="vmware", 
+            provider_type="vsphere"
+        )
+        if isinstance(vmware_provider_uuid, str) and "Error" in vmware_provider_uuid:
+            return vmware_provider_uuid  # Return the error if we encountered one
 
-        if provider_uuid is None:
+        if vmware_provider_uuid is None:
             return f"Provider '{source}' not found."
-        print(f"\n2/4 Now I have the provider {provider_uuid}...\n")
+        print(f"\n2/5 Now I have the provider {vmware_provider_uuid}...\n")
 
         # If no VM names are provided, use a default VM
         if vm_names is None:
@@ -109,7 +112,9 @@ def create_migration_plan_tool(
         # Fetch VM IDs for the given VM names
         vms = []
         for vm_name in vm_names:
-            vm_id = openshift_service.lookup_vm_id_by_name(provider_uuid, vm_name)
+            vm_id = openshift_service.lookup_vm_id_by_name(
+                vmware_provider_uuid, vm_name
+            )
 
             # Assuming error messages are distinct, e.g., returned as dicts or special error codes
             if isinstance(vm_id, dict) and 'error' in vm_id:
@@ -121,15 +126,25 @@ def create_migration_plan_tool(
             else:
                 return f"VM '{vm_name}' not found."
 
-        print(f"\n3/4 Now I have all the VM Names and all the VM IDs {vms}...\n")
+        print(f"\n3/5 Now I have all the VM Names and all the VM IDs {vms}...\n")
+
+        network_map, n_uid, network_map_name = openshift_service.create_network_map()
+        storage_map, s_uid, storage_map_name = openshift_service.create_storage_map()
+
+        print(f"\n4/5 Now I have the Storage and Network maps {vms}...\n")
+
         # Call the create_migration_plan method with the gathered information
         result = openshift_service.create_migration_plan(
+            network_map_uid=n_uid,
+            network_map_name=network_map_name,
+            storage_map_uid=s_uid,
+            storage_map_name=storage_map_name,
             name=name,
             source=source,
             vms=vms,
         )
 
-        print(f"\n4/4 Migration plan RESPONSE - {result}...\n")
+        print(f"\n5/5 Migration plan RESPONSE - {result}...\n")
         return result
 
     except Exception as e:
@@ -144,8 +159,9 @@ def start_migration_tool(
     A tool to start a migration for a given migration plan by its name.
 
     Args:
-        plan_name: The name of the migration plan.
+        plan_name: The name of the migration plan. The value should consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character (e.g. 'example.com', regex used for validation is '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*').
         namespace: The namespace where the migration plan is located. Default is 'openshift-mtv'.
+
 
     Returns:
         dict: The migration start response if successful.
@@ -222,8 +238,8 @@ def check_openshift_connection() -> Union[bool, str]:
         return f"Connection error: {str(e)}"
 
 openshift_tools = [
-    ensure_openshift_project_access,
-    ensure_openshift_providers_ready,
+    # ensure_openshift_project_access,
+    # ensure_openshift_providers_ready,
     create_migration_plan_tool,
-    start_migration_tool,
+    # start_migration_tool,
 ]

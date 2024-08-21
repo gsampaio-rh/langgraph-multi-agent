@@ -22,11 +22,6 @@ class OpenShiftService:
         """
         Initializes the OpenShiftService with API URL, token, and inventory service route,
         and sets up the connection to the OpenShift cluster.
-
-        Args:
-            api_url (str): The API URL of the OpenShift cluster.
-            token (str): The Bearer token to authenticate with the OpenShift API.
-            inventory_service_route (str): The base route for the inventory service.
         """
         try:
             # Set up the Kubernetes API client configuration
@@ -50,11 +45,12 @@ class OpenShiftService:
                 "Accept": "application/json",
                 "Authorization": f"Bearer {token}",
             }
+
             # Test connection by fetching namespaces
             self._test_connection()
 
+
         except Exception as e:
-            print(f"Failed to initialize OpenShiftService: {str(e)}")
             raise Exception(f"Failed to initialize OpenShiftService: {str(e)}")
 
     def _test_connection(self):
@@ -64,7 +60,6 @@ class OpenShiftService:
         try:
             self.core_v1_api.list_namespace()
         except ApiException as e:
-            print(f"Failed to connect to OpenShift API: {str(e)}")
             raise Exception(f"Failed to connect to OpenShift API: {str(e)}")
 
     def get_projects(self) -> Union[List[str], str]:
@@ -176,11 +171,13 @@ class OpenShiftService:
 
     def create_migration_plan(
         self,
+        network_map_uid: str,
+        network_map_name: str,
+        storage_map_uid: str,
+        storage_map_name: str,
         name: str = "default-migration-plan",
         destination: str = "host",
         source: str = "vmware",
-        network_map: str = "vmware-qbjcw",
-        storage_map: str = "vmware-wp7cw",
         vms: List[Dict[str, str]] = None,
         namespace: str = "openshift-mtv",
     ) -> Union[Dict, str]:
@@ -191,8 +188,6 @@ class OpenShiftService:
             name (str): The name of the migration plan. Default is 'default-migration-plan'.
             destination (str): The destination provider. Default is 'host'.
             source (str): The source provider. Default is 'vmware'.
-            network_map (str): The network map used for the migration. Default is 'vmware-qbjcw'.
-            storage_map (str): The storage map used for the migration. Default is 'vmware-wp7cw.
             vms (List[Dict[str, str]]): A list of VMs to migrate, each VM represented as a dictionary with 'id' and 'name'. Default is None.
             namespace (str): The namespace for the migration plan. Default is 'openshift-mtv'.
 
@@ -203,47 +198,59 @@ class OpenShiftService:
         if vms is None:
             vms = [{"id": "vm-12345", "name": "default-vm"}]  # Default VM if none provided
 
+        n_uid = network_map_uid
+        s_uid = storage_map_uid
+
+        openshift_provider_uuid = self.lookup_provider_uuid_by_name(
+            provider_name="host", provider_type="openshift"
+        )
+
+        vmware_provider_uuid = self.lookup_provider_uuid_by_name(
+            provider_name="vmware", provider_type="vsphere"
+        )
+
         try:
             # Prepare the body of the migration plan
             body = {
                 "apiVersion": "forklift.konveyor.io/v1beta1",
                 "kind": "Plan",
-                "metadata": {
-                    "name": name,
-                    "namespace": namespace
-                },
+                "metadata": {"name": name, "namespace": namespace},
                 "spec": {
                     "map": {
                         "network": {
                             "apiVersion": "forklift.konveyor.io/v1beta1",
                             "kind": "NetworkMap",
-                            "name": network_map,
-                            "namespace": namespace
+                            "name": network_map_name,
+                            "namespace": namespace,
+                            "uid": n_uid,
                         },
                         "storage": {
                             "apiVersion": "forklift.konveyor.io/v1beta1",
                             "kind": "StorageMap",
-                            "name": storage_map,
-                            "namespace": namespace
-                        }
+                            "name": storage_map_name,
+                            "namespace": namespace,
+                            "uid": s_uid,
+                        },
                     },
                     "provider": {
                         "destination": {
                             "apiVersion": "forklift.konveyor.io/v1beta1",
                             "kind": "Provider",
                             "name": destination,
-                            "namespace": namespace
+                            "namespace": namespace,
+                            "uid": openshift_provider_uuid,
                         },
                         "source": {
                             "apiVersion": "forklift.konveyor.io/v1beta1",
                             "kind": "Provider",
                             "name": source,
-                            "namespace": namespace
-                        }
+                            "namespace": namespace,
+                            "uid": vmware_provider_uuid,
+                        },
                     },
                     "targetNamespace": namespace,
-                    "vms": vms
-                }
+                    "vms": vms,
+                },
             }
 
             # Create the migration plan using the Kubernetes custom object API
@@ -478,3 +485,159 @@ class OpenShiftService:
 
         except requests.exceptions.RequestException as e:
             return f"Error retrieving migration plans: {str(e)}"
+
+    def create_storage_map(
+        self,
+        source_provider_uid: str = "3442763f-e621-41f9-b2d1-699da301353d",
+        destination_provider_uid: str = "81843304-1280-4cee-b50c-e985b7264272",
+        source_datastore_id: str = "datastore-5031",
+        destination_storage_class: str = "ocs-storagecluster-ceph-rbd",
+        namespace: str = "openshift-mtv",
+        source_provider_name: str = "vmware",
+        destination_provider_name: str = "host",
+    ) -> Union[Dict, str]:
+        """
+        Creates a new storage map in OpenShift.
+
+        Args:
+            source_provider_uid (str): The UUID of the source provider (e.g., VMware).
+            destination_provider_uid (str): The UUID of the destination provider (e.g., Host).
+            source_datastore_id (str): The datastore ID of the source.
+            destination_storage_class (str): The storage class of the destination.
+            namespace (str): The namespace where the storage map is created (default: 'openshift-mtv').
+            source_provider_name (str): The name of the source provider (default: 'vmware').
+            destination_provider_name (str): The name of the destination provider (default: 'host').
+
+        Returns:
+            Dict: The created storage map if successful.
+            str: An error message if the operation fails.
+        """
+        url = f"{self.api_url}/apis/forklift.konveyor.io/v1beta1/namespaces/{namespace}/storagemaps"
+
+        payload = {
+            "apiVersion": "forklift.konveyor.io/v1beta1",
+            "kind": "StorageMap",
+            "metadata": {
+                "namespace": namespace,
+                "generateName": f"{source_provider_name}-",
+            },
+            "spec": {
+                "provider": {
+                    "source": {
+                        "apiVersion": "forklift.konveyor.io/v1beta1",
+                        "kind": "Provider",
+                        "name": source_provider_name,
+                        "namespace": namespace,
+                        "uid": source_provider_uid,
+                    },
+                    "destination": {
+                        "apiVersion": "forklift.konveyor.io/v1beta1",
+                        "kind": "Provider",
+                        "name": destination_provider_name,
+                        "namespace": namespace,
+                        "uid": destination_provider_uid,
+                    },
+                },
+                "map": [
+                    {
+                        "source": {"id": source_datastore_id},
+                        "destination": {"storageClass": destination_storage_class},
+                    }
+                ],
+            },
+        }
+
+        try:
+            # Make the POST request to create the storage map
+            response = requests.post(
+                url, json=payload, headers=self.headers, verify=False
+            )
+            response.raise_for_status()  # Raise an error for non-200 responses
+
+            created_storage_map = response.json()
+
+            storage_map_uid = created_storage_map["metadata"]["uid"]
+            storage_map_name = created_storage_map["metadata"]["name"]
+
+            return created_storage_map, storage_map_uid, storage_map_name
+
+        except requests.exceptions.RequestException as e:
+            return f"Failed to create storage map: {str(e)}"
+
+    def create_network_map(
+        self,
+        source_provider_uid: str = "3442763f-e621-41f9-b2d1-699da301353d",
+        destination_provider_uid: str = "81843304-1280-4cee-b50c-e985b7264272",
+        source_network_id: str = "dvportgroup-1067",
+        destination_type: str = "pod",
+        namespace: str = "openshift-mtv",
+        source_provider_name: str = "vmware",
+        destination_provider_name: str = "host",
+    ) -> Union[Dict, str]:
+        """
+        Creates a new network map in OpenShift.
+
+        Args:
+            source_provider_uid (str): The UUID of the source provider (e.g., VMware).
+            destination_provider_uid (str): The UUID of the destination provider (e.g., Host).
+            source_network_id (str): The network ID of the source.
+            destination_type (str): The destination type (default: 'pod').
+            namespace (str): The namespace where the network map is created (default: 'openshift-mtv').
+            source_provider_name (str): The name of the source provider (default: 'vmware').
+            destination_provider_name (str): The name of the destination provider (default: 'host').
+
+        Returns:
+            Dict: The created network map if successful.
+            str: An error message if the operation fails.
+        """
+        url = f"{self.api_url}/apis/forklift.konveyor.io/v1beta1/namespaces/{namespace}/networkmaps"
+
+        payload = {
+            "apiVersion": "forklift.konveyor.io/v1beta1",
+            "kind": "NetworkMap",
+            "metadata": {
+                "namespace": namespace,
+                "generateName": f"{source_provider_name}-",
+            },
+            "spec": {
+                "provider": {
+                    "source": {
+                        "apiVersion": "forklift.konveyor.io/v1beta1",
+                        "kind": "Provider",
+                        "name": source_provider_name,
+                        "namespace": namespace,
+                        "uid": source_provider_uid,
+                    },
+                    "destination": {
+                        "apiVersion": "forklift.konveyor.io/v1beta1",
+                        "kind": "Provider",
+                        "name": destination_provider_name,
+                        "namespace": namespace,
+                        "uid": destination_provider_uid,
+                    },
+                },
+                "map": [
+                    {
+                        "source": {"id": source_network_id},
+                        "destination": {"type": destination_type},
+                    }
+                ],
+            },
+        }
+
+        try:
+            # Make the POST request to create the network map
+            response = requests.post(
+                url, json=payload, headers=self.headers, verify=False
+            )
+            response.raise_for_status()  # Raise an error for non-200 responses
+
+            created_network_map = response.json()
+
+            network_map_uid = created_network_map["metadata"]["uid"]
+            network_map_name = created_network_map["metadata"]["name"]
+
+            return created_network_map, network_map_uid, network_map_name
+
+        except requests.exceptions.RequestException as e:
+            return f"Failed to create network map: {str(e)}"

@@ -107,6 +107,14 @@ class ReactAgent(Agent):
                     usr_prompt = f"You keep repeating the same reasoning. Your task is {pending_task.get('task_name')}. Please act now or provide more specific details. Take your time and do this step-by-step."
 
                     iteration_limit = 3  # Reset the limit for the next cycle
+                    scratchpad = []
+                    sys_prompt = PromptBuilder.build_react_prompt(
+                        task=pending_task.get("task_name"),
+                        task_description=pending_task.get("task_description"),
+                        acceptance_criteria=pending_task.get("acceptance_criteria"),
+                        tool_names=tool_names,
+                        tool_descriptions=tool_descriptions,
+                    )
                 else:
                     continue  # Retry the reasoning
 
