@@ -241,5 +241,5 @@ openshift_tools = [
     # ensure_openshift_project_access,
     # ensure_openshift_providers_ready,
     create_migration_plan_tool,
-    # start_migration_tool,
+    start_migration_tool,
 ]

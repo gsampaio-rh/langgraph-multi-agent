@@ -2,10 +2,7 @@
 from utils.helpers import get_current_utc_datetime
 from config.app_config import app_config
 from tools import (
-    tool_names,
-    tools_description,
     vsphere_tool_names,
-    vsphere_tool_descriptions,
     openshift_tool_names,
 )
 from tools.tool_registry import (

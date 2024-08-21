@@ -190,7 +190,7 @@ class ReactAgent(Agent):
                 self.log_event("info", "Final answer generated.")
                 reason_and_act_output = {
                     "task_id": pending_task.get("task_id"),
-                    "suggested_tool": suggested_tool,
+                    "suggested_tool": tool_used,
                     "action_result": str(tool_result),
                     "final_thought": final_thought,
                 }
