@@ -10,14 +10,11 @@ This system is designed to streamline the migration process, breaking down compl
 
 This system leverages the following technologies:
 
-1. **Large Language Models (LLMs)**:
-   - Agents are powered by LLMs, which allow them to understand natural language, reason through tasks, and generate outputs based on complex inputs.
+1. **Large Language Models (LLMs)**: Agents are powered by LLMs, which allow them to understand natural language, reason through tasks, and generate outputs based on complex inputs.
 
-2. **LangChain**:
-   - A framework used to manage interactions between the agents, ensuring that they work together smoothly.
+2. **LangChain**: A framework used to manage interactions between the agents, ensuring that they work together smoothly.
 
-3. **LangGraph**:
-   - A tool used to visualize and structure the relationships between agents, tasks, and workflows.
+3. **LangGraph**: A tool used to visualize and structure the relationships between agents, tasks, and workflows.
 
 ## Key Features
 
