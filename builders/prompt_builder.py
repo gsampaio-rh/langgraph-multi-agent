@@ -12,9 +12,9 @@ from tools.tool_registry import (
 from prompts.planner_prompt import DEFAULT_SYS_PLANNER_PROMPT
 from prompts.pm_prompt import DEFAULT_SYS_PM_PROMPT
 from prompts.architect_prompt import DEFAULT_SYS_ARCHITECT_REACT_PROMPT
-from prompts.researcher_prompt import DEFAULT_SYS_RESEARCHER_PROMPT
 from prompts.reviewer_prompt import DEFAULT_SYS_REVIEWER_PROMPT
 from prompts.react_agent_prompt import DEFAULT_SYS_REACT_AGENT_PROMPT
+from prompts.engineer_prompt import DEFAULT_SYS_ENGINEER_PROMPT, DEFAULT_SYS_ENGINEER_REFLECT_PROMPT
 
 class PromptBuilder:
     openshift_tool_names = get_tool_names_by_category("openshift")
@@ -89,6 +89,40 @@ class PromptBuilder:
             tool_descriptions=tool_descriptions,
             agent_scratchpad=scratchpad,
             feedback=feedback_value,
+            datetime=get_current_utc_datetime(),
+        )
+
+    @staticmethod
+    def build_engineer_prompt(
+        task: str,
+        task_description: str,
+        acceptance_criteria: str,
+        tool_names: str = vsphere_tool_names,
+        tool_descriptions: str = vsphere_tool_descriptions,
+        scratchpad: str = "",
+    ) -> str:
+        return DEFAULT_SYS_ENGINEER_PROMPT.format(
+            task=task,
+            task_description=task_description,
+            acceptance_criteria=acceptance_criteria,
+            tool_names=tool_names,
+            tool_descriptions=tool_descriptions,
+            agent_scratchpad=scratchpad,
+            datetime=get_current_utc_datetime(),
+        )
+
+    @staticmethod
+    def build_engineer_reflect_prompt(
+        task: str,
+        task_description: str,
+        acceptance_criteria: str,
+        scratchpad: str = "",
+    ) -> str:
+        return DEFAULT_SYS_ENGINEER_REFLECT_PROMPT.format(
+            task=task,
+            task_description=task_description,
+            acceptance_criteria=acceptance_criteria,
+            agent_scratchpad=scratchpad,
             datetime=get_current_utc_datetime(),
         )
 

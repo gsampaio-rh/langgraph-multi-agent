@@ -21,10 +21,10 @@ class ReviewerAgent(Agent):
                 "warning",
                 f"No updates found for agent {agent_name}. Skipping task.",
             )
-
+        
         self.log_event(
             "info",
-            f"Now I have the last {agent_name} list: {json.dumps(agent_last_update, indent=4)}.",
+            f"Now I have the last {agent_name} update: {json.dumps(agent_last_update, indent=4)}.",
         )
 
         task_id = agent_last_update.get("task_id")

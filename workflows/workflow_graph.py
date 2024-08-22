@@ -3,6 +3,7 @@ from agents.planner.planner_agent import PlannerAgent
 from agents.pm.pm_agent import PMAgent
 from agents.architect.architect_agent import ArchitectAgent
 from agents.engineer.engineer_agent import EngineerAgent
+from agents.engineer.jr_engineer_agent import JrEngineerAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
 from state.agent_state import get_last_entry_from_state
 from config.app_config import app_config
@@ -56,6 +57,16 @@ def vsphere_engineer_node_function(state: AgentGraphState):
     EngineerAgent(
         state=state,
         role="vsphere_engineer",
+        model_config=app_config.model_config,
+    ).invoke(
+        user_request=state["user_request"],
+    )
+
+
+def jr_engineer_node_function(state: AgentGraphState):
+    JrEngineerAgent(
+        state=state,
+        role="ocp_engineer",
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"],
@@ -136,7 +147,7 @@ def create_graph() -> StateGraph:
     # Add nodes
     graph.add_node("planner", planner_node_function)
     graph.add_node("manager", pm_node_function)
-    graph.add_node("ocp_engineer", ocp_engineer_node_function)
+    graph.add_node("ocp_engineer", jr_engineer_node_function)
     graph.add_node("vsphere_engineer", vsphere_engineer_node_function)
     graph.add_node("reviewer", reviewer_node_function)
 
