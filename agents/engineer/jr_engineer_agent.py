@@ -140,7 +140,7 @@ class JrEngineerAgent(Agent):
                 "error",
                 f"❌ Invalid output received during thinking: {validation_message}",
             )
-            return None
+            return f"❌ Invalid output received during thinking: {validation_message}", None
 
     def act_phase(self, think_response: Dict[str, Any]) -> (bool, str):
         """Execute the action phase using the specified tool and return the usr_prompt for reflection."""
@@ -202,7 +202,7 @@ class JrEngineerAgent(Agent):
                 "error",
                 f"❌ Invalid output received during reflecting: {validation_message}",
             )
-            return None
+            return f"❌ Invalid output received during reflecting: {validation_message}", None
 
     def _process_reflection_result(
         self, task: dict, reflection_result: Dict[str, Any]
