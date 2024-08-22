@@ -126,9 +126,7 @@ class JrEngineerAgent(Agent):
         sys_prompt = self._build_system_prompt(task, scratchpad, is_reflecting=False)
         usr_prompt = f"Solve this task: {task.get('task_name')}"
 
-        response_human_message, response_content = self.invoke_model(
-            sys_prompt, usr_prompt
-        )
+        response_human_message, response_content = self.invoke_model(sys_prompt, usr_prompt, False)
         is_valid, think_response, validation_message = self.validate_model_output(
             response_content, engineer_output_schema
         )
@@ -188,7 +186,9 @@ class JrEngineerAgent(Agent):
         self.log_event("info", usr_prompt)
 
         # Invoke the model for reflection
-        response_human_message, response_content = self.invoke_model(sys_prompt, usr_prompt)
+        response_human_message, response_content = self.invoke_model(
+            sys_prompt, usr_prompt, False
+        )
 
         # Validate the reflection response
         is_valid, reflection_response, validation_message = self.validate_model_output(response_content, engineer_reflection_output_schema)

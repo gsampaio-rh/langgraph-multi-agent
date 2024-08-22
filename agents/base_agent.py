@@ -87,7 +87,7 @@ class Agent:
 
         return tool_names, tool_descriptions
 
-    def invoke_model(self, sys_prompt: str, user_prompt: str):
+    def invoke_model(self, sys_prompt: str, user_prompt: str, update_state:bool = True):
         """
         Use the ModelService to prepare the payload, invoke the model, and process the response.
         """
@@ -101,7 +101,8 @@ class Agent:
             self.model_service.process_model_response(response_json, self.role)
         )
 
-        self.update_state(f"{self.role}_response", response_content)
+        if update_state:
+            self.update_state(f"{self.role}_response", response_content)
 
         # Process the response
         return response_human_message, response_content
