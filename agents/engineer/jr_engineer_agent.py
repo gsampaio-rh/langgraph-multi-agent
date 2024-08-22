@@ -55,25 +55,24 @@ class JrEngineerAgent(Agent):
 
             # Step 1: Think phase
             self.log_event("info", f"🔍 [THINK] Initiating the Think phase for Task ID: {task_id}")
-            think_response, scratchpad = self.think_phase(task, scratchpad)
+            think_response, think_human_message = self.think_phase(task, scratchpad)
 
-            if not think_response:
-                self.log_event("warning", f"⚠️ [THINK] Failed to generate valid response in Think phase for Task ID: {task_id}")
-                continue  # Go to the next iteration if thinking fails
+            scratchpad.append(think_human_message)
 
             # Step 2: Act phase
             self.log_event("info", f"🛠️ [ACT] Initiating the Act phase for Task ID: {task_id}")
             success, act_usr_prompt = self.act_phase(think_response)
 
             if not success:
-                self.log_event("error", f"❌ [ACT] Action failed in Act phase for Task ID: {task_id}")
-                continue  # Go to the next iteration if action fails
+                scratchpad.append(f"[ACT] Action failed in Act phase. Please reflect on next stes for task {task_name}.")
 
             # Step 3: Reflect phase
             self.log_event("info", f"💭 [REFLECT] Initiating the Reflect phase for Task ID: {task_id}")
-            reflect_response, scratchpad = self.reflect_phase(
+            reflect_response, reflect_human_message = self.reflect_phase(
                 task, scratchpad, act_usr_prompt
             )
+
+            scratchpad.append(reflect_human_message)
 
             # Step 4: Process Reflection
             reflection_success = self._process_reflection_result(task, reflect_response)
@@ -83,7 +82,7 @@ class JrEngineerAgent(Agent):
                 act_dict = json.loads(act_usr_prompt)
                 reflect_output = {
                     "task_id": task.get("task_id"),
-                    "final_answer": reflect_response.get("final_answer"),
+                    "final_thought": reflect_response.get("final_thought"),
                     "action": think_response.get("action"),
                     "action_result": act_dict.get("action_result"),
                     "action_final_status": act_dict.get("tool_result_success"),
@@ -135,15 +134,11 @@ class JrEngineerAgent(Agent):
         )
 
         if is_valid:
-            scratchpad.append(response_human_message)
-            return think_response, scratchpad
+            return think_response, response_human_message
         else:
             self.log_event(
                 "error",
                 f"❌ Invalid output received during thinking: {validation_message}",
-            )
-            scratchpad.append(
-                f"❌ Invalid output received during thinking: {validation_message}"
             )
             return None
 
@@ -199,17 +194,13 @@ class JrEngineerAgent(Agent):
         is_valid, reflection_response, validation_message = self.validate_model_output(response_content, engineer_reflection_output_schema)
 
         if is_valid:
-            scratchpad.append(response_human_message)
             self.log_event("info", "Reflection completed successfully.")
             self.log_event("info", json.dumps(reflection_response, indent=4))
-            return reflection_response, scratchpad
+            return reflection_response, response_human_message
         else:
             self.log_event(
                 "error",
                 f"❌ Invalid output received during reflecting: {validation_message}",
-            )
-            scratchpad.append(
-                f"❌ Invalid output received during reflecting: {validation_message}"
             )
             return None
 
