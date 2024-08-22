@@ -110,19 +110,6 @@ When feedback indicates that a task has been completed, update the task as follo
                 "vm_names": ["vm1", "vm2", "vm3"],
                 "plan_name": "database-plan"
             }}
-        }},
-        {{
-            "task_id": "task_002",
-            "task_name": "Start Migration",
-            "task_description": "Start the migration process using the migration plan.",
-            "agent": "ocp_engineer",
-            "status": "in_progress",  # Task is currently being executed.
-            "dependencies": ["task_001"],
-            "acceptance_criteria": "Migration process successfully started.",
-            "tool_to_use": "start_migration_tool",
-            "provided_inputs": {{
-                "plan_name": "database-plan"
-            }}
         }}
     ]
 }}
