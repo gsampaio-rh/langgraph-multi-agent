@@ -16,19 +16,19 @@ planner_output_schema = {
                 "properties": {
                     "stage_name": {"type": "string"},
                     "goal": {"type": "string"},
-                    "input_data": {
+                    "completion_criteria": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "minItems": 1,
+                    },
+                    "provided_inputs": {
                         "type": "object",
                         "additionalProperties": {
                             "type": ["null", "string", "array"],
                             "items": {"type": "string"},
                         },
                     },
-                    "task_breakdown": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "minItems": 1,
-                    },
-                    "expected_results": {
+                    "execution_plan": {
                         "type": "array",
                         "items": {"type": "string"},
                         "minItems": 1,
@@ -37,20 +37,13 @@ planner_output_schema = {
                 "required": [
                     "stage_name",
                     "goal",
-                    "input_data",
-                    "task_breakdown",
-                    "expected_results",
+                    "completion_criteria",
+                    "provided_inputs",
+                    "execution_plan",
                 ],
             },
             "minItems": 1,
         },
-        "variables": {
-            "type": "object",
-            "additionalProperties": {
-                "type": ["null", "string", "array"],
-                "items": {"type": "string"},
-            },
-        },
     },
-    "required": ["source_provider", "target_provider", "stages", "variables"],
+    "required": ["source_provider", "target_provider", "stages"],
 }
