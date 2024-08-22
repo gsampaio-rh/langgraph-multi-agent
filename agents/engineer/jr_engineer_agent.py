@@ -114,6 +114,7 @@ class JrEngineerAgent(Agent):
                 task=pending_task.get("task_name"),
                 task_description=pending_task.get("task_description"),
                 acceptance_criteria=pending_task.get("acceptance_criteria"),
+                provided_inputs=pending_task.get("provided_inputs"),
                 tool_names=self.tool_names,
                 tool_descriptions=self.tool_descriptions,
                 scratchpad=scratchpad,

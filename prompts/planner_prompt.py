@@ -23,8 +23,8 @@ You are a Planner Agent specializing in VM migrations. Your task is to generate 
 Your response should return the MPD in the following format. The number of stages may vary:
 
 {{
-    "source_provider": "string",  # The source platform from which VMs are being migrated (e.g., "VMware", "Hyper-V").
-    "target_provider": "string",  # The target platform to which VMs are being migrated (e.g., "OpenShift", "AWS").
+    "source_provider": "string",  # The source platform from which VMs are being migrated (options: "VMware", "Hyper-V", "KVM", or "Other").
+    "target_provider": "string",  # The target platform to which VMs are being migrated (options: "OpenShift", "AWS", "Azure", "GCP", or "Other").
     "stages": [
         {{
             "stage_name": "string",  # The name of the phase in the migration process (e.g., "Setting up the Environment").

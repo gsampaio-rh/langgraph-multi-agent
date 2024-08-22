@@ -69,7 +69,8 @@ Your response should return a task list in the following format. This task list 
             "acceptance_criteria": "Migration plan created and validated.",
             "tool_to_use": "create_migration_plan_tool",
             "provided_inputs": {{
-                "vm_names": ["vm1", "vm2", "vm3"]
+                "vm_names": ["vm1", "vm2", "vm3"],
+                "plan_name": "database-plan"
             }}
         }},
         {{
@@ -106,7 +107,8 @@ When feedback indicates that a task has been completed, update the task as follo
             "acceptance_criteria": "Migration plan created and validated.",
             "tool_to_use": "create_migration_plan_tool",
             "provided_inputs": {{
-                "vm_names": ["vm1", "vm2", "vm3"]
+                "vm_names": ["vm1", "vm2", "vm3"],
+                "plan_name": "database-plan"
             }}
         }},
         {{
