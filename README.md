@@ -109,6 +109,32 @@ Here is a typical flow of tasks in the system:
    - Updates the task list and plans further actions if needed.
    - Ensures all tasks are completed, closes out the process, and provides final updates.
 
+## Configuration Setup
+
+Before starting the application, ensure you have the correct environment variables set for OpenShift, vSphere, and the model configuration. You can set these in your environment or use a `.env` file.
+
+```bash
+# Model Configuration
+MODEL_ENDPOINT=http://localhost:11434/api/generate
+MODEL_NAME=llama3:instruct
+MODEL_TEMPERATURE=0.0
+MODEL_TOP_P=1.0
+MODEL_TOP_K=0
+MODEL_REPEATITION_PENALTY=1.0
+MODEL_STOP=None
+
+# OpenShift Configuration
+OPENSHIFT_API_URL=https://api.openshift.local:6443
+OPENSHIFT_CONSOLE_URL=https://console.openshift.local
+OPENSHIFT_TOKEN=my-openshift-token
+OPENSHIFT_INVENTORY_ROUTE=https://inventory.openshift.local
+
+# vSphere Configuration
+VSPHERE_HOST=https://vsphere.local
+VSPHERE_USER=admin
+VSPHERE_PWD=password
+```
+
 ## How to Run the Project
 
 1. **Install Dependencies**:
