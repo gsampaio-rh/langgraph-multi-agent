@@ -52,6 +52,14 @@ pm_output_schema = {
                         ],  # The tool the agent should use, or null if no tool is required.
                         "default": None,  # Default is None if no tool is specified.
                     },
+                    "provided_inputs": {
+                        "type": "object",  # Input data needed for this task.
+                        "additionalProperties": {
+                            "type": ["null", "string", "array"],
+                            "items": {"type": "string"},
+                        },
+                        "default": {},  # Default is an empty object if no inputs are provided.
+                    },
                 },
                 "required": [
                     "task_id",
@@ -60,7 +68,7 @@ pm_output_schema = {
                     "agent",
                     "status",
                     "acceptance_criteria",
-                ],  # Dependencies and tool_to_use are optional.
+                ],  # Dependencies, tool_to_use, and provided_inputs are optional.
             },
         }
     },

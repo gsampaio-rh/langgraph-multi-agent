@@ -45,7 +45,10 @@ Your response should return a task list in the following format. This task list 
             "status": "pending",  # The current status of the task ("pending", "in_progress", "completed", "failed").
             "dependencies": ["array"],  # Task IDs that must be completed before this task starts.
             "acceptance_criteria": "string",  # The criteria for determining task success (e.g., "Migration plan created and validated").
-            "tool_to_use": "string or null"  # The tool that the agent should use to execute the task. This may be null if no tool is required.
+            "tool_to_use": "string or null",  # The tool that the agent should use to execute the task. This may be null if no tool is required.
+            "provided_inputs": {{
+                "key": "string | array | null"  # Input data needed for this task, such as VM names or configurations.
+            }}
         }}
     ]
 }}
@@ -64,7 +67,10 @@ Your response should return a task list in the following format. This task list 
             "status": "pending",
             "dependencies": [],
             "acceptance_criteria": "Migration plan created and validated.",
-            "tool_to_use": "create_migration_plan_tool"
+            "tool_to_use": "create_migration_plan_tool",
+            "provided_inputs": {{
+                "vm_names": ["vm1", "vm2", "vm3"]
+            }}
         }},
         {{
             "task_id": "task_002",
@@ -74,7 +80,10 @@ Your response should return a task list in the following format. This task list 
             "status": "pending",
             "dependencies": ["task_001"],
             "acceptance_criteria": "Migration process successfully started.",
-            "tool_to_use": "start_migration_tool"
+            "tool_to_use": "start_migration_tool",
+            "provided_inputs": {{
+                "plan_name": "database-plan"
+            }}
         }}
     ]
 }}
@@ -95,7 +104,10 @@ When feedback indicates that a task has been completed, update the task as follo
             "status": "completed",  # The task status has been updated based on feedback.
             "dependencies": [],
             "acceptance_criteria": "Migration plan created and validated.",
-            "tool_to_use": "create_migration_plan_tool"
+            "tool_to_use": "create_migration_plan_tool",
+            "provided_inputs": {{
+                "vm_names": ["vm1", "vm2", "vm3"]
+            }}
         }},
         {{
             "task_id": "task_002",
@@ -105,7 +117,10 @@ When feedback indicates that a task has been completed, update the task as follo
             "status": "in_progress",  # Task is currently being executed.
             "dependencies": ["task_001"],
             "acceptance_criteria": "Migration process successfully started.",
-            "tool_to_use": "start_migration_tool"
+            "tool_to_use": "start_migration_tool",
+            "provided_inputs": {{
+                "plan_name": "database-plan"
+            }}
         }}
     ]
 }}
