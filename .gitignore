@@ -183,3 +183,6 @@ draft
 #data
 data
 
+#conf
+.env.conf
+

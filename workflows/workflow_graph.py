@@ -1,21 +1,18 @@
 from langgraph.graph import StateGraph, START, END
-from agents.architect.architect_agent import ArchitectAgent
 from agents.planner.planner_agent import PlannerAgent
 from agents.pm.pm_agent import PMAgent
+from agents.architect.architect_agent import ArchitectAgent
+from agents.engineer.engineer_agent import EngineerAgent
+from agents.engineer.jr_engineer_agent import JrEngineerAgent
 from agents.reviewer.reviewer_agent import ReviewerAgent
-from agents.researcher.researcher_agent import ResearcherAgent
 from state.agent_state import get_last_entry_from_state
-from config.config import app_config
-from custom_tools import tools_description
+from config.app_config import app_config
 from utils.helpers import get_current_utc_datetime
 from termcolor import colored
 from utils import task_utils
 
 # Define state data structure (assuming you have AgentGraphState defined in one of the agent modules)
 from agents.base_agent import AgentGraphState
-
-# Render the tools description
-tools_description = tools_description
 
 def planner_node_function(state: AgentGraphState):
     PlannerAgent(
@@ -35,13 +32,44 @@ def pm_node_function(state: AgentGraphState):
         user_request=state["user_request"],
     )
 
-def reseacher_node_function(state: AgentGraphState):
-    ResearcherAgent(
+
+def architect_node_function(state: AgentGraphState):
+    ArchitectAgent(
         state=state,
-        role="researcher",
+        role="architect",
         model_config=app_config.model_config,
     ).invoke(
-        user_request=state["user_request"]
+        user_request=state["user_request"],
+    )
+
+
+def ocp_engineer_node_function(state: AgentGraphState):
+    EngineerAgent(
+        state=state,
+        role="ocp_engineer",
+        model_config=app_config.model_config,
+    ).invoke(
+        user_request=state["user_request"],
+    )
+
+
+def vsphere_engineer_node_function(state: AgentGraphState):
+    EngineerAgent(
+        state=state,
+        role="vsphere_engineer",
+        model_config=app_config.model_config,
+    ).invoke(
+        user_request=state["user_request"],
+    )
+
+
+def jr_engineer_node_function(state: AgentGraphState):
+    JrEngineerAgent(
+        state=state,
+        role="ocp_engineer",
+        model_config=app_config.model_config,
+    ).invoke(
+        user_request=state["user_request"],
     )
 
 
@@ -52,16 +80,7 @@ def reviewer_node_function(state: AgentGraphState):
         model_config=app_config.model_config,
     ).invoke(
         user_request=state["user_request"],
-        agent_update=get_last_entry_from_state(state, "researcher_response"),
-    )
-
-def architect_node_function(state: AgentGraphState):
-    ArchitectAgent(
-        state=state,
-        role="architect",
-        model_config=app_config.model_config,
-    ).invoke(
-        user_request=state["user_request"],
+        agent_update=get_last_entry_from_state(state, "ocp_engineer_response"),
     )
 
 
@@ -83,22 +102,22 @@ def should_continue(state):
     pending_agents = []
 
     for task in tasks_list:
-        # Check if task is not done and has no open dependencies
-        if task["status"] != "done":
+        # Check if task is not completed and has no open dependencies
+        if task["status"] != "completed":
             # Check dependencies
-            dependencies_done = all(
-                dep_task["status"] == "done"
+            dependencies_completed = all(
+                dep_task["status"] == "completed"
                 for dep_task in tasks_list
-                if dep_task["task_id"] in task["depends_on"]
+                if dep_task["task_id"] in task["dependencies"]
             )
-            # Only add the agent if all dependencies are done
-            if dependencies_done:
+            # Only add the agent if all dependencies are completed
+            if dependencies_completed:
                 pending_agents.append(task["agent"])
 
     if pending_agents:
         print(
             colored(
-                f"[{get_current_utc_datetime()}] Not all tasks are marked as 'done'.\n"
+                f"[{get_current_utc_datetime()}] Not all tasks are marked as 'completed'.\n"
                 f"These agents {pending_agents} have tasks.\n",
                 "red",
             )
@@ -107,7 +126,8 @@ def should_continue(state):
     else:
         print(
             colored(
-                f"[{get_current_utc_datetime()}] All tasks are marked as 'done'.", "green"
+                f"[{get_current_utc_datetime()}] All tasks are marked as 'completed'.",
+                "green",
             )
         )
         return END
@@ -122,21 +142,23 @@ def create_graph() -> StateGraph:
     """
     graph = StateGraph(AgentGraphState)
 
-    agents = ["architect", "researcher", END]
+    agents = ["ocp_engineer", "vsphere_engineer", END]
 
     # Add nodes
     graph.add_node("planner", planner_node_function)
     graph.add_node("manager", pm_node_function)
-    graph.add_node("architect", architect_node_function)
+    graph.add_node("ocp_engineer", jr_engineer_node_function)
+    graph.add_node("vsphere_engineer", vsphere_engineer_node_function)
     graph.add_node("reviewer", reviewer_node_function)
-    graph.add_node("researcher", reseacher_node_function)
 
     # Define the flow of the graph
     graph.add_edge(START, "planner")
     graph.add_edge("planner", "manager")
     graph.add_conditional_edges("manager", should_continue, agents)
-    graph.add_edge("researcher", "reviewer")
-    graph.add_edge("architect", "reviewer")
+    # graph.add_edge("manager", END)
+
+    graph.add_edge("ocp_engineer", "reviewer")
+    graph.add_edge("vsphere_engineer", "reviewer")
     graph.add_edge("reviewer", "manager")
 
     return graph

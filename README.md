@@ -1,83 +1,136 @@
-# Multi-Agent Task Management System
-
-Welcome to the **Multi-Agent Task Management System**! This project involves multiple AI agents that collaborate to complete complex tasks. The system helps in managing workflows where different agents handle various aspects of a project, such as planning, task execution, and review.
-
-## Table of Contents
-
-- [Multi-Agent Task Management System](#multi-agent-task-management-system)
-  - [Table of Contents](#table-of-contents)
-  - [Overview](#overview)
-  - [Technologies Used](#technologies-used)
-  - [Key Concepts](#key-concepts)
-  - [Modules](#modules)
-    - [1. Agents](#1-agents)
-    - [2. Workflows](#2-workflows)
-    - [3. Custom Tools](#3-custom-tools)
-    - [4. Utils](#4-utils)
-    - [5. Config](#5-config)
-  - [How to Run the Project](#how-to-run-the-project)
-  - [Contributing](#contributing)
-  - [License](#license)
-    - [Acknowledgments](#acknowledgments)
-  - [Contact](#contact)
+# Multi-Agent Virtual Machine Migration System
 
 ## Overview
 
-The **Multi-Agent Task Management System** is built to simulate a collaborative work environment where different agents, powered by AI, work together to complete various tasks. These agents have distinct roles, ranging from project planning to research and review.
+The Multi-Agent Virtual Machine Migration System automates the migration of virtual machines (VMs) from VMware to OpenShift using specialized agents. Each agent is designed to handle a specific part of the migration process, and the Project Manager (PM) Agent oversees the entire workflow, ensuring all tasks are completed in an efficient and coordinated manner.
 
-The system is designed to streamline task management by distributing responsibilities across specialized agents. Each agent communicates with others to ensure tasks are completed accurately and efficiently.
+This system is designed to streamline the migration process, breaking down complex tasks into manageable steps that are handled by intelligent agents, ensuring accuracy, reliability, and extensibility.
 
 ## Technologies Used
 
 This system leverages the following technologies:
 
-1. **Large Language Models (LLMs)**:
-   - Agents are powered by LLMs, which allow them to understand natural language, reason through tasks, and generate outputs based on complex inputs.
+1. **Large Language Models (LLMs)**: Agents are powered by LLMs, which allow them to understand natural language, reason through tasks, and generate outputs based on complex inputs.
 
-2. **LangChain**:
-   - A framework used to manage interactions between the agents, ensuring that they work together smoothly.
+2. **LangChain**: A framework used to manage interactions between the agents, ensuring that they work together smoothly.
 
-3. **LangGraph**:
-   - A tool used to visualize and structure the relationships between agents, tasks, and workflows.
+3. **LangGraph**: A tool used to visualize and structure the relationships between agents, tasks, and workflows.
 
-## Key Concepts
+## Key Features
 
-1. **Agents**: Agents are autonomous entities responsible for specific roles in the system. Each agent has specialized skills that allow them to perform tasks such as planning, researching, and reviewing.
-2. **Tasks**: Tasks are the individual units of work that agents handle. Each task has a description, criteria for completion, and a status indicating its progress.
-3. **Workflow**: The workflow represents the overall flow of tasks, from their creation to completion, managed by different agents working together.
-4. **State**: The state holds information about the tasks and agents, ensuring that agents can track progress and share data effectively.
+- **Automated VM Migration**: Manages the full lifecycle of VM migration from planning to execution and cleanup.
+- **Multi-Agent Architecture**: Specialized agents handle specific tasks, allowing for parallel execution and improved efficiency.
+- **Validation and Error Handling**: Automated feedback loops ensure tasks are validated, and issues are retried or reported.
+- **Customizable Workflows**: The migration process is fully customizable to meet the specific needs of your environment.
 
-## Modules
+## Project Structure
 
-### 1. Agents
+```bash
+.
+├── agents                 # Contains specialized agents for different tasks
+│   ├── architect           # Architect agent
+│   ├── engineer            # Engineer agent
+│   ├── planner             # Planner agent
+│   ├── pm                  # Project Manager agent
+│   ├── reviewer            # Reviewer agent
+│   ├── networking          # Networking agent
+│   └── cleanup             # Cleanup agent
+├── builders                # Builders for prompts and plans
+├── config                  # Configuration files
+├── controllers             # Orchestrates interactions between agents
+├── data                    # Data files, including migration steps and configurations
+├── prompts                 # Prompt templates for agents
+├── schemas                 # JSON schemas for validating agent outputs
+├── services                # External services for API calls and tool integrations
+├── state                   # Manages the state of agents and tasks
+├── tools                   # Custom tools and utilities for specific tasks
+├── utils                   # Utility scripts for logging, helpers, etc.
+├── workflows               # Manages the flow of tasks between agents
+├── main.py                 # Entry point for the application
+└── requirements.txt        # Python dependencies
+```
 
-This module contains the different agents involved in the task management system. Each agent has a specific role:
+### Key Components
 
-- **Planner Agent**: Creates project plans based on user input.
-- **PM (Project Manager) Agent**: Manages the breakdown of tasks and oversees the execution.
-- **Researcher Agent**: Executes tasks by gathering information and performing actions based on detailed plans.
-- **Reviewer Agent**: Reviews the outputs of tasks to ensure they meet the acceptance criteria.
+- **agents/**: Contains the code for each specialized agent involved in the migration process.
+- **config/**: Holds configuration files and agent descriptions.
+- **custom_tools/**: Implements custom tools and utilities to aid in specific migration tasks.
+- **data/**: Markdown files that define the tutorial and steps for the migration plan.
+- **prompts/**: Contains the system prompts for various agents.
+- **services/**: Handles interaction with external models, including API calls and response processing.
+- **state/**: Manages agent states and interactions.
+- **utils/**: General utilities for logging, task management, and helpers.
+- **workflows/**: Orchestrates workflows and agent interactions.
 
-### 2. Workflows
+## Agents
 
-This module handles the workflow and the logic of how tasks flow between agents. It compiles the workflow graph, ensures that agents communicate effectively, and tracks the status of each task.
+The system leverages a set of intelligent agents, each with clearly defined roles:
 
-### 3. Custom Tools
+- **Planner Agent**: Creates the Migration Plan Document (MPD) detailing key steps, target VMs, and source/target providers.
+- **PM Agent**: Oversees task distribution, execution, and ensures agent coordination throughout the migration process.
+- **vSphere Engineer Agent**: Prepares VMs in the vSphere environment and configures the source provider for migration.
+- **OpenShift Engineer Agent**: Configures the OpenShift environment and initiates the migration of VMs from vSphere to OpenShift.
+- **Reviewer Agent**: Validates the success of the VM migration and ensures applications function correctly post-migration.
+- **Networking Agent**: Ensures proper networking configuration for the migrated VMs, including routes, services, and load balancers.
+- **Cleanup Agent**: Cleans up unnecessary resources post-migration and ensures a clean environment.
 
-This module includes custom tools that agents can use to perform their tasks. These tools include:
+## Agent Workflow Example
 
-- **DuckDuckGo Search**: Allows agents to search the web for information.
-- **Wikipedia**: Allows agents to query Wikipedia for detailed information on various topics.
-- **Arxiv**: Lets agents query Arxiv for scientific articles.
-- **Website Crawler**: Allows agents to crawl web pages and extract content.
+Here is a typical flow of tasks in the system:
 
-### 4. Utils
+1. **Planner Agent**:
+   - Receives the input and tutorial.
+   - Generates the Migration Plan Document (MPD), detailing key steps, VMs, and source/target providers.
+   - Passes the MPD to the PM Agent for task distribution.
 
-Utility functions for logging, handling state, and managing other general-purpose code.
+2. **PM Agent**:
+   - Breaks down the Migration Plan into discrete tasks.
+   - Assigns tasks to the appropriate agents (e.g., vSphere Engineer, OpenShift Engineer).
+   - Oversees execution, ensuring all agents are working in coordination.
 
-### 5. Config
+3. **vSphere Engineer Agent**:
+   - Prepares the VMs in the vSphere environment, ensuring they are powered off and ready for migration.
+   - Configures the source provider for the migration and verifies that the VMs are properly allocated.
 
-Handles the configuration of the system, including model settings and agent behaviors. The configuration is done via the `AppConfig`, which allows you to customize the project’s behavior by modifying the configuration values.
+4. **OpenShift Engineer Agent**:
+   - Configures the OpenShift environment, ensuring namespaces are ready.
+   - Prepares the target environment and initiates the migration of VMs from vSphere to OpenShift.
+   - Coordinates with the Networking Agent to configure OpenShift routes, services, and load balancers.
+
+5. **Reviewer Agent**:
+   - Verifies the successful migration of the VMs to OpenShift.
+   - Ensures the applications are functioning as expected and that all resources are correctly allocated.
+
+6. **PM Agent**:
+   - Receives feedback from the Reviewer Agent.
+   - Updates the task list and plans further actions if needed.
+   - Ensures all tasks are completed, closes out the process, and provides final updates.
+
+## Configuration Setup
+
+Before starting the application, ensure you have the correct environment variables set for OpenShift, vSphere, and the model configuration. You can set these in your environment or use a `.env` file.
+
+```bash
+# Model Configuration
+MODEL_ENDPOINT=http://localhost:11434/api/generate
+MODEL_NAME=llama3:instruct
+MODEL_TEMPERATURE=0.0
+MODEL_TOP_P=1.0
+MODEL_TOP_K=0
+MODEL_REPEATITION_PENALTY=1.0
+MODEL_STOP=None
+
+# OpenShift Configuration
+OPENSHIFT_API_URL=https://api.openshift.local:6443
+OPENSHIFT_CONSOLE_URL=https://console.openshift.local
+OPENSHIFT_TOKEN=my-openshift-token
+OPENSHIFT_INVENTORY_ROUTE=https://inventory.openshift.local
+
+# vSphere Configuration
+VSPHERE_HOST=https://vsphere.local
+VSPHERE_USER=admin
+VSPHERE_PWD=password
+```
 
 ## How to Run the Project
 
@@ -109,7 +162,7 @@ Contributions are welcome! If you have suggestions, improvements, or new ideas, 
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
 
-### Acknowledgments
+## Acknowledgments
 
 Special thanks to the developers and community behind LangChain and the LLM models.
 All contributors and users who provided feedback and improvements.

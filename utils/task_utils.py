@@ -90,8 +90,8 @@ def get_pending_tasks(state, agent_role: str = None) -> list:
 
     pending_tasks = []
     for task in task_list:
-        # Check if the task is pending (not 'done')
-        if task.get("status") != "done":
+        # Check if the task is pending (not 'completed')
+        if task.get("status") != "completed":
             # If an agent_role is specified, filter by role; otherwise, add all pending tasks
             if agent_role is None or task.get("agent") == agent_role:
                 pending_tasks.append(task)
@@ -123,18 +123,4 @@ def get_first_pending_task(state, agent_role: str = None) -> list:
         )
 
     first_task = pending_tasks[0]
-    return validate_task(first_task)
-
-
-def validate_task(task: dict) -> dict:
-    """Validate that the task contains all required fields."""
-    required_fields = {
-        "task_id": task.get("task_id"),
-        "task_description": task.get("task_description"),
-        "acceptance_criteria": task.get("acceptance_criteria"),
-        "tools_to_use": task.get("tools_to_use"),
-    }
-    missing_fields = [field for field, value in required_fields.items() if not value]
-    if missing_fields:
-        raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-    return required_fields
+    return first_task

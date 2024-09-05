@@ -15,7 +15,7 @@ You have access to the following tools:
 ### Use the following format:
 - **task**: The task you must complete.
 - **thought**: Reflect on what needs to be done.
-- **action**: Choose the action to take from the available tools [{tools_names}]
+- **action**: Choose the action to take from the available tools [{tool_names}]
 - **action_input**: Use a valid JSON format for the action input (e.g., `{{"input": "example input"}}`). **Ensure that the input matches the expected type (e.g., a string if the tool expects a string).**
 - **observation**: Record the result of the action.
 - **thought**: If the task's criteria are satisfied, reflect on the observation and conclude the task.
